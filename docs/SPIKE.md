@@ -162,7 +162,17 @@ Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-
   kein Phasen-Event aus. → `/lol-gameflow/v1/session` ist jetzt im WAMP-URI-Filter; Queue-ID `-1` während
   des Aufbaus wird ignoriert.
 
+### Practice Tool Ende-zu-Ende (2026-11-03, signierter Debug-Build, Bard Support)
+| Schritt | Ergebnis |
+|---|---|
+| Queue | `3140`, `"Multiplayer Practice Tool Custom"` → `summonersRift` (über `gameMode`/Map, ID nicht in der Tabelle) |
+| Panel | 94 ms nach `Mode → champSelect` angedockt, OP.GG-Build Bard Support |
+| Auto-Import | nach dem Lock-in genau einmal `items=true runes=false`, nach dem manuellen Import (seriell) |
+| Queue im Spiel | gemerkte Lobby-Queue übernommen (Map 11 = `mapNumber` 11); Live Client `gameMode "PRACTICETOOL"` |
+| Skill-Overlay | Shielding+1, 293×44 pt, mittig, 288 pt über dem unteren Rand (20 % von 1440) auf 3440×1440; vom Nutzer gesehen; Stufe 1–3 = Q › W › E wie vorgeschlagen, ausgeblendet sobald kein Punkt offen |
+
 ### Offen (→ `scripts/spike/16-queue.sh` im Client bzw. Spiel)
+- Skill-Overlay ab Stufe 6 (R) und mit mehreren offenen Punkten live; 16:9-Bildschirm.
 - `gameData.queue` für Classic und Brawl (ID, `gameMode`, `mapId`, `description`).
 - Live-Client-`gameMode` im Spiel für Mayhem (`KIWI`?) und Arena (`CHERRY`?) – in der Lobby bestätigt, im Spiel offen.
 - Skill-Overlay-Position (20 % Höhe über unterem Rand) auf 16:9 und 21:9.
