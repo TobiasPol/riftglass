@@ -9,7 +9,9 @@ public final class IconCache {
     private let memory = NSCache<NSURL, NSImage>()
     private let fetcher: any HTTPFetching
     private let directory: URL
-    private var inFlight: [URL: Task<NSImage?, Never>] = [:]
+    /// Pending loads carry `Data` (Sendable); `NSImage` is only created on the main actor –
+    /// it is not `Sendable` on older SDKs (Xcode 16).
+    private var inFlight: [URL: Task<Data?, Never>] = [:]
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "IconCache")
 
     public init(
@@ -30,13 +32,20 @@ public final class IconCache {
         if let image = cachedImage(for: url) {
             return image
         }
-        if let task = inFlight[url] {
-            return await task.value
+        let task = inFlight[url] ?? Task { [fetcher, directory, file = diskURL(for: url)] in
+            await Self.loadData(url, file: file, directory: directory, fetcher: fetcher)
         }
-        let task = Task { await load(url) }
         inFlight[url] = task
-        let image = await task.value
+        let data = await task.value
         inFlight[url] = nil
+        if let image = cachedImage(for: url) {
+            return image
+        }
+        guard let data, let image = NSImage(data: data) else {
+            logger.debug("Icon unavailable: \(url.lastPathComponent, privacy: .public)")
+            return nil
+        }
+        memory.setObject(image, forKey: url as NSURL)
         return image
     }
 
@@ -46,24 +55,20 @@ public final class IconCache {
         }
     }
 
-    private func load(_ url: URL) async -> NSImage? {
-        let file = diskURL(for: url)
-        let data: Data
+    /// Disk cache first, then download (and store). Runs off the main actor.
+    private nonisolated static func loadData(
+        _ url: URL,
+        file: URL,
+        directory: URL,
+        fetcher: any HTTPFetching
+    ) async -> Data? {
         if let cached = try? Data(contentsOf: file) {
-            data = cached
-        } else {
-            do {
-                data = try await fetcher.data(from: url)
-            } catch {
-                logger.debug("Icon download failed: \(url.lastPathComponent, privacy: .public)")
-                return nil
-            }
-            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            try? data.write(to: file, options: .atomic)
+            return cached
         }
-        guard let image = NSImage(data: data) else { return nil }
-        memory.setObject(image, forKey: url as NSURL)
-        return image
+        guard let data = try? await fetcher.data(from: url) else { return nil }
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try? data.write(to: file, options: .atomic)
+        return data
     }
 
     nonisolated func diskURL(for url: URL) -> URL {

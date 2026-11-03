@@ -15,19 +15,43 @@ out="$root/build/release"
 derived="$out/DerivedData"
 rm -rf "$out/stage" && mkdir -p "$out/stage" "$out/updates"
 
-echo "==> Build $version (Release, Developer ID)"
+# notarytool exits 0 even for "Invalid" – check the status and show Apple's log on failure.
+notarize() {
+  local result status
+  result="$(xcrun notarytool submit "$1" --keychain-profile "$profile" --wait --output-format json)"
+  status="$(jq -r .status <<<"$result")"
+  if [[ "$status" != "Accepted" ]]; then
+    xcrun notarytool log "$(jq -r .id <<<"$result")" --keychain-profile "$profile" | jq '.issues'
+    echo "Notarization failed: $status" >&2
+    exit 1
+  fi
+}
+
+echo "==> Archive $version"
 xcodegen generate --spec "$root/src/mac/project.yml" --quiet
 xcodebuild -project "$root/src/mac/Riftglass.xcodeproj" -scheme Riftglass -configuration Release \
-  -derivedDataPath "$derived" -quiet build \
-  MARKETING_VERSION="$version" CURRENT_PROJECT_VERSION="$(git -C "$root" rev-list --count HEAD)" \
-  CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Developer ID Application" DEVELOPMENT_TEAM="$team" \
-  OTHER_CODE_SIGN_FLAGS="--timestamp"
-app="$derived/Build/Products/Release/Riftglass.app"
+  -derivedDataPath "$derived" -archivePath "$out/Riftglass.xcarchive" -quiet archive \
+  MARKETING_VERSION="$version" CURRENT_PROJECT_VERSION="$(git -C "$root" rev-list --count HEAD)"
+
+echo "==> Export (Developer ID – re-signs Sparkle's helpers, drops get-task-allow)"
+cat >"$out/ExportOptions.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>method</key><string>developer-id</string>
+  <key>teamID</key><string>$team</string>
+  <key>signingStyle</key><string>automatic</string>
+</dict></plist>
+PLIST
+rm -rf "$out/export"
+xcodebuild -exportArchive -archivePath "$out/Riftglass.xcarchive" -exportPath "$out/export" \
+  -exportOptionsPlist "$out/ExportOptions.plist" -quiet
+app="$out/export/Riftglass.app"
 codesign --verify --deep --strict --verbose=1 "$app"
 
 echo "==> Notarize app"
 ditto -c -k --keepParent "$app" "$out/Riftglass.zip"
-xcrun notarytool submit "$out/Riftglass.zip" --keychain-profile "$profile" --wait
+notarize "$out/Riftglass.zip"
 xcrun stapler staple "$app"
 
 echo "==> DMG"
@@ -35,7 +59,7 @@ dmg="$out/updates/Riftglass-$version.dmg"
 cp -R "$app" "$out/stage/" && ln -s /Applications "$out/stage/Applications"
 hdiutil create -volname "Riftglass" -srcfolder "$out/stage" -ov -format UDZO "$dmg" >/dev/null
 codesign --sign "Developer ID Application" --timestamp "$dmg"
-xcrun notarytool submit "$dmg" --keychain-profile "$profile" --wait
+notarize "$dmg"
 xcrun stapler staple "$dmg"
 spctl --assess --type open --context context:primary-signature --verbose "$dmg"
 
