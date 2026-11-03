@@ -1,0 +1,39 @@
+# Environment
+.env
+.env.*
+.env.local
+!.env.example
+
+# Dependencies
+node_modules/
+vendor/
+__pycache__/
+.venv/
+
+# Build outputs
+dist/
+build/
+.next/
+*.pyc
+.build/
+DerivedData/
+*.xcodeproj/
+*.xcworkspace/
+.swiftpm/
+
+# Spike raw output (may contain unredacted data)
+scripts/spike/out/
+
+# Claude local files
+.claude/settings.local.json
+CLAUDE.local.md
+
+# IDE
+.idea/
+.vscode/
+*.swp
+xcuserdata/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,9 @@
+--swiftversion 6.0
+--indent 4
+--maxwidth 120
+--wraparguments before-first
+--wrapcollections before-first
+--self remove
+--commas inline
+--disable redundantReturn,wrapMultilineStatementBraces
+--exclude src/mac/Packages/*/.build,src/mac/Riftglass.xcodeproj

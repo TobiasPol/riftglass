@@ -1,0 +1,3 @@
+{"type":"champion","version":"15.22.1","data":{
+ "Ahri":{"id":"Ahri","key":"103","name":"Ahri","title":"die neunschwänzige Füchsin","image":{"full":"Ahri.png","sprite":"champion0.png","group":"champion","x":48,"y":0,"w":48,"h":48},"tags":["Mage","Assassin"]},
+ "MonkeyKing":{"id":"MonkeyKing","key":"62","name":"Wukong","title":"der Affenkönig","image":{"full":"MonkeyKing.png","sprite":"champion2.png","group":"champion","x":0,"y":0,"w":48,"h":48},"tags":["Fighter"]}}}

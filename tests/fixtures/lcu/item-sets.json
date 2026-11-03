@@ -1,0 +1,325 @@
+{
+  "accountId": 1000,
+  "itemSets": [
+    {
+      "associatedChampions": [
+        43
+      ],
+      "associatedMaps": [
+        12
+      ],
+      "blocks": [
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "2003"
+            },
+            {
+              "count": 1,
+              "id": "3070"
+            },
+            {
+              "count": 1,
+              "id": "3112"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Starting Items"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "6655"
+            },
+            {
+              "count": 1,
+              "id": "3020"
+            },
+            {
+              "count": 1,
+              "id": "3089"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Mythic & Core Items"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "4645"
+            },
+            {
+              "count": 1,
+              "id": "3157"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Fourth Item Options"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3107"
+            },
+            {
+              "count": 1,
+              "id": "3504"
+            },
+            {
+              "count": 1,
+              "id": "6616"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Fifth Item Options"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3102"
+            },
+            {
+              "count": 1,
+              "id": "3222"
+            },
+            {
+              "count": 1,
+              "id": "3504"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Sixth Item Options"
+        }
+      ],
+      "map": "any",
+      "mode": "any",
+      "preferredItemSlots": [],
+      "sortrank": 0,
+      "startedFrom": "blank",
+      "title": "U.GG - Karma",
+      "type": "custom",
+      "uid": "5c714111-34a4-7343-95a0-ed592285deaf"
+    },
+    {
+      "associatedChampions": [
+        82
+      ],
+      "associatedMaps": [
+        11
+      ],
+      "blocks": [
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "1054"
+            },
+            {
+              "count": 1,
+              "id": "2003"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Starting Items"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "4633"
+            },
+            {
+              "count": 1,
+              "id": "3047"
+            },
+            {
+              "count": 1,
+              "id": "3116"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Mythic & Core Items"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "4637"
+            },
+            {
+              "count": 1,
+              "id": "3157"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Fourth Item Options"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3157"
+            },
+            {
+              "count": 1,
+              "id": "3075"
+            },
+            {
+              "count": 1,
+              "id": "3065"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Fifth Item Options"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3075"
+            },
+            {
+              "count": 1,
+              "id": "3157"
+            },
+            {
+              "count": 1,
+              "id": "3065"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Sixth Item Options"
+        }
+      ],
+      "map": "any",
+      "mode": "any",
+      "preferredItemSlots": [],
+      "sortrank": 0,
+      "startedFrom": "blank",
+      "title": "U.GG - Mordekaiser",
+      "type": "custom",
+      "uid": "030de66d-e81c-1e45-a492-02180c26703d"
+    },
+    {
+      "associatedChampions": [
+        6
+      ],
+      "associatedMaps": [
+        12
+      ],
+      "blocks": [
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "2031"
+            },
+            {
+              "count": 1,
+              "id": "3077"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Starting Items"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3748"
+            },
+            {
+              "count": 1,
+              "id": "3111"
+            },
+            {
+              "count": 1,
+              "id": "6662"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Mythic & Core Items"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3071"
+            },
+            {
+              "count": 1,
+              "id": "6333"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Fourth Item Options"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "4401"
+            },
+            {
+              "count": 1,
+              "id": "6333"
+            },
+            {
+              "count": 1,
+              "id": "3071"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Fifth Item Options"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3083"
+            },
+            {
+              "count": 1,
+              "id": "4401"
+            },
+            {
+              "count": 1,
+              "id": "3193"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Sixth Item Options"
+        }
+      ],
+      "map": "any",
+      "mode": "any",
+      "preferredItemSlots": [],
+      "sortrank": 0,
+      "startedFrom": "blank",
+      "title": "U.GG - Urgot",
+      "type": "custom",
+      "uid": "bf36947f-c559-7a43-bd8e-1d0e9f358127"
+    }
+  ],
+  "timestamp": 1662388353526
+}

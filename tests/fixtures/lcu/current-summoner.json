@@ -1,0 +1,24 @@
+{
+  "accountId": 1000,
+  "displayName": "anon",
+  "gameName": "anon",
+  "internalName": "anon",
+  "nameChangeFlag": false,
+  "percentCompleteForNextLevel": 1,
+  "privacy": "PUBLIC",
+  "profileIconId": 4027,
+  "puuid": "anon",
+  "rerollPoints": {
+    "currentPoints": 284,
+    "maxRolls": 2,
+    "numberOfRolls": 1,
+    "pointsCostToRoll": 250,
+    "pointsToReroll": 216
+  },
+  "summonerId": 1000,
+  "summonerLevel": 218,
+  "tagLine": "anon",
+  "unnamed": false,
+  "xpSinceLastLevel": 56,
+  "xpUntilNextLevel": 3456
+}

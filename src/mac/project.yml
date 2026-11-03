@@ -1,0 +1,68 @@
+# XcodeGen spec – generate with: xcodegen generate --spec src/mac/project.yml
+name: Riftglass
+options:
+  bundleIdPrefix: de.polleydigital
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  developmentLanguage: de
+
+packages:
+  LeagueKit:
+    path: Packages/LeagueKit
+  DataKit:
+    path: Packages/DataKit
+  StatsKit:
+    path: Packages/StatsKit
+  OverlayKit:
+    path: Packages/OverlayKit
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    ARCHS: arm64
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEAD_CODE_STRIPPING: YES
+
+targets:
+  Riftglass:
+    type: application
+    platform: macOS
+    sources:
+      - path: App/Sources
+    dependencies:
+      - package: LeagueKit
+      - package: DataKit
+      - package: StatsKit
+      - package: OverlayKit
+    settings:
+      base:
+        PRODUCT_NAME: Riftglass
+        PRODUCT_BUNDLE_IDENTIFIER: de.polleydigital.riftglass
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        # Signed from Phase 0 on so Input Monitoring survives rebuilds (PLAN §2).
+        # CI overrides with CODE_SIGNING_ALLOWED=NO.
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: Apple Development
+        DEVELOPMENT_TEAM: CQ42H4H5MA
+        ENABLE_HARDENED_RUNTIME: YES
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Riftglass
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.games
+        INFOPLIST_KEY_NSHumanReadableCopyright: >-
+          Riftglass isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games
+          or anyone officially involved in producing or managing Riot Games properties.
+
+schemes:
+  Riftglass:
+    build:
+      targets:
+        Riftglass: all
+    run:
+      config: Debug
+    archive:
+      config: Release

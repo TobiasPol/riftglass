@@ -1,0 +1,5 @@
+[{"id":8100,"key":"Domination","icon":"perk-images/Styles/7200_Domination.png","name":"Dominanz","slots":[
+  {"runes":[{"id":8112,"key":"Electrocute","icon":"perk-images/Styles/Domination/Electrocute/Electrocute.png","name":"Elektrisieren","shortDesc":"…","longDesc":"…"}]},
+  {"runes":[{"id":8139,"key":"TasteOfBlood","icon":"perk-images/Styles/Domination/TasteOfBlood/GreenTerror_TasteOfBlood.png","name":"Blutgeschmack"}]}]},
+ {"id":8200,"key":"Sorcery","icon":"perk-images/Styles/7202_Sorcery.png","name":"Zauberei","slots":[
+  {"runes":[{"id":8214,"key":"SummonAery","icon":"perk-images/Styles/Sorcery/SummonAery/SummonAery.png","name":"Aery beschwören"}]}]}]

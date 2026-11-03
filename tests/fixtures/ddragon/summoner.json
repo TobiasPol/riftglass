@@ -1,0 +1,3 @@
+{"type":"summoner","version":"15.22.1","data":{
+ "SummonerFlash":{"id":"SummonerFlash","name":"Blitz","key":"4","image":{"full":"SummonerFlash.png"},"cooldown":[300]},
+ "SummonerDot":{"id":"SummonerDot","name":"Entzünden","key":"14","image":{"full":"SummonerDot.png"},"cooldown":[180]}}}

@@ -1,0 +1,33 @@
+# Install: pre-commit install
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: swiftformat
+        name: swiftformat
+        entry: swiftformat --lint
+        language: system
+        types: [swift]
+      - id: swiftlint
+        name: swiftlint
+        entry: swiftlint lint --strict --quiet
+        language: system
+        types: [swift]
+        pass_filenames: false
+      - id: no-env-files
+        name: forbid .env files
+        entry: .env files must not be committed
+        language: fail
+        files: '(^|/)\.env($|\.(?!example$))'
