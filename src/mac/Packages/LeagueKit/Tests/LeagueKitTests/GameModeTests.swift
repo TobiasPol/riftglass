@@ -45,6 +45,22 @@ struct GameModeTests {
         #expect(try JSONDecoder().decode(GameflowSession.self, from: Data(idle.utf8)).queue == nil)
     }
 
+    @Test func gameflowSessionEventPassesFilterAndYieldsQueue() throws {
+        // Mode switch inside the lobby: only a gameflow-session event, no phase change.
+        let frame = #"[8,"OnJsonApiEvent",{"data":{"phase":"Lobby","gameData":{"queue":{"id":450,"#
+            + #""mapId":12,"gameMode":"ARAM","description":"ARAM"}}},"eventType":"Update","#
+            + #""uri":"/lol-gameflow/v1/session"}]"#
+        let message = WAMPMessage.parse(Data(frame.utf8), keeping: LCUEventStream.defaultURIs)
+        guard case let .event(event)? = message else {
+            Issue.record("event dropped")
+            return
+        }
+        #expect(try event.decode(GameflowSession.self).queue?.mode == .aram)
+        // Sub-resources of the session are not mistaken for it.
+        let other = frame.replacingOccurrences(of: "/v1/session\"", with: "/v1/session/extra\"")
+        #expect(WAMPMessage.parse(Data(other.utf8), keeping: LCUEventStream.defaultURIs) == nil)
+    }
+
     @Test func inGameKeepsRememberedQueueOnlyOnSameMap() {
         let flex = GameQueue(id: 440, mode: .summonersRift, mapId: 11, isRanked: true, name: "Ranked Flex")
         #expect(GameQueue.resolvedInGame(remembered: flex, liveGameMode: "CLASSIC", mapNumber: 11) == flex)

@@ -29,7 +29,7 @@ struct BuildLoader {
         -> [BuildOption] {
         let role = role ?? .middle
         async let fromOPGG = opggBuilds(champion: champion, role: role, queue: queue, patch: patch)
-        async let fromRiot = riotBuilds(champion: champion, role: role, mode: queue.mode, lcu: lcu)
+        async let fromRiot = riotBuilds(champion: champion, role: role, queue: queue, lcu: lcu)
         let primary = await fromOPGG
         let knownRunes = Set(primary.map(\.runes.perkIds))
         // Riot pages carry no skill order; OP.GG's for the same champion and queue applies to them too.
@@ -54,23 +54,32 @@ struct BuildLoader {
         }
     }
 
-    private func riotBuilds(champion: ChampionRef, role: Role, mode: GameMode, lcu: (any LCURequesting)?) async
+    private func riotBuilds(champion: ChampionRef, role: Role, queue: GameQueue, lcu: (any LCURequesting)?) async
         -> [BuildOption] {
-        guard let lcu, let mapId = mode.recommendationMapId else { return [] }
-        let position = mode.hasLanes ? role.lcuPosition : "NONE"
+        guard let lcu, let mapId = queue.mode.recommendationMapId else { return [] }
+        let position = queue.mode.hasLanes ? role.lcuPosition : "NONE"
         let pages = await (try? lcu.recommendedPages(championId: champion.id, position: position, mapId: mapId)) ?? []
         return pages.prefix(3).enumerated().compactMap { index, page in
-            Self.option(from: page, index: index, champion: champion, role: role)
+            Self.option(from: page, index: index, champion: champion, role: role, queue: BuildQueue(queue: queue))
         }
     }
 
-    static func option(from page: RecommendedRunePage, index: Int, champion: ChampionRef, role: Role) -> BuildOption? {
+    /// `queue` tags the option with the statistics queue it was loaded for, so the in-game skill
+    /// overlay never reuses it (and the attached OP.GG skill order) in another queue.
+    static func option(
+        from page: RecommendedRunePage,
+        index: Int,
+        champion: ChampionRef,
+        role: Role,
+        queue: BuildQueue?
+    ) -> BuildOption? {
         guard page.perkIds.count == 9 else { return nil }
         return BuildOption(
             id: "riot-\(champion.id)-\(role.rawValue)-\(index)",
             title: "Riot · \(page.keystone?.name ?? "Empfehlung")",
             role: role,
             championKey: champion.key,
+            queue: queue,
             source: .riot,
             runes: .init(
                 primaryStyleId: page.primaryPerkStyleId,

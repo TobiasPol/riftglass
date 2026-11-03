@@ -15,8 +15,8 @@ NSWorkspace.runningApplications (KVO)
    ├─ CredentialResolver (KERN_PROCARGS2 → Lockfile-Fallback)       ├─ BuildProvider (StatsKit)
    ├─ LCUClient (REST, actor)  ◄──────────────── Aktionen ──────────┤─ DataDragon / IconCache (DataKit)
    └─ LCUEventStream (WAMP, actor)                                  └─ ChampSelectPanel + ClientDockController
-        ├─ [5,"OnJsonApiEvent"] → URI-Filter → phase / champ-select session
-        └─ bei Phasenwechsel: GET gameflow/v1/session → GameQueue (GameMode.classify) → AppSettings.lastQueue
+        └─ [5,"OnJsonApiEvent"] → URI-Filter → phase / gameflow session / champ-select session
+             gameflow session → GameQueue (GameMode.classify) → AppSettings.lastQueue
                                                    │ inGame (Spielprozess läuft, LCU meist beendet)
                                                    ▼
                                           InGameCoordinator

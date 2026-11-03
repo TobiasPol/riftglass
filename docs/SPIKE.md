@@ -147,8 +147,19 @@ Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-
 | OP.GG Skill-Order | `data.skills.order` = 15 Schritte (Stufe 1–15), `data.skill_masteries` = Max-Reihenfolge |
 | Live Client Fähigkeiten | `activeplayer.abilities.{Q,W,E,R}.abilityLevel` (Fixture `liveclient/activeplayer.json`) |
 
+### Live bestätigt (2026-11-03, Client EUW, `16-queue.sh`)
+| Lobby | `gameData.queue` | Riftglass |
+|---|---|---|
+| ARAM: Mayhem | `id 2400`, `mapId 12`, `gameMode "KIWI"`, `type "KIWI"`, `description "ARAM: Mayhem"` | `aramMayhem`, 43 ms nach Verbindung |
+
+- `recommended-pages/champion/103/position/{NONE,MIDDLE}/map/12` → 200, 3 ARAM-Seiten mit Spells `[4, 32]`
+  (Flash + Schneeball) – Position egal.
+- **Bug gefunden und behoben:** Das Abfragen der Session beim Phasen-Event „Lobby“ lieferte noch keine Queue
+  (Session wird kurz nach dem Phasenwechsel befüllt), und ein Moduswechsel in der offenen Lobby löst gar
+  kein Phasen-Event aus. → `/lol-gameflow/v1/session` ist jetzt im WAMP-URI-Filter; Queue-ID `-1` während
+  des Aufbaus wird ignoriert.
+
 ### Offen (→ `scripts/spike/16-queue.sh` im Client bzw. Spiel)
-- `gameData.queue` für Mayhem, Arena, Classic, Brawl (ID, `gameMode`, `mapId`, `description`).
+- `gameData.queue` für Arena, Classic, Brawl (ID, `gameMode`, `mapId`, `description`).
 - Live-Client-`gameMode` in Mayhem (`KIWI`?) und Arena (`CHERRY`?) – Annahme aus match-v5.
-- `recommended-pages` mit Map 12 und Position `NONE` (ARAM).
 - Skill-Overlay-Position (20 % Höhe über unterem Rand) auf 16:9 und 21:9.

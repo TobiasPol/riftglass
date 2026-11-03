@@ -3,15 +3,62 @@ import Foundation
 /// A levelable ability slot.
 public enum SkillSlot: String, CaseIterable, Codable, Sendable {
     case q = "Q", w = "W", e = "E", r = "R"
+}
 
-    public var maxRank: Int {
-        self == .r ? 3 : 5
+/// How a champion's abilities are ranked. Most champions use `.standard`; a few kits differ in
+/// ways the Live Client does not reveal (it only reports current ranks, not spent points).
+public struct SkillRules: Equatable, Sendable {
+    public var maxRank: [SkillSlot: Int]
+    /// Ranks a champion starts with for free (Karma's Mantra).
+    public var startingRanks: [SkillSlot: Int] = [:]
+    /// Slots that rank up by themselves and never cost a point (Jayce, Elise, Nidalee: R).
+    public var automatic: Set<SkillSlot> = []
+    /// Champion level required for each ultimate rank (index 0 = rank 1).
+    public var ultimateLevels: [Int] = [6, 11, 16]
+    /// The ultimate is gated like a basic ability (Udyr has four basic stances).
+    public var ultimateIsBasic = false
+    /// Suggest from priority once the recorded order (levels 1–15) is used up. Off for kits whose
+    /// late ranks the order does not show.
+    public var fallbackAfterOrder = true
+
+    public static let standard = SkillRules(maxRank: [.q: 5, .w: 5, .e: 5, .r: 3])
+
+    /// Rules for a Data Dragon champion key; unknown champions use `.standard`.
+    public static func forChampion(_ key: String) -> SkillRules {
+        var rules = SkillRules.standard
+        switch key {
+        case "Jayce", "Elise", "Nidalee":
+            rules.automatic = [.r]
+        case "Karma":
+            rules.startingRanks = [.r: 1]
+            rules.maxRank[.r] = 4
+            rules.ultimateLevels = [1, 6, 11, 16]
+        case "Udyr":
+            // Rank-6 unlocks lie beyond OP.GG's 15-step order → no advice after it, rather than a guess.
+            rules.maxRank = [.q: 6, .w: 6, .e: 6, .r: 6]
+            rules.ultimateIsBasic = true
+            rules.fallbackAfterOrder = false
+        default:
+            break
+        }
+        return rules
     }
 
-    /// Lowest champion level for `rank` (1-based) under the standard rules. Champions like Udyr or
-    /// Jayce deviate; their recorded skill order proves the exception (see `SkillOrderAdvisor`).
-    func standardRequiredLevel(forRank rank: Int) -> Int {
-        self == .r ? [6, 11, 16][min(max(rank, 1), 3) - 1] : 2 * rank - 1
+    /// Lowest champion level for `rank` (1-based) of `slot`.
+    func requiredLevel(_ slot: SkillSlot, rank: Int) -> Int {
+        guard slot == .r, !ultimateIsBasic else { return 2 * rank - 1 }
+        return rank <= ultimateLevels.count ? ultimateLevels[rank - 1] : .max
+    }
+
+    /// Points actually spent: ranks minus free starting ranks, automatic slots excluded.
+    func spentPoints(_ ranks: [SkillSlot: Int]) -> Int {
+        SkillSlot.allCases.filter { !automatic.contains($0) }
+            .reduce(0) { $0 + max(0, ranks[$1, default: 0] - startingRanks[$1, default: 0]) }
+    }
+
+    func learnable(_ slot: SkillSlot, rank: Int, championLevel: Int) -> Bool {
+        !automatic.contains(slot) && rank <= maxRank[slot, default: 0]
+            && championLevel >= requiredLevel(slot, rank: rank)
     }
 }
 
@@ -26,29 +73,34 @@ public struct SkillAdvice: Equatable, Sendable {
 
 /// Suggests which ability to level, following a recorded skill order (e.g. OP.GG's most common one).
 ///
-/// Pure: inputs are the order, the champion level and the current ability ranks from the Live
-/// Client (`activeplayer.abilities`). Tolerates players deviating from the order: the suggestion is
-/// always the earliest step the player has not taken yet that can be learned right now.
+/// Pure: inputs are the order, the champion level, the current ability ranks from the Live
+/// Client (`activeplayer.abilities`) and the champion's `SkillRules`. Tolerates players deviating
+/// from the order: the suggestion is the earliest step not taken yet that can be learned now.
 public enum SkillOrderAdvisor {
-    public static func advice(order: [String], championLevel: Int, ranks: [SkillSlot: Int]) -> SkillAdvice? {
+    public static func advice(
+        order: [String],
+        championLevel: Int,
+        ranks: [SkillSlot: Int],
+        rules: SkillRules = .standard
+    ) -> SkillAdvice? {
         let steps = order.compactMap { SkillSlot(rawValue: $0.uppercased()) }
-        let unspent = championLevel - ranks.values.reduce(0, +)
+            .filter { !rules.automatic.contains($0) }
+        let unspent = championLevel - rules.spentPoints(ranks)
         guard unspent > 0, !steps.isEmpty else { return nil }
-        let orderLevels = Self.orderLevels(steps)
-        var planned: [SkillSlot: Int] = [:]
+        var planned = rules.startingRanks
         for (index, slot) in steps.enumerated() {
             planned[slot, default: 0] += 1
             let current = ranks[slot, default: 0]
             guard current < planned[slot, default: 0] else { continue }
-            if learnable(slot, rank: current + 1, championLevel: championLevel, orderLevels: orderLevels) {
+            if rules.learnable(slot, rank: current + 1, championLevel: championLevel) {
                 let then = Array(steps.dropFirst(index + 1).prefix(3))
                 return SkillAdvice(next: slot, then: then, unspentPoints: unspent)
             }
         }
         // Order exhausted (it usually covers levels 1–15) or nothing learnable from it: priority.
+        guard rules.fallbackAfterOrder else { return nil }
         let fallback = priority(steps).first { slot in
-            let rank = ranks[slot, default: 0] + 1
-            return learnable(slot, rank: rank, championLevel: championLevel, orderLevels: orderLevels)
+            rules.learnable(slot, rank: ranks[slot, default: 0] + 1, championLevel: championLevel)
         }
         return fallback.map { SkillAdvice(next: $0, then: [], unspentPoints: unspent) }
     }
@@ -64,32 +116,5 @@ public enum SkillOrderAdvisor {
             return (steps.lastIndex(of: lhs) ?? .max) < (steps.lastIndex(of: rhs) ?? .max)
         }
         return [.r] + ranked
-    }
-
-    /// Champion level at which the order takes each rank: `[slot: [rank: level]]`.
-    private static func orderLevels(_ steps: [SkillSlot]) -> [SkillSlot: [Int: Int]] {
-        var result: [SkillSlot: [Int: Int]] = [:]
-        var counts: [SkillSlot: Int] = [:]
-        for (index, slot) in steps.enumerated() {
-            counts[slot, default: 0] += 1
-            result[slot, default: [:]][counts[slot, default: 0]] = index + 1
-        }
-        return result
-    }
-
-    private static func learnable(
-        _ slot: SkillSlot,
-        rank: Int,
-        championLevel: Int,
-        orderLevels: [SkillSlot: [Int: Int]]
-    ) -> Bool {
-        let fromOrder = orderLevels[slot] ?? [:]
-        // Champions like Udyr have more ultimate/ability ranks than usual; the order shows how many.
-        guard rank <= max(slot.maxRank, fromOrder.count) else { return false }
-        let standard = slot.standardRequiredLevel(forRank: rank)
-        // Only an early ultimate (Udyr, Jayce, Elise, …) is taken from the order – basic abilities
-        // always follow the level rule, so a malformed order cannot suggest an impossible rank.
-        guard slot == .r, let orderLevel = fromOrder[rank] else { return championLevel >= standard }
-        return championLevel >= min(standard, orderLevel)
     }
 }

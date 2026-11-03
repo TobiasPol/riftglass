@@ -34,6 +34,8 @@ final class InGameCoordinator {
     /// Skill order for the current champion; nil until resolved (champ select or OP.GG).
     @ObservationIgnored var skillOrder: [String]?
     @ObservationIgnored var skillOrderTask: Task<Void, Never>?
+    /// Hides the skill pill the moment another app comes to the front (snapshots may pause).
+    @ObservationIgnored var activationObserver: (any NSObjectProtocol)?
     @ObservationIgnored private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "InGame")
 
     init(champSelect: ChampSelectCoordinator, settings: AppSettings) {
@@ -63,6 +65,7 @@ final class InGameCoordinator {
             }
         }
         startHotkey()
+        observeActivation()
     }
 
     func stop() {

@@ -71,7 +71,9 @@ extension ChampSelectCoordinator {
         )
         actionState = .running("\(label) wird übernommen …")
         plannedBuild = build
-        Task {
+        let previous = importChain
+        importChain = Task {
+            await previous?.value // never overlap: a reroll during an import waits for it
             do {
                 try await work(actions, mapping)
                 actionState = .done("\(label) übernommen.")
@@ -79,6 +81,7 @@ extension ChampSelectCoordinator {
                 actionState = .failed(ActionErrorText.describe(error))
                 logger.error("\(label, privacy: .public) failed: \(String(describing: error), privacy: .public)")
             }
+            autoImportIfNeeded() // the pick may have changed while this import ran
         }
     }
 }

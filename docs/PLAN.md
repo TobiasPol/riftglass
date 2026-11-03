@@ -259,8 +259,9 @@ da weder LCU noch Live Client die angebotenen Augments liefern.
 - `GameMode.classify(queueId:gameMode:mapId:description:)` (LeagueKit, pur): Queue-ID aus Riots
   `queues.json` → `gameMode`-String (inkl. Codenamen `KIWI` = Mayhem, `CHERRY` = Arena) → Map → `.unknown`.
   League Classic (Patch 26.15, Queue-ID unbekannt) über den Queue-Namen.
-- Quelle: `GET /lol-gameflow/v1/session` → `gameData.queue`, bei jedem Phasenwechsel ab Lobby (kein
-  WAMP-Abo auf die große Session); Fallback `queueId` aus der Champ-Select-Session. Im Spiel ist die LCU
+- Quelle: `/lol-gameflow/v1/session` → `gameData.queue`: per REST nach jedem (Re-)Subscribe, danach als
+  WAMP-Event (Moduswechsel in der offenen Lobby lösen kein Phasen-Event aus); Fallback `queueId` aus der
+  Champ-Select-Session. Im Spiel ist die LCU
   zu → gemerkte Lobby-Queue, wenn die Map zu `gamestats.mapNumber` passt, sonst Live-Client-`gameMode`.
 - Fähigkeiten pro Modus: Lanes, Runenseiten (nicht Arena/Swarm/Classic), Item-Set-Map (11/12 bzw. keine),
   Riot-Empfehlungs-Map, Augments.

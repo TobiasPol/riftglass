@@ -49,7 +49,7 @@ final class LCUConnection {
         for await message in await stream.messages() {
             switch message {
             case .subscribed: await refreshState(client)
-            case let .event(event): dispatch(event, client: client)
+            case let .event(event): dispatch(event)
             }
         }
         await stream.stop()
@@ -73,7 +73,7 @@ final class LCUConnection {
         guard let phase = try? await client.get("/lol-gameflow/v1/gameflow-phase", as: GameflowPhase.self) else {
             return
         }
-        await refreshQueue(client, phase: phase)
+        await refreshQueue(client)
         handler(.phase(phase))
         if phase == .champSelect,
            let session = try? await client.get("/lol-champ-select/v1/session", as: ChampSelectSession.self) {
@@ -81,32 +81,24 @@ final class LCUConnection {
         }
     }
 
-    /// The queue only changes in the lobby, so it is re-read on phase changes instead of
-    /// subscribing to the (large, chatty) gameflow session.
-    private func refreshQueue(_ client: LCUClient, phase: GameflowPhase) async {
-        switch phase {
-        case .lobby, .matchmaking, .readyCheck, .champSelect, .gameStart, .inProgress:
-            do {
-                let queue = try await client.currentQueue()
-                handler(.queue(queue))
-            } catch {
-                logger.notice("Gameflow session unavailable: \(String(describing: error), privacy: .public)")
-            }
-        case .idle:
-            handler(.queue(nil))
-        default:
-            break
+    /// Initial queue after (re)subscribing; later changes arrive as gameflow-session events. Outside a
+    /// lobby the client answers 404 ("No gameflow session exists"), which just means "no queue".
+    private func refreshQueue(_ client: LCUClient) async {
+        if let queue = try? await client.currentQueue() {
+            handler(.queue(queue))
         }
     }
 
-    private func dispatch(_ event: LCUEvent, client: LCUClient) {
+    private func dispatch(_ event: LCUEvent) {
         switch event.uri {
         case "/lol-gameflow/v1/gameflow-phase":
             if let phase = try? event.decode(GameflowPhase.self) {
-                // Phase synchronously (order matters); the queue follows. It is normally known from the
-                // lobby already – champ select reloads its builds if it arrives late and differs.
                 handler(.phase(phase))
-                Task { await refreshQueue(client, phase: phase) }
+            }
+        case "/lol-gameflow/v1/session":
+            // The session briefly reports queue -1 while a lobby is created; keep the last real queue.
+            if event.eventType != .delete, let queue = try? event.decode(GameflowSession.self).queue {
+                handler(.queue(queue))
             }
         case "/lol-champ-select/v1/session":
             if event.eventType == .delete {

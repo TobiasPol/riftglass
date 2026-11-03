@@ -42,10 +42,52 @@ struct SkillOrderAdvisorTests {
         #expect(SkillOrderAdvisor.priority(ahri.compactMap { SkillSlot(rawValue: $0) }) == [.r, .q, .w, .e])
     }
 
-    @Test func trustsTheOrderForChampionsWithEarlyUltimates() {
-        // Udyr/Jayce-style orders level "R" at level 1 – the recorded order proves it is allowed.
-        let advice = SkillOrderAdvisor.advice(order: ["R", "Q", "W"], championLevel: 1, ranks: ranks(0, 0, 0, 0))
-        #expect(advice?.next == .r)
+    @Test func automaticUltimatesCostNoPoint() {
+        // Jayce starts with R rank 1 and ranks it up by himself: level 1 still has a point to spend,
+        // and R is never suggested even if the recorded order lists it.
+        let jayce = SkillRules.forChampion("Jayce")
+        let first = SkillOrderAdvisor.advice(
+            order: ["Q", "E", "W", "Q", "Q", "R"],
+            championLevel: 1,
+            ranks: ranks(0, 0, 0, 1),
+            rules: jayce
+        )
+        #expect(first?.next == .q && first?.unspentPoints == 1)
+        let sixth = SkillOrderAdvisor.advice(
+            order: ["Q", "E", "W", "Q", "Q", "R", "Q"],
+            championLevel: 6,
+            ranks: ranks(3, 1, 1, 2),
+            rules: jayce
+        )
+        // Q rank 4 needs level 7, R is automatic → the next basic by priority (E).
+        #expect(sixth?.next == .e)
+    }
+
+    @Test func freeStartingRankIsNotASpentPoint() {
+        let karma = SkillRules.forChampion("Karma")
+        let advice = SkillOrderAdvisor.advice(
+            order: ["Q", "E", "W"],
+            championLevel: 1,
+            ranks: ranks(0, 0, 0, 1),
+            rules: karma
+        )
+        #expect(advice?.next == .q)
+        #expect(karma.requiredLevel(.r, rank: 2) == 6)
+    }
+
+    @Test func udyrGetsNoGuessBeyondTheRecordedOrder() {
+        let udyr = SkillRules.forChampion("Udyr")
+        // A stance build without Q: R/E/W five ranks each in the 15 recorded levels.
+        let order = ["R", "E", "W", "R", "R", "E", "R", "E", "R", "E", "E", "W", "W", "W", "W"]
+        #expect(SkillOrderAdvisor.advice(order: order, championLevel: 1, ranks: ranks(0, 0, 0, 0), rules: udyr)?
+            .next == .r)
+        // Review case: R/W/E rank 5, Q unlearned at level 16 – no Q1 suggestion from a wrong priority.
+        #expect(SkillOrderAdvisor.advice(
+            order: order,
+            championLevel: 16,
+            ranks: ranks(0, 5, 5, 5),
+            rules: udyr
+        ) == nil)
     }
 
     @Test func readsAbilityRanksFromRecordedActivePlayer() throws {

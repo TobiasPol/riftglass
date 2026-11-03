@@ -15,6 +15,8 @@ public enum LCUStreamMessage: Equatable, Sendable {
 public actor LCUEventStream {
     public static let defaultURIs: Set<String> = [
         "/lol-gameflow/v1/gameflow-phase",
+        // The queue: changes on mode switches inside the lobby, which raise no phase event.
+        "/lol-gameflow/v1/session",
         "/lol-champ-select/v1/session"
     ]
 
