@@ -52,6 +52,9 @@ public struct BuildOption: Codable, Equatable, Identifiable, Sendable {
     public let id: String
     public let title: String
     public let role: Role
+    /// Data Dragon key (`Ahri`); nil for builds persisted before v0.2.
+    public let championKey: String?
+    public let queue: BuildQueue?
     public let source: Source
     public let runes: Runes
     public let summonerSpells: [Int]
@@ -63,6 +66,8 @@ public struct BuildOption: Codable, Equatable, Identifiable, Sendable {
         id: String,
         title: String,
         role: Role,
+        championKey: String? = nil,
+        queue: BuildQueue? = nil,
         source: Source,
         runes: Runes,
         summonerSpells: [Int],
@@ -73,6 +78,8 @@ public struct BuildOption: Codable, Equatable, Identifiable, Sendable {
         self.id = id
         self.title = title
         self.role = role
+        self.championKey = championKey
+        self.queue = queue
         self.source = source
         self.runes = runes
         self.summonerSpells = summonerSpells
@@ -124,7 +131,26 @@ public struct ChampionRef: Equatable, Hashable, Sendable {
     }
 }
 
+/// Which statistics a build is based on. OP.GG's MCP only has reliable data for these
+/// (`urf`/`nexus_blitz` are listed but reject every position – docs/SPIKE.md, Spike 3).
+public enum BuildQueue: String, Codable, Sendable {
+    /// Summoner's Rift solo/duo – also the approximation for normals, Swiftplay, URF and the like.
+    case ranked
+    case flex
+    /// Howling Abyss; also used for ARAM: Mayhem (same map and items, augments on top).
+    case aram
+
+    public var opggGameMode: String {
+        rawValue
+    }
+
+    /// ARAM has no lanes; OP.GG still requires a position and ignores it.
+    public var usesRoles: Bool {
+        self != .aram
+    }
+}
+
 /// Source of build options.
 public protocol BuildProvider: Sendable {
-    func builds(for champion: ChampionRef, role: Role, patch: String?) async throws -> [BuildOption]
+    func builds(for champion: ChampionRef, role: Role, queue: BuildQueue, patch: String?) async throws -> [BuildOption]
 }

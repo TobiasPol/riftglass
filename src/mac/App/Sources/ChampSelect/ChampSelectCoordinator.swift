@@ -18,9 +18,13 @@ final class ChampSelectCoordinator {
     }
 
     private(set) var session: ChampSelectSession?
+    /// Detected queue; from the gameflow session, else from champ select's `queueId`.
+    private(set) var queue: GameQueue?
     private(set) var championId: Int?
     private(set) var role: Role?
     private(set) var builds: [BuildOption] = []
+    /// ARAM: Mayhem only – most picked augments for the champion (OP.GG).
+    private(set) var augments: [AugmentStat] = []
     private(set) var isLoadingBuilds = false
     private(set) var staticData: StaticData?
     var actionState: ActionState = .idle
@@ -33,7 +37,10 @@ final class ChampSelectCoordinator {
     @ObservationIgnored let icons = IconCache()
     @ObservationIgnored let dataDragon = DataDragon()
     @ObservationIgnored private let loader: BuildLoader
-    @ObservationIgnored private let settings: AppSettings
+    @ObservationIgnored private let augmentProvider = OPGGAugmentProvider()
+    @ObservationIgnored let settings: AppSettings
+    /// `gameId-championId` of the last automatic import, so it runs once per pick.
+    @ObservationIgnored var autoImportedKey: String?
     @ObservationIgnored private(set) var lcu: LCUClient?
     @ObservationIgnored private(set) var actions: ChampSelectActions?
     @ObservationIgnored private var panel: ChampSelectPanel?
@@ -48,6 +55,22 @@ final class ChampSelectCoordinator {
 
     var championName: String? {
         championId.flatMap { staticData?.champion($0)?.name }
+    }
+
+    var mode: GameMode {
+        queue?.mode ?? .summonersRift
+    }
+
+    /// From the gameflow session. Reloads builds if the mode changes while a champion is selected.
+    func setQueue(_ newQueue: GameQueue?) {
+        guard let newQueue, newQueue != queue else { return }
+        let reload = BuildQueue(queue: newQueue) != queue.flatMap(BuildQueue.init(queue:))
+            || newQueue.mode != queue?.mode
+        queue = newQueue
+        if reload, let championId {
+            builds = []
+            Task { await loadBuilds(for: championId, session: session) }
+        }
     }
 
     func setClient(_ client: LCUClient?) {
@@ -87,16 +110,24 @@ final class ChampSelectCoordinator {
         championId = nil
         role = nil
         builds = []
+        augments = []
         actionState = .idle
     }
 
     func update(session: ChampSelectSession?) {
         self.session = session
+        if let queueId = session?.queueId, queueId > 0, queue?.id != queueId {
+            queue = GameQueue(queueId: queueId)
+        }
         let newChampion = session?.localChampionId
-        guard newChampion != championId else { return }
+        guard newChampion != championId else {
+            autoImportIfNeeded() // lock-in of the hovered champion
+            return
+        }
         championId = newChampion
         actionState = .idle
         builds = []
+        augments = []
         Task { await loadBuilds(for: newChampion, session: session) }
     }
 
@@ -109,21 +140,38 @@ final class ChampSelectCoordinator {
             isLoadingBuilds = false
             return
         }
-        let role = await loader.resolveRole(session: session, championId: championId, lcu: lcu)
+        let queue = queue ?? GameQueue(id: nil, mode: .summonersRift, mapId: GameMode.Map.summonersRift)
+        let role = await loader.resolveRole(session: session, championId: championId, mode: queue.mode, lcu: lcu)
+        async let loadedAugments = loadAugments(championId: championId, mode: queue.mode)
         let loaded = await loader.load(
             champion: ChampionRef(id: championId, key: key),
             role: role,
+            queue: queue,
             patch: staticData?.version,
             lcu: lcu
         )
-        guard championId == self.championId else { return } // champion changed; newer load owns the flag
+        let augments = await loadedAugments
+        // Champion or queue changed meanwhile; the newer load owns the flag.
+        guard championId == self.championId, queue.mode == mode else { return }
         self.role = role
         builds = loaded
+        self.augments = augments
         isLoadingBuilds = false
-        if plannedBuild?.id.contains("-\(championId)-") != true {
+        if plannedBuild?.championKey != key || plannedBuild?.queue != loaded.first?.queue {
             plannedBuild = loaded.first
         }
         prefetchIcons(for: loaded)
+        autoImportIfNeeded()
+    }
+
+    private func loadAugments(championId: Int, mode: GameMode) async -> [AugmentStat] {
+        guard mode == .aramMayhem else { return [] }
+        do {
+            return try await augmentProvider.augments(championId: championId, limit: 6)
+        } catch {
+            logger.notice("OP.GG augments unavailable: \(String(describing: error), privacy: .public)")
+            return []
+        }
     }
 
     private func prefetchIcons(for builds: [BuildOption]) {

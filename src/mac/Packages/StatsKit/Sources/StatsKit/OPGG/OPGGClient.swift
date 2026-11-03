@@ -86,12 +86,14 @@ public struct OPGGClient: Sendable {
 public enum ToolArgument: Encodable, Equatable, Sendable {
     case string(String)
     case strings([String])
+    case int(Int)
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
         case let .string(value): try container.encode(value)
         case let .strings(values): try container.encode(values)
+        case let .int(value): try container.encode(value)
         }
     }
 }

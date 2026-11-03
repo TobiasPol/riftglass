@@ -4,19 +4,14 @@ import StatsKit
 extension ChampSelectCoordinator {
     /// Runs all imports independently; one failing (e.g. full rune storage) does not block the others.
     func importAll(_ build: BuildOption) {
-        perform("Build", build: build) { actions, mapping in
-            var failures: [String] = []
-            for (label, step) in Self.steps(actions, mapping, includeItems: !build.itemBlocks.isEmpty) {
-                do { try await step() } catch { failures.append("\(label): \(ActionErrorText.describe(error))") }
-            }
-            if !failures.isEmpty {
-                throw PartialImportError(failures: failures)
-            }
-        }
+        runSteps("Build", build: build, runes: true, spells: true, items: true)
     }
 
     func importRunes(_ build: BuildOption) {
-        perform("Runen", build: build) { actions, mapping in try await actions.importRunes(mapping.runePage) }
+        perform("Runen", build: build) { [mode] actions, mapping in
+            guard mode.usesRunePages else { throw MissingDataError.unsupportedInMode("Runenseiten", mode) }
+            try await actions.importRunes(mapping.runePage)
+        }
     }
 
     func setSpells(_ build: BuildOption) {
@@ -27,24 +22,35 @@ extension ChampSelectCoordinator {
     }
 
     func importItemSet(_ build: BuildOption) {
-        perform("Item-Set", build: build) { actions, mapping in try await actions.mergeItemSet(mapping.itemSet) }
+        perform("Item-Set", build: build) { [mode] actions, mapping in
+            guard mode.itemSetMapId != nil else { throw MissingDataError.unsupportedInMode("Item-Sets", mode) }
+            try await actions.mergeItemSet(mapping.itemSet)
+        }
     }
 
-    private static func steps(
-        _ actions: ChampSelectActions,
-        _ mapping: BuildMapping,
-        includeItems: Bool
-    ) -> [(String, () async throws -> Void)] {
-        var steps: [(String, () async throws -> Void)] = [
-            ("Runen", { try await actions.importRunes(mapping.runePage) })
-        ]
-        if let spells = mapping.spells {
-            steps.append(("Spells", { try await actions.setSpells(spells) }))
+    /// Runs the selected imports that make sense in the current mode; collects failures instead of
+    /// stopping at the first one.
+    func runSteps(_ label: String, build: BuildOption, runes: Bool, spells: Bool, items: Bool) {
+        let mode = mode
+        perform(label, build: build) { actions, mapping in
+            var steps: [(String, () async throws -> Void)] = []
+            if runes, mode.usesRunePages {
+                steps.append(("Runen", { try await actions.importRunes(mapping.runePage) }))
+            }
+            if spells, let selection = mapping.spells {
+                steps.append(("Spells", { try await actions.setSpells(selection) }))
+            }
+            if items, mode.itemSetMapId != nil, !build.itemBlocks.isEmpty {
+                steps.append(("Item-Set", { try await actions.mergeItemSet(mapping.itemSet) }))
+            }
+            var failures: [String] = []
+            for (stepLabel, step) in steps {
+                do { try await step() } catch { failures.append("\(stepLabel): \(ActionErrorText.describe(error))") }
+            }
+            if !failures.isEmpty {
+                throw PartialImportError(failures: failures)
+            }
         }
-        if includeItems {
-            steps.append(("Item-Set", { try await actions.mergeItemSet(mapping.itemSet) }))
-        }
-        return steps
     }
 
     private func perform(
@@ -57,7 +63,12 @@ extension ChampSelectCoordinator {
             actionState = .failed("Keine Verbindung zum League-Client.")
             return
         }
-        let mapping = BuildMapping(build: build, championId: championId, championName: championName ?? "Champion")
+        let mapping = BuildMapping(
+            build: build,
+            championId: championId,
+            championName: championName ?? "Champion",
+            itemSetMapId: mode.itemSetMapId ?? GameMode.Map.summonersRift
+        )
         actionState = .running("\(label) wird übernommen …")
         plannedBuild = build
         Task {
@@ -74,4 +85,5 @@ extension ChampSelectCoordinator {
 
 enum MissingDataError: Error {
     case spells
+    case unsupportedInMode(String, GameMode)
 }

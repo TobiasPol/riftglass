@@ -1,4 +1,5 @@
 import Foundation
+import LeagueKit
 import Observation
 import StatsKit
 
@@ -15,6 +16,10 @@ final class AppSettings {
         static let region = "lastRegion"
         static let onboarding = "onboardingCompleted"
         static let plannedBuild = "plannedBuild"
+        static let skillOverlay = "skillOverlayEnabled"
+        static let autoItemSet = "autoImportItemSet"
+        static let autoRunes = "autoImportRunes"
+        static let lastQueue = "lastQueue"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -44,18 +49,46 @@ final class AppSettings {
         didSet { defaults.set(try? JSONEncoder().encode(plannedBuild), forKey: Key.plannedBuild) }
     }
 
+    /// Shows which ability to level whenever a skill point is unspent (no hotkey needed).
+    var skillOverlayEnabled: Bool {
+        didSet { defaults.set(skillOverlayEnabled, forKey: Key.skillOverlay) }
+    }
+
+    /// After lock-in: write the first option's item set for the detected mode's map.
+    var autoImportItemSet: Bool {
+        didSet { defaults.set(autoImportItemSet, forKey: Key.autoItemSet) }
+    }
+
+    /// After lock-in: also import the first option's runes and spells. Off by default – it changes
+    /// the player's active page and spells (docs/COMPLIANCE.md).
+    var autoImportRunes: Bool {
+        didSet { defaults.set(autoImportRunes, forKey: Key.autoRunes) }
+    }
+
+    /// Queue of the last lobby, kept because the LCU is closed in game.
+    var lastQueue: GameQueue? {
+        didSet { defaults.set(try? JSONEncoder().encode(lastQueue), forKey: Key.lastQueue) }
+    }
+
     var onboardingCompleted: Bool {
         didSet { defaults.set(onboardingCompleted, forKey: Key.onboarding) }
     }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        defaults.register(defaults: [Key.tabOverlay: true, Key.ranks: true, Key.goldEstimate: false])
+        defaults.register(defaults: [
+            Key.tabOverlay: true, Key.ranks: true, Key.goldEstimate: false,
+            Key.skillOverlay: true, Key.autoItemSet: true, Key.autoRunes: false
+        ])
         tabOverlayEnabled = defaults.bool(forKey: Key.tabOverlay)
         ranksEnabled = defaults.bool(forKey: Key.ranks)
         goldEstimateEnabled = defaults.bool(forKey: Key.goldEstimate)
         region = defaults.string(forKey: Key.region)
         onboardingCompleted = defaults.bool(forKey: Key.onboarding)
+        skillOverlayEnabled = defaults.bool(forKey: Key.skillOverlay)
+        autoImportItemSet = defaults.bool(forKey: Key.autoItemSet)
+        autoImportRunes = defaults.bool(forKey: Key.autoRunes)
+        lastQueue = defaults.data(forKey: Key.lastQueue).flatMap { try? JSONDecoder().decode(GameQueue.self, from: $0) }
         plannedBuild = defaults.data(forKey: Key.plannedBuild)
             .flatMap { try? JSONDecoder().decode(BuildOption.self, from: $0) }
     }

@@ -25,21 +25,28 @@ public struct OPGGBuildProvider: BuildProvider {
         self.cache = cache
     }
 
-    public func builds(for champion: ChampionRef, role: Role, patch: String?) async throws -> [BuildOption] {
-        let cacheKey = "\(champion.key)-\(role.opggPosition)-\(patch ?? "latest")"
+    public func builds(
+        for champion: ChampionRef,
+        role: Role,
+        queue: BuildQueue,
+        patch: String?
+    ) async throws -> [BuildOption] {
+        let position = queue.usesRoles ? role.opggPosition : Role.middle.opggPosition
+        let cacheKey = "\(champion.key)-\(queue.rawValue)-\(position)-\(patch ?? "latest")"
         let text: String
         if let cached = await cache.value(for: cacheKey) {
             text = cached
         } else {
             text = try await client.callTool("lol_get_champion_analysis", arguments: [
-                "game_mode": .string("ranked"),
+                "game_mode": .string(queue.opggGameMode),
                 "champion": .string(champion.key.uppercased()),
-                "position": .string(role.opggPosition),
+                "position": .string(position),
                 "desired_output_fields": .strings(Self.fields)
             ])
             await cache.store(text, for: cacheKey)
         }
-        let option = try Self.buildOption(from: OPGGNotation.parse(text), champion: champion, role: role)
+        let parsed = try OPGGNotation.parse(text)
+        let option = Self.buildOption(from: parsed, champion: champion, role: role, queue: queue)
         if option == nil {
             logger.info("OP.GG has no build for \(champion.key, privacy: .public) \(role.rawValue, privacy: .public)")
         }
@@ -47,7 +54,12 @@ public struct OPGGBuildProvider: BuildProvider {
     }
 
     /// Maps `lol_get_champion_analysis` output to a build option. Nil when OP.GG has too little data.
-    static func buildOption(from value: NotationValue, champion: ChampionRef, role: Role) -> BuildOption? {
+    static func buildOption(
+        from value: NotationValue,
+        champion: ChampionRef,
+        role: Role,
+        queue: BuildQueue = .ranked
+    ) -> BuildOption? {
         guard let data = value["data"], let runes = data["runes"],
               let primary = runes["primary_page_id"]?.int, let secondary = runes["secondary_page_id"]?.int
         else { return nil }
@@ -63,9 +75,11 @@ public struct OPGGBuildProvider: BuildProvider {
             )
         }
         return BuildOption(
-            id: "opgg-\(champion.key)-\(role.rawValue)",
-            title: title(summary: summary),
+            id: "opgg-\(champion.key)-\(queue.rawValue)-\(role.rawValue)",
+            title: title(summary: summary, queue: queue),
             role: role,
+            championKey: champion.key,
+            queue: queue,
             source: .opgg,
             runes: .init(primaryStyleId: primary, subStyleId: secondary, perkIds: perkIds),
             summonerSpells: data["summoner_spells"]?["ids"]?.ints ?? [],
@@ -86,9 +100,14 @@ public struct OPGGBuildProvider: BuildProvider {
         return blocks.filter { !$0.1.isEmpty }.map { BuildOption.ItemBlock(title: $0.0, itemIds: $0.1) }
     }
 
-    private static func title(summary: NotationValue?) -> String {
-        guard let tier = summary?["tier"]?.int else { return "OP.GG-Build" }
-        return "OP.GG-Build · Tier \(tier)"
+    private static func title(summary: NotationValue?, queue: BuildQueue) -> String {
+        let base = switch queue {
+        case .ranked: "OP.GG-Build"
+        case .flex: "OP.GG-Build (Flex)"
+        case .aram: "OP.GG ARAM-Build"
+        }
+        guard let tier = summary?["tier"]?.int else { return base }
+        return "\(base) · Tier \(tier)"
     }
 
     private static func winRate(_ entry: NotationValue?) -> Double? {

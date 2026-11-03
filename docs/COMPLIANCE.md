@@ -21,6 +21,13 @@ Diese Datei ist verbindlich; Features, die hier als verboten stehen, werden nich
 
 ## Policy-Risiken
 - Item-Gold-Schätzung pro Lane: nur aus sichtbaren Items, hinter Schalter, **standardmäßig aus**.
+- Auto-Import nach dem Lock-in: schreibt nur Riftglass-eigene Item-Sets/Runenseiten (wie der Klick-Import),
+  nie Picks/Bans/Accept. Item-Set standardmäßig an; Runen + Spells **opt-in**, weil sie die aktive Seite
+  und die Spell-Auswahl des Spielers ändern. Abschaltbar in den Einstellungen.
+- Skillpunkt-Overlay: zeigt die nächste Fähigkeit einer Statistik-Skill-Order als Hinweis; drückt keine
+  Taste und levelt nichts (keine Eingabe-Automatisierung). Nur eigene Daten aus dem Live Client.
+- Mayhem-Augments: nur Pick-Anteile im Champ Select. Ein Augment-Overlay im Spiel bräuchte Bildschirm-
+  aufnahme/OCR der Auswahlkarten – vor einer Umsetzung mit Riot klären.
 - Ränge aller 10 Spieler (wie Porofessor/Blitz): nur Spieler des eigenen Spiels, abschaltbar.
 - Nutzung der OP.GG-MCP-Schnittstelle in einer App: OP.GG vor dem Release informiert/anfragen.
 

@@ -134,3 +134,21 @@ Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-
 - **Antwortformat ist kein JSON**, sondern eine Klassen-Notation:
   `class Runes: id,primary_page_id,…` + `LolGetChampionAnalysis("AHRI",Data(…,Runes(8112,8100,[…]),…))`
   → eigener Parser (`OPGGNotation`). Unzureichende Daten kommen als normales Ergebnis mit Meldungsfeld.
+
+## Spike 3 – Spielmodi und Build-Quellen (2026-11-03, ohne laufenden Client)
+
+| Frage | Ergebnis |
+|---|---|
+| Queue-IDs | Riots `queues.json`: 420/440 Ranked, 400 Draft, 430 Blind, 480 Swiftplay, 490 Quickplay, 450 ARAM, **2400 ARAM: Mayhem**, 1700/1710 Arena, 900/1900 URF, 1020 OFA, 1400 Ultimate Spellbook, 1300 Nexus Blitz, 2300 Brawl, 1810–1840 Swarm |
+| League Classic | seit Patch 26.15 (bis Jan. 2027), Draft/Co-op/Custom, **Queue-ID nicht in `queues.json`** → Erkennung über Queue-Namen, live prüfen |
+| OP.GG `game_mode` | Schema: `ranked`, `flex`, `urf`, `aram`, `nexus_blitz`. `ranked`/`flex`/`aram` liefern Builds; **`urf`/`nexus_blitz` lehnen jede Position ab** („must be NONE“, `none`/`NONE` → „invalid“) → nicht nutzbar |
+| OP.GG ARAM | `position` Pflicht, wird ignoriert (`mid`/`top`/`adc` identisch); Fixture `opgg/ahri-aram.json`. Starter/Spells kommen als Klasse `Boots(…)` – Zuordnung ist positionell, Parser unverändert |
+| OP.GG Augments | `lol_list_aram_augments(champion_id)` → `Augment(id,name,tier,popular)`; `popular` = Pick-Anteil. `tier`/`performance` undokumentiert → nicht angezeigt. Fixture `opgg/ahri-aram-augments.json` |
+| OP.GG Skill-Order | `data.skills.order` = 15 Schritte (Stufe 1–15), `data.skill_masteries` = Max-Reihenfolge |
+| Live Client Fähigkeiten | `activeplayer.abilities.{Q,W,E,R}.abilityLevel` (Fixture `liveclient/activeplayer.json`) |
+
+### Offen (→ `scripts/spike/16-queue.sh` im Client bzw. Spiel)
+- `gameData.queue` für Mayhem, Arena, Classic, Brawl (ID, `gameMode`, `mapId`, `description`).
+- Live-Client-`gameMode` in Mayhem (`KIWI`?) und Arena (`CHERRY`?) – Annahme aus match-v5.
+- `recommended-pages` mit Map 12 und Position `NONE` (ARAM).
+- Skill-Overlay-Position (20 % Höhe über unterem Rand) auf 16:9 und 21:9.

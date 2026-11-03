@@ -40,20 +40,38 @@ public final class OverlayPanel: NSPanel {
         false
     }
 
+    /// Vertical placement; the panel is always centred horizontally.
+    public enum Anchor: Equatable, Sendable {
+        /// Distance from the top edge of the screen.
+        case top(CGFloat)
+        /// Distance from the bottom edge, as a fraction of the screen height (resolution-independent,
+        /// e.g. 0.2 sits above League's ability bar).
+        case bottomFraction(CGFloat)
+    }
+
     /// Sizes the panel to its SwiftUI content and shows it horizontally centred near the top of `screen`.
     public func present(on screen: NSScreen?, topInset: CGFloat = 60) {
+        present(on: screen, anchor: .top(topInset))
+    }
+
+    public func present(on screen: NSScreen?, anchor: Anchor) {
         guard let screen = screen ?? NSScreen.screens.first else { return }
         let size = hostingView.fittingSize
         let frame = screen.frame
-        setFrame(NSRect(
-            x: frame.midX - size.width / 2,
-            y: frame.maxY - topInset - size.height,
-            width: size.width,
-            height: size.height
-        ), display: true)
+        let y = switch anchor {
+        case let .top(inset): frame.maxY - inset - size.height
+        case let .bottomFraction(fraction): frame.minY + frame.height * fraction
+        }
+        setFrame(NSRect(x: frame.midX - size.width / 2, y: y, width: size.width, height: size.height), display: true)
         if !isVisible {
             orderFrontRegardless()
         }
+    }
+
+    /// Replaces the content synchronously, so the next `present` measures the new size (an
+    /// `@Observable`-driven update would only re-render on the next run-loop pass).
+    public func update(rootView: some View) {
+        hostingView.rootView = AnyView(rootView)
     }
 
     public func dismiss() {

@@ -56,8 +56,9 @@ struct MenuBarContent: View {
         switch model.mode {
         case .dormant: "League ist nicht gestartet"
         case .client: model.isLCUConnected ? "Mit dem Client verbunden" : "Verbinde mit dem Client …"
-        case .champSelect: "Champ Select"
-        case .inGame: model.inGame.snapshot == nil ? "Spiel lädt …" : "Im Spiel – Tab halten für Overlay"
+        case .champSelect: "Champ Select · " + (model.champSelect.queue?.displayName ?? "…")
+        case .inGame: model.inGame.snapshot == nil
+            ? "Spiel lädt …" : "\(model.inGame.queue?.displayName ?? "Im Spiel") – Tab halten für Overlay"
         case .postGame: "Nach dem Spiel"
         }
     }

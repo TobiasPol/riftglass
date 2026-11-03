@@ -73,7 +73,8 @@ struct OPGGBuildProviderTests {
             client: OPGGClient(poster: poster),
             cache: ResponseCache(name: "t", directory: directory)
         )
-        let build = try #require(try await provider.builds(for: ahri, role: .middle, patch: "15.22.1").first)
+        let builds = try await provider.builds(for: ahri, role: .middle, queue: .ranked, patch: "15.22.1")
+        let build = try #require(builds.first)
         #expect(build.source == .opgg)
         #expect(build.runes.primaryStyleId == 8100 && build.runes.subStyleId == 8200)
         #expect(build.runes.perkIds == [8112, 8139, 8140, 8106, 8210, 8226, 5005, 5008, 5001])
@@ -83,7 +84,7 @@ struct OPGGBuildProviderTests {
         #expect(build.skillOrder.prefix(3) == ["W", "Q", "E"])
         #expect(abs((build.stats?.winRate ?? 0) - 9325.0 / 17690.0) < 0.0001)
         // Second call is served from the cache.
-        _ = try await provider.builds(for: ahri, role: .middle, patch: "15.22.1")
+        _ = try await provider.builds(for: ahri, role: .middle, queue: .ranked, patch: "15.22.1")
         #expect(await poster.bodies.count == 1)
         let body = try #require(await poster.bodies.first)
         let request = try JSONSerialization.jsonObject(with: body) as? [String: Any]

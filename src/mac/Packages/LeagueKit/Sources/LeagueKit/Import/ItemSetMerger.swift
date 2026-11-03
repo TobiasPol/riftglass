@@ -15,16 +15,21 @@ public struct ItemSetDraft: Equatable, Sendable {
     public let championId: Int
     public let title: String
     public let blocks: [Block]
+    /// Map the set is shown on (11 = Summoner's Rift, 12 = Howling Abyss).
+    public let mapId: Int
 
-    public init(championId: Int, title: String, blocks: [Block]) {
+    public init(championId: Int, title: String, blocks: [Block], mapId: Int = 11) {
         self.championId = championId
         self.title = title
         self.blocks = blocks
+        self.mapId = mapId
     }
 
-    /// Deterministic per champion: `52494654-474c-4153-53xx-…` ("RIFTGLASS" in hex) + champion ID.
+    /// Deterministic per champion and map: `52494654-474c-4153-53xx-…` ("RIFTGLASS" in hex), where
+    /// `xx` is `00` for Summoner's Rift (the format before v0.2) or the map ID, + champion ID.
     public var uid: String {
-        ItemSetMerger.uidPrefix + "00-" + String(format: "%012x", championId)
+        let mapByte = mapId == 11 ? 0 : mapId & 0xFF
+        return ItemSetMerger.uidPrefix + String(format: "%02x-%012x", mapByte, championId)
     }
 
     var json: JSONValue {
@@ -38,7 +43,7 @@ public struct ItemSetDraft: Equatable, Sendable {
             "sortrank": .number(0),
             "startedFrom": .string("blank"),
             "associatedChampions": .array([.number(Double(championId))]),
-            "associatedMaps": .array([.number(11)]),
+            "associatedMaps": .array([.number(Double(mapId))]),
             "preferredItemSlots": .array([]),
             "blocks": .array(blocks.map(Self.blockJSON))
         ])

@@ -15,6 +15,8 @@ final class InGameCoordinator {
     private(set) var ranks: [String: PlayerRank] = [:]
     private(set) var isTabHeld = false
     private(set) var lastGame: GameSummary?
+    /// Detected mode of the running game (lobby queue if plausible, else Live Client).
+    private(set) var queue: GameQueue?
 
     @ObservationIgnored let champSelect: ChampSelectCoordinator
     @ObservationIgnored let settings: AppSettings
@@ -25,6 +27,13 @@ final class InGameCoordinator {
     @ObservationIgnored private var tabPanel: OverlayPanel?
     @ObservationIgnored private var bannerPanel: OverlayPanel?
     @ObservationIgnored private var bannerShown = false
+    @ObservationIgnored private var rememberedQueue: GameQueue?
+    /// What the skill-point overlay currently shows (nil = hidden).
+    @ObservationIgnored var skillAdvice: SkillAdvice?
+    @ObservationIgnored var skillPanel: OverlayPanel?
+    /// Skill order for the current champion; nil until resolved (champ select or OP.GG).
+    @ObservationIgnored var skillOrder: [String]?
+    @ObservationIgnored var skillOrderTask: Task<Void, Never>?
     @ObservationIgnored private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "InGame")
 
     init(champSelect: ChampSelectCoordinator, settings: AppSettings) {
@@ -36,10 +45,13 @@ final class InGameCoordinator {
         pollTask != nil
     }
 
-    func start(evaluator: LocalTrustEvaluator) {
+    func start(evaluator: LocalTrustEvaluator, rememberedQueue: GameQueue?) {
         guard pollTask == nil else { return }
         logger.info("Game detected – starting Live Client polling")
         snapshot = nil
+        queue = nil
+        self.rememberedQueue = rememberedQueue
+        resetSkills()
         ranks = [:]
         rankLookup.reset()
         bannerShown = false
@@ -68,6 +80,7 @@ final class InGameCoordinator {
         hotkey = nil
         tabPanel?.dismiss()
         bannerPanel?.dismiss()
+        resetSkills()
         isTabHeld = false
         snapshot = nil
         logger.info("Game ended")
@@ -79,8 +92,14 @@ final class InGameCoordinator {
         if self.snapshot == nil {
             let region = settings.region ?? "nil"
             logger.info("First snapshot: \(snapshot.players.count) players, me=\(snapshot.me != nil), region=\(region)")
+            queue = GameQueue.resolvedInGame(
+                remembered: rememberedQueue,
+                liveGameMode: snapshot.stats.gameMode,
+                mapNumber: snapshot.stats.mapNumber
+            )
         }
         self.snapshot = snapshot
+        updateSkillOverlay(snapshot)
         if settings.ranksEnabled, let region = settings.region {
             rankLookup.lookUp(snapshot.players, region: region) { [weak self] key, rank in
                 self?.ranks[key] = rank
@@ -132,7 +151,7 @@ final class InGameCoordinator {
     }
 
     /// Screen of the game window (largest window of the game process), else the primary screen.
-    private func gameScreen() -> NSScreen? {
+    func gameScreen() -> NSScreen? {
         guard let game = NSRunningApplication.runningApplications(withBundleIdentifier: LeagueBundleID.game).first
         else { return NSScreen.screens.first }
         let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
