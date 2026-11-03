@@ -6,6 +6,8 @@ import os
 enum LCUConnectionEvent: Sendable {
     case connected(LCUClient)
     case phase(GameflowPhase)
+    /// Queue of the current lobby/game (nil outside a lobby).
+    case queue(GameQueue?)
     case champSelect(ChampSelectSession)
     case champSelectEnded
 }
@@ -71,10 +73,19 @@ final class LCUConnection {
         guard let phase = try? await client.get("/lol-gameflow/v1/gameflow-phase", as: GameflowPhase.self) else {
             return
         }
+        await refreshQueue(client)
         handler(.phase(phase))
         if phase == .champSelect,
            let session = try? await client.get("/lol-champ-select/v1/session", as: ChampSelectSession.self) {
             handler(.champSelect(session))
+        }
+    }
+
+    /// Initial queue after (re)subscribing; later changes arrive as gameflow-session events. Outside a
+    /// lobby the client answers 404 ("No gameflow session exists"), which just means "no queue".
+    private func refreshQueue(_ client: LCUClient) async {
+        if let queue = try? await client.currentQueue() {
+            handler(.queue(queue))
         }
     }
 
@@ -83,6 +94,11 @@ final class LCUConnection {
         case "/lol-gameflow/v1/gameflow-phase":
             if let phase = try? event.decode(GameflowPhase.self) {
                 handler(.phase(phase))
+            }
+        case "/lol-gameflow/v1/session":
+            // The session briefly reports queue -1 while a lobby is created; keep the last real queue.
+            if event.eventType != .delete, let queue = try? event.decode(GameflowSession.self).queue {
+                handler(.queue(queue))
             }
         case "/lol-champ-select/v1/session":
             if event.eventType == .delete {

@@ -58,10 +58,11 @@ struct BuildOptionCard: View {
                 .buttonStyle(.borderedProminent)
                 .tint(Palette.accent)
             Button("Runen") { coordinator.importRunes(build) }
+                .disabled(!coordinator.mode.usesRunePages)
             Button("Spells") { coordinator.setSpells(build) }
                 .disabled(build.summonerSpells.count < 2)
             Button("Items") { coordinator.importItemSet(build) }
-                .disabled(build.itemBlocks.isEmpty)
+                .disabled(build.itemBlocks.isEmpty || coordinator.mode.itemSetMapId == nil)
         }
         .controlSize(.small)
         .disabled(isRunning)

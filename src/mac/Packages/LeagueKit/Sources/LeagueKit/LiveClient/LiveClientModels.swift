@@ -18,11 +18,26 @@ public struct LiveGameStats: Decodable, Equatable, Sendable {
 
 /// `GET /liveclientdata/activeplayer` (reduced).
 public struct LiveActivePlayer: Decodable, Equatable, Sendable {
+    public struct Ability: Decodable, Equatable, Sendable {
+        public let abilityLevel: Int?
+    }
+
+    /// Keys `Q`, `W`, `E`, `R` (and `Passive`, which has no level).
+    public let abilities: [String: Ability]?
     public let riotId: String?
     public let riotIdGameName: String?
     public let summonerName: String?
     public let level: Int
     public let currentGold: Double
+
+    /// Current rank of each levelable ability.
+    public var abilityRanks: [SkillSlot: Int] {
+        var ranks: [SkillSlot: Int] = [:]
+        for slot in SkillSlot.allCases {
+            ranks[slot] = abilities?[slot.rawValue]?.abilityLevel ?? 0
+        }
+        return ranks
+    }
 }
 
 /// Element of `GET /liveclientdata/playerlist`.

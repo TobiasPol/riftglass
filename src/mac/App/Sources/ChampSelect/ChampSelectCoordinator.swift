@@ -18,9 +18,13 @@ final class ChampSelectCoordinator {
     }
 
     private(set) var session: ChampSelectSession?
+    /// Detected queue; from the gameflow session, else from champ select's `queueId`.
+    private(set) var queue: GameQueue?
     private(set) var championId: Int?
     private(set) var role: Role?
     private(set) var builds: [BuildOption] = []
+    /// ARAM: Mayhem only – most picked augments for the champion (OP.GG).
+    private(set) var augments: [AugmentStat] = []
     private(set) var isLoadingBuilds = false
     private(set) var staticData: StaticData?
     var actionState: ActionState = .idle
@@ -33,7 +37,13 @@ final class ChampSelectCoordinator {
     @ObservationIgnored let icons = IconCache()
     @ObservationIgnored let dataDragon = DataDragon()
     @ObservationIgnored private let loader: BuildLoader
-    @ObservationIgnored private let settings: AppSettings
+    @ObservationIgnored private let augmentProvider = OPGGAugmentProvider()
+    @ObservationIgnored let settings: AppSettings
+    /// `gameId-championId` of the last automatic import, so it runs once per pick.
+    @ObservationIgnored var autoImportedKey: String?
+    /// Tail of the import queue. Imports read and replace shared state (rune pages, the whole
+    /// item-set document), so they run strictly one after another.
+    @ObservationIgnored var importChain: Task<Void, Never>?
     @ObservationIgnored private(set) var lcu: LCUClient?
     @ObservationIgnored private(set) var actions: ChampSelectActions?
     @ObservationIgnored private var panel: ChampSelectPanel?
@@ -48,6 +58,34 @@ final class ChampSelectCoordinator {
 
     var championName: String? {
         championId.flatMap { staticData?.champion($0)?.name }
+    }
+
+    var mode: GameMode {
+        effectiveQueue.mode
+    }
+
+    /// Queue builds are loaded for; Summoner's Rift until the client reports one.
+    var effectiveQueue: GameQueue {
+        queue ?? GameQueue(id: nil, mode: .summonersRift, mapId: GameMode.Map.summonersRift)
+    }
+
+    /// Reloads builds when the mode or the statistics queue (Solo vs. Flex) changes while a champion
+    /// is selected, so no builds of the previous queue are shown or auto-imported.
+    func setQueue(_ newQueue: GameQueue?) {
+        guard let newQueue, newQueue != queue else { return }
+        let old = effectiveQueue
+        queue = newQueue
+        if Self.buildKey(newQueue) != Self.buildKey(old), let championId {
+            builds = []
+            augments = []
+            Task { await loadBuilds(for: championId, session: session) }
+        }
+    }
+
+    /// What decides which builds apply: the mode plus the statistics queue (Solo vs. Flex). Other
+    /// queue changes (e.g. a richer name for the same queue) keep the loaded builds.
+    static func buildKey(_ queue: GameQueue) -> String {
+        "\(queue.mode.rawValue)-\(BuildQueue(queue: queue)?.rawValue ?? "none")"
     }
 
     func setClient(_ client: LCUClient?) {
@@ -87,16 +125,29 @@ final class ChampSelectCoordinator {
         championId = nil
         role = nil
         builds = []
+        augments = []
         actionState = .idle
     }
 
     func update(session: ChampSelectSession?) {
         self.session = session
         let newChampion = session?.localChampionId
-        guard newChampion != championId else { return }
+        if let queueId = session?.queueId, queueId > 0, queue?.id != queueId {
+            // Fallback when the gameflow session was missed. A new champion loads with it anyway.
+            if newChampion == championId {
+                setQueue(GameQueue(queueId: queueId))
+            } else {
+                queue = GameQueue(queueId: queueId)
+            }
+        }
+        guard newChampion != championId else {
+            autoImportIfNeeded() // lock-in of the hovered champion
+            return
+        }
         championId = newChampion
         actionState = .idle
         builds = []
+        augments = []
         Task { await loadBuilds(for: newChampion, session: session) }
     }
 
@@ -109,21 +160,40 @@ final class ChampSelectCoordinator {
             isLoadingBuilds = false
             return
         }
-        let role = await loader.resolveRole(session: session, championId: championId, lcu: lcu)
+        let queue = effectiveQueue
+        let role = await loader.resolveRole(session: session, championId: championId, mode: queue.mode, lcu: lcu)
+        loadAugments(championId: championId, queue: queue)
         let loaded = await loader.load(
             champion: ChampionRef(id: championId, key: key),
             role: role,
+            queue: queue,
             patch: staticData?.version,
             lcu: lcu
         )
-        guard championId == self.championId else { return } // champion changed; newer load owns the flag
+        // Champion or queue (incl. Solo vs. Flex) changed meanwhile; the newer load owns the flag.
+        guard championId == self.championId, Self.buildKey(queue) == Self.buildKey(effectiveQueue) else { return }
         self.role = role
         builds = loaded
         isLoadingBuilds = false
-        if plannedBuild?.id.contains("-\(championId)-") != true {
+        if plannedBuild?.championKey != key || plannedBuild?.queue != loaded.first?.queue {
             plannedBuild = loaded.first
         }
         prefetchIcons(for: loaded)
+        autoImportIfNeeded()
+    }
+
+    /// Optional card, loaded independently so a slow OP.GG answer never delays builds or auto import.
+    private func loadAugments(championId: Int, queue: GameQueue) {
+        guard queue.mode == .aramMayhem else { return }
+        Task { [augmentProvider] in
+            do {
+                let loaded = try await augmentProvider.augments(championId: championId, limit: 6)
+                guard championId == self.championId, queue.mode == mode else { return }
+                augments = loaded
+            } catch {
+                logger.notice("OP.GG augments unavailable: \(String(describing: error), privacy: .public)")
+            }
+        }
     }
 
     private func prefetchIcons(for builds: [BuildOption]) {

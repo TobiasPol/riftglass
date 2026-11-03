@@ -29,7 +29,15 @@ struct SettingsView: View {
                     .onChange(of: launchAtLogin) { _, enabled in setLaunchAtLogin(enabled) }
                 UpdateSettingsRow()
             }
+            Section("Champ Select") {
+                Toggle("Item-Set nach dem Lock-in automatisch übernehmen", isOn: $settings.autoImportItemSet)
+                Toggle("Runen & Spells automatisch übernehmen", isOn: $settings.autoImportRunes)
+                Text("Spielmodus wird erkannt (Ranked, ARAM, ARAM: Mayhem, Arena, URF …). Übernommen wird die "
+                    + "erste Option für den passenden Modus; Riftglass ändert nur eigene Runenseiten und Item-Sets.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Section("Im Spiel") {
+                Toggle("Skillpunkt-Hinweis (welche Fähigkeit als Nächstes)", isOn: $settings.skillOverlayEnabled)
                 Toggle("Tab-Overlay (Ränge, CS/min, Build-Fortschritt)", isOn: $settings.tabOverlayEnabled)
                 InputMonitoringStep()
                 Toggle("Ränge über OP.GG laden", isOn: $settings.ranksEnabled)
@@ -53,7 +61,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 520, height: 640)
+        .frame(width: 520, height: 760)
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {

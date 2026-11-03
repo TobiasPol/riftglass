@@ -80,6 +80,12 @@ final class AppModel {
             rememberRegion(client)
         case let .phase(phase):
             apply(.phaseChanged(phase))
+        case let .queue(queue):
+            if let queue, queue != settings.lastQueue {
+                logger.info("Queue \(queue.id ?? 0) → \(queue.mode.rawValue, privacy: .public)")
+                settings.lastQueue = queue
+            }
+            champSelect.setQueue(queue)
         case let .champSelect(session):
             champSelect.update(session: session)
         case .champSelectEnded:
@@ -107,7 +113,7 @@ final class AppModel {
         }
         if newMode == .inGame, let evaluator {
             champSelect.prepare()
-            inGame.start(evaluator: evaluator)
+            inGame.start(evaluator: evaluator, rememberedQueue: settings.lastQueue)
         } else {
             inGame.stop()
         }

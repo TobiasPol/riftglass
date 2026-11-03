@@ -8,7 +8,9 @@ struct BuildMapping {
     let spells: SpellSelection?
     let itemSet: ItemSetDraft
 
-    init(build: BuildOption, championId: Int, championName: String) {
+    /// `itemSetMapId` binds the item set to the detected mode's map, so an ARAM set does not
+    /// replace the Summoner's Rift set of the same champion.
+    init(build: BuildOption, championId: Int, championName: String, itemSetMapId: Int) {
         runePage = NewRunePage(
             name: RunePagePlanner.pageName(for: championName),
             primaryStyleId: build.runes.primaryStyleId,
@@ -20,7 +22,8 @@ struct BuildMapping {
         itemSet = ItemSetDraft(
             championId: championId,
             title: "Riftglass: \(championName) – \(build.title)",
-            blocks: build.itemBlocks.map { .init(title: $0.title, itemIds: $0.itemIds) }
+            blocks: build.itemBlocks.map { .init(title: $0.title, itemIds: $0.itemIds) },
+            mapId: itemSetMapId
         )
     }
 }
@@ -38,6 +41,8 @@ enum ActionErrorText {
             "Kein freier Runenseiten-Platz. Lösche eine Seite im Client – Riftglass ersetzt nur eigene Seiten."
         case RuneImportError.invalidPage:
             "Diese Runenseite ist ungültig (Platzhalter-Daten veraltet?)."
+        case let MissingDataError.unsupportedInMode(what, mode):
+            "\(what) gibt es in \(mode.displayName) nicht."
         case let LCUError.http(status, _):
             "Der Client hat die Aktion abgelehnt (HTTP \(status))."
         default:

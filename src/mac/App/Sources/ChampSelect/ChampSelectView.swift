@@ -1,4 +1,5 @@
 import DataKit
+import LeagueKit
 import StatsKit
 import SwiftUI
 
@@ -42,8 +43,11 @@ struct ChampSelectView: View {
     }
 
     private var subtitle: String {
-        guard let role = coordinator.role else { return "Riftglass" }
-        return "Riftglass · \(role.rawValue.capitalized)"
+        var parts = ["Riftglass", coordinator.queue?.displayName ?? coordinator.mode.displayName]
+        if let role = coordinator.role {
+            parts.append(role.rawValue.capitalized)
+        }
+        return parts.joined(separator: " · ")
     }
 
     @ViewBuilder
@@ -53,16 +57,30 @@ struct ChampSelectView: View {
         } else if coordinator.isLoadingBuilds {
             ProgressView().controlSize(.small).frame(maxWidth: .infinity)
         } else if coordinator.builds.isEmpty {
-            placeholder("Keine Builds verfügbar – OP.GG ist nicht erreichbar und der Client liefert keine Empfehlung.")
+            placeholder(Self.emptyText(for: coordinator.mode))
         } else {
             ScrollView {
                 VStack(spacing: 10) {
+                    if !coordinator.augments.isEmpty {
+                        AugmentsCard(augments: coordinator.augments)
+                    }
                     ForEach(coordinator.builds) { build in
                         BuildOptionCard(build: build, coordinator: coordinator)
                     }
                 }
             }
             .scrollIndicators(.never)
+        }
+    }
+
+    static func emptyText(for mode: GameMode) -> String {
+        switch mode {
+        case .arena, .brawl, .swarm, .nexusBlitz, .unknown:
+            "Für \(mode.displayName) hat Riftglass keine Build-Daten (OP.GG liefert nur Ranked, Flex und ARAM)."
+        case .leagueClassic:
+            "League Classic nutzt alte Runen, Meisterschaften und Items – Riftglass importiert hier nichts."
+        default:
+            "Keine Builds verfügbar – OP.GG ist nicht erreichbar und der Client liefert keine Empfehlung."
         }
     }
 
@@ -115,4 +133,30 @@ enum Palette {
     static let accent = Color(red: 0.36, green: 0.78, blue: 0.86)
     static let positive = Color(red: 0.42, green: 0.82, blue: 0.55)
     static let negative = Color(red: 0.95, green: 0.45, blue: 0.42)
+}
+
+/// ARAM: Mayhem: the champion's most picked augments – information, not a pick instruction.
+private struct AugmentsCard: View {
+    let augments: [AugmentStat]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Beliebte Augments").font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Text("Daten: OP.GG").font(.system(size: 10, weight: .medium)).foregroundStyle(Palette.secondaryText)
+            }
+            ForEach(augments) { augment in
+                HStack {
+                    Text(augment.name).font(.system(size: 11)).lineLimit(1)
+                    Spacer()
+                    Text(augment.pickRate.formatted(.percent.precision(.fractionLength(0))))
+                        .font(.system(size: 11).monospacedDigit())
+                        .foregroundStyle(Palette.secondaryText)
+                }
+            }
+        }
+        .padding(10)
+        .background(Palette.card, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
 }

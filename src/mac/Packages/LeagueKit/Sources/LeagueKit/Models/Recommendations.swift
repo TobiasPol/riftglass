@@ -27,8 +27,10 @@ public struct RecommendedPositions: Decodable, Equatable, Sendable {
 }
 
 public extension LCURequesting {
-    func recommendedPages(championId: Int, position: String) async throws -> [RecommendedRunePage] {
-        try await get("/lol-perks/v1/recommended-pages/champion/\(championId)/position/\(position)/map/11")
+    /// `mapId` 11 is verified (docs/SPIKE.md); 12 (Howling Abyss, position `NONE`) is what the client
+    /// itself requests in ARAM, unverified by the spike – failures just mean "no recommendation".
+    func recommendedPages(championId: Int, position: String, mapId: Int = 11) async throws -> [RecommendedRunePage] {
+        try await get("/lol-perks/v1/recommended-pages/champion/\(championId)/position/\(position)/map/\(mapId)")
     }
 
     /// Riot's recommended positions for a champion (first = main role), empty if unknown.

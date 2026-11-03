@@ -1,6 +1,6 @@
 # Architektur
 
-Stand: v0.1 (Phasen 1–4; ein eigenes Backend gibt es nicht). Ausführlicher Plan: `PLAN.md`; verifizierte Fakten über den Client: `SPIKE.md`.
+Stand: v0.2 (Phasen 1–4 + Spielmodi/Skill-Overlay, PLAN §11; ein eigenes Backend gibt es nicht). Ausführlicher Plan: `PLAN.md`; verifizierte Fakten über den Client: `SPIKE.md`.
 
 ## Datenfluss
 
@@ -15,18 +15,23 @@ NSWorkspace.runningApplications (KVO)
    ├─ CredentialResolver (KERN_PROCARGS2 → Lockfile-Fallback)       ├─ BuildProvider (StatsKit)
    ├─ LCUClient (REST, actor)  ◄──────────────── Aktionen ──────────┤─ DataDragon / IconCache (DataKit)
    └─ LCUEventStream (WAMP, actor)                                  └─ ChampSelectPanel + ClientDockController
-        └─ [5,"OnJsonApiEvent"] → URI-Filter → phase / champ-select session
+        └─ [5,"OnJsonApiEvent"] → URI-Filter → phase / gameflow session / champ-select session
+             gameflow session → GameQueue (GameMode.classify) → AppSettings.lastQueue
                                                    │ inGame (Spielprozess läuft, LCU meist beendet)
                                                    ▼
                                           InGameCoordinator
                                           ├─ LiveClient (2999, 1 Hz, nur Änderungen)
                                           ├─ RankLookup → OPGGRankProvider (Riot-IDs aus playerlist)
                                           ├─ HotkeyMonitor (Tab, listen-only) → OverlayPanel (Shielding+1)
+                                          ├─ SkillOrderAdvisor (abilities + Skill-Order) → Skillpunkt-Overlay
                                           └─ GameSummary → Menüleiste
 ```
 
 Build-Quellen im Champ Select (`BuildLoader`): `OPGGBuildProvider` (OP.GG MCP, Klassen-Notation →
 `OPGGNotation`, 6-h-Disk-Cache) + `recommended-pages` der LCU (Riot), Duplikate nach Runen entfernt.
+Welche Statistik (`BuildQueue`: ranked/flex/aram) und welche Importe gelten, entscheidet der erkannte
+`GameMode`; nach dem Lock-in importiert `ChampSelectCoordinator+AutoImport` das Item-Set (Map des Modus).
+In ARAM: Mayhem zusätzlich `OPGGAugmentProvider` (beliebteste Augments).
 
 ## Module
 
@@ -53,5 +58,9 @@ Build-Quellen im Champ Select (`BuildLoader`): `OPGGBuildProvider` (OP.GG MCP, K
   temporär), Item-Sets per deterministischer `uid` pro Champion. Fremde Item-Sets werden als
   `JSONValue` unverändert zurückgeschrieben, weil `PUT` die ganze Liste ersetzt.
 - **Spiel-Erkennung über den Prozess**, nicht über die LCU – der Client darf sich im Spiel schließen.
+- **Spielmodus aus der Queue**, nicht aus dem Live Client: die LCU kennt Queue-ID und Namen (Ranked vs.
+  Flex, Mayhem vs. ARAM). Im Spiel gilt die gemerkte Lobby-Queue, wenn die Map übereinstimmt.
+- **Overlays ohne Observation messen:** `OverlayPanel.update(rootView:)` tauscht den Inhalt synchron,
+  damit `present` die neue Größe misst (Skill-Overlay).
 - **Fixtures** liegen am Repo-Root und werden über `#filePath` gefunden (SwiftPM-Ressourcen dürfen
   nicht außerhalb des Packages liegen).

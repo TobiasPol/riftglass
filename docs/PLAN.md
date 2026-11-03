@@ -1,9 +1,10 @@
-# Riftglass – Implementierungsplan (v4)
+# Riftglass – Implementierungsplan (v5)
 
 > Arbeitstitel. Native macOS-Companion-App für League of Legends, so nah an Blitz.gg / OP.GG wie
 > Riots Regeln und macOS es erlauben. Priorität: macOS-Integration und Performance.
 > v2 enthält die Korrekturen aus einem unabhängigen Review (Abschnitt 8), v3 die Spike-Ergebnisse
-> (Abschnitt 9), v4 den Verzicht auf ein eigenes Backend und Spike 2 im Spiel (Abschnitt 10).
+> (Abschnitt 9), v4 den Verzicht auf ein eigenes Backend und Spike 2 im Spiel (Abschnitt 10),
+> v5 Spielmodus-Erkennung, Auto-Import und Skill-Overlay samt Wettbewerbsvergleich (Abschnitt 11).
 
 ## 1. Ziele und Nicht-Ziele
 
@@ -232,3 +233,63 @@ Kein eigenes Backend und kein Riot-API-Key (Side-Project, Production-Key unverh�
 LCU-Empfehlungen · Kein Scraping/keine undokumentierten Endpunkte (League Akari/champ-r tun das) ·
 LCU ist im Spiel beendet → Ränge über Live-Client-Riot-IDs + OP.GG · Overlay auf `CGShieldingWindowLevel()+1` ·
 Gold-Schätzung hinter Schalter, Standard aus · Veröffentlichung als öffentliches GitHub-Repo, MIT.
+
+## 11. v5 – Spielmodus-Erkennung, Auto-Import, Skill-Overlay (2026-11-03)
+
+### 11.1 Was andere Tools bieten (Stand November 2026)
+Quellen: Hersteller-Seiten (Marketing) und Vergleiche von Konkurrenten (Hexgate, Buildzcrank) – mit Vorsicht
+lesen. `?` = in der Recherche nicht bestätigt. Blitz' Overlays laufen laut Reviews nur unter Windows.
+
+| Feature | Blitz | OP.GG Desktop | Porofessor | Riftglass v0.2 |
+|---|---|---|---|---|
+| Runen/Items/Spells importieren | ✓ auto | ✓ auto (nicht in Mayhem) | ? | ✓ Klick; Item-Set auto nach Lock-in, Runen opt-in |
+| Builds pro Modus (ARAM, URF, …) | ✓ | ? | ? | ✓ Ranked/Flex/ARAM/Mayhem; URF/OFA mit SR-Daten |
+| Skill-Order-Overlay im Spiel | ✓ „Recommended Skill Order“ | ? | ? | ✓ Skillpunkt-Hinweis über der Fähigkeitsleiste |
+| Mayhem-/Arena-Augment-Overlay | ✓ | ✓ Tier-Overlay | – (Okt. 2026) | Champ Select: beliebteste Mayhem-Augments; Overlay offen |
+| Ladebildschirm-Scouting (Ränge) | ✓ | ? | ✓ (Kernfeature) | ✓ Banner + Tab-Overlay |
+| Eigene Jungle-/Relikt-Timer | ✓ (ARAM-Health-Relikte) | ? | ? | offen (nur eigene/sichtbare Infos erlaubt) |
+| Item-Gold-Differenz | ✓ | ? | ? | ✓ hinter Schalter (Policy-Risiko) |
+| Post-Game-Analyse | ? | ✓ (Mayhem-Augment-Historie) | ? | einfache Zusammenfassung |
+| Auto-Accept | ? | ? | ? | **nie** (COMPLIANCE.md) |
+
+Augment-Overlays erkennen die Auswahlkarten per Bilderkennung (Hexgate: Windows-OCR; ARAMKit: Bildvergleich),
+da weder LCU noch Live Client die angebotenen Augments liefern.
+
+### 11.2 Spielmodus-Erkennung
+- `GameMode.classify(queueId:gameMode:mapId:description:)` (LeagueKit, pur): Queue-ID aus Riots
+  `queues.json` → `gameMode`-String (inkl. Codenamen `KIWI` = Mayhem, `CHERRY` = Arena) → Map → `.unknown`.
+  League Classic (Patch 26.15, Queue-ID unbekannt) über den Queue-Namen.
+- Quelle: `/lol-gameflow/v1/session` → `gameData.queue`: per REST nach jedem (Re-)Subscribe, danach als
+  WAMP-Event (Moduswechsel in der offenen Lobby lösen kein Phasen-Event aus); Fallback `queueId` aus der
+  Champ-Select-Session. Im Spiel ist die LCU
+  zu → gemerkte Lobby-Queue, wenn die Map zu `gamestats.mapNumber` passt, sonst Live-Client-`gameMode`.
+- Fähigkeiten pro Modus: Lanes, Runenseiten (nicht Arena/Swarm/Classic), Item-Set-Map (11/12 bzw. keine),
+  Riot-Empfehlungs-Map, Augments.
+
+### 11.3 Builds und Auto-Import
+- OP.GG MCP `game_mode` ∈ `ranked`, `flex`, `aram` (Spike 3). Mayhem nutzt ARAM-Builds; URF/OFA/
+  Ultimate Spellbook die SR-Ranked-Daten als Näherung; Arena/Brawl/Swarm/Nexus Blitz/Classic: keine Builds.
+- Item-Sets pro Champion **und Map** (`uid`-Byte = Map-ID, SR bleibt `00` → kompatibel zu v0.1), damit ein
+  ARAM-Set das SR-Set nicht ersetzt.
+- Auto-Import nach dem Lock-in (nicht beim Hovern), einmal pro Spiel und Champion (ARAM-Reroll = neuer Pick):
+  Item-Set standardmäßig an, Runen + Spells opt-in.
+- ARAM: Mayhem: die meistgewählten Augments des Champions (OP.GG `lol_list_aram_augments`, nur Pickrate).
+
+### 11.4 Skillpunkt-Overlay
+- Live Client `activeplayer.abilities.{Q,W,E,R}.abilityLevel` + `level` → `SkillOrderAdvisor` (pur):
+  erster noch nicht genommener Schritt der OP.GG-Skill-Order, der jetzt lernbar ist; nach Stufe 15 Priorität
+  (R, dann früh maximierte Fähigkeit). Abweichungen des Spielers werden toleriert.
+- Erscheint nur bei unverteiltem Skillpunkt und League im Vordergrund, über der Fähigkeitsleiste
+  (`CGShieldingWindowLevel()+1`, klick-durchlässig), kein Hotkey/Eingabeüberwachung nötig.
+- Skill-Order aus dem Champ Select (passender Champion + Queue), sonst einmalig von OP.GG nachgeladen.
+
+### 11.5 Roadmap (nächste Schritte, priorisiert)
+1. **Live-Verifikation** (`scripts/spike/16-queue.sh`): Queue-IDs/`gameMode` von Mayhem, Arena, Classic,
+   Brawl; `recommended-pages` mit Map 12; Position des Skill-Overlays auf verschiedenen Auflösungen.
+2. **Arena:** Builds/Augments – OP.GG MCP hat keinen Arena-Modus; Quelle klären (kein Scraping).
+3. **Augment-Overlay im Spiel:** bräuchte Bildschirmaufnahme + OCR der Auswahlkarten (wie Blitz/Hexgate).
+   Kein Speicherlesen, aber neues Recht + Policy-Frage → erst mit Riot klären (COMPLIANCE.md).
+4. **Eigene Timer:** ARAM-Health-Relikte und eigene Jungle-Camps nur aus Live-Client-Events, die der Spieler
+   sieht; nie Gegner-Spells/Ults.
+5. **Post-Game:** Match-Verlauf über OP.GG `lol_list_summoner_matches`, Build-Treue, LP-Verlauf.
+6. **Matchup-Hinweise im Champ Select:** OP.GG `lol_get_lane_matchup_guide` für den Lane-Gegner.

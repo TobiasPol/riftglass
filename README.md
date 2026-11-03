@@ -14,6 +14,9 @@ reading. It lives in your menu bar and uses close to 0 % CPU while League is clo
 - An **OP.GG build** for your champion and role: runes, summoner spells, starter/core/boots, next items,
   skill order, win rate and sample size.
 - **Riot's own recommendations** from the client, which also work offline.
+- **Game mode detection** (Ranked, Flex, ARAM, ARAM: Mayhem, Arena, URF, …): builds and item sets match
+  the mode; in ARAM: Mayhem the champion's most picked augments.
+- **Automatic import after lock-in**: the item set by default, runes and spells if you opt in.
 - One click imports runes, spells and an item set. Riftglass only replaces **its own** rune page
   ("Riftglass: …") and item sets. Your other pages and sets (OP.GG, U.GG, Blitz, …) are never touched.
 
@@ -21,6 +24,8 @@ reading. It lives in your menu bar and uses close to 0 % CPU while League is clo
 - Solo-queue rank, KDA and CS for all ten players.
 - Your CS/min compared with a guide value for your role, and progress on your planned build.
 - At game start, a short banner with every player's rank.
+- A **skill-point hint** above the ability bar whenever you can level an ability, following OP.GG's
+  most common skill order.
 - Optional, off by default: an item-gold estimate per lane, calculated from visible items only.
 
 **After the game**, the menu bar shows a short summary of your last game.

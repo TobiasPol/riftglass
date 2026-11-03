@@ -134,3 +134,45 @@ Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-
 - **Antwortformat ist kein JSON**, sondern eine Klassen-Notation:
   `class Runes: id,primary_page_id,…` + `LolGetChampionAnalysis("AHRI",Data(…,Runes(8112,8100,[…]),…))`
   → eigener Parser (`OPGGNotation`). Unzureichende Daten kommen als normales Ergebnis mit Meldungsfeld.
+
+## Spike 3 – Spielmodi und Build-Quellen (2026-11-03, ohne laufenden Client)
+
+| Frage | Ergebnis |
+|---|---|
+| Queue-IDs | Riots `queues.json`: 420/440 Ranked, 400 Draft, 430 Blind, 480 Swiftplay, 490 Quickplay, 450 ARAM, **2400 ARAM: Mayhem**, 1700/1710 Arena, 900/1900 URF, 1020 OFA, 1400 Ultimate Spellbook, 1300 Nexus Blitz, 2300 Brawl, 1810–1840 Swarm |
+| League Classic | seit Patch 26.15 (bis Jan. 2027), Draft/Co-op/Custom, **Queue-ID nicht in `queues.json`** → Erkennung über Queue-Namen, live prüfen |
+| OP.GG `game_mode` | Schema: `ranked`, `flex`, `urf`, `aram`, `nexus_blitz`. `ranked`/`flex`/`aram` liefern Builds; **`urf`/`nexus_blitz` lehnen jede Position ab** („must be NONE“, `none`/`NONE` → „invalid“) → nicht nutzbar |
+| OP.GG ARAM | `position` Pflicht, wird ignoriert (`mid`/`top`/`adc` identisch); Fixture `opgg/ahri-aram.json`. Starter/Spells kommen als Klasse `Boots(…)` – Zuordnung ist positionell, Parser unverändert |
+| OP.GG Augments | `lol_list_aram_augments(champion_id)` → `Augment(id,name,tier,popular)`; `popular` = Pick-Anteil. `tier`/`performance` undokumentiert → nicht angezeigt. Fixture `opgg/ahri-aram-augments.json` |
+| OP.GG Skill-Order | `data.skills.order` = 15 Schritte (Stufe 1–15), `data.skill_masteries` = Max-Reihenfolge |
+| Live Client Fähigkeiten | `activeplayer.abilities.{Q,W,E,R}.abilityLevel` (Fixture `liveclient/activeplayer.json`) |
+
+### Live bestätigt (2026-11-03, Client EUW, `16-queue.sh`)
+| Lobby | `gameData.queue` | Riftglass |
+|---|---|---|
+| ARAM: Mayhem | `id 2400`, `mapId 12`, `gameMode "KIWI"`, `type "KIWI"`, `description "ARAM: Mayhem"` | `aramMayhem`, 43 ms nach Verbindung |
+| Arena (Moduswechsel in offener Lobby) | `id 1750` (**nicht in `queues.json`**), `mapId 30`, `gameMode "CHERRY"`, `description "Arena 3x6"` | `arena` – zuerst über `CHERRY`, jetzt auch per ID |
+
+- `recommended-pages/champion/103/position/{NONE,MIDDLE}/map/12` → 200, 3 ARAM-Seiten mit Spells `[4, 32]`
+  (Flash + Schneeball) – Position egal.
+- `recommended-pages/…/map/30` (Arena) → 200 mit generischen SR-artigen Seiten (Electrocute, `[4, 14]`), obwohl
+  Arena keine Runen nutzt → Riftglass fragt für Arena bewusst keine Empfehlungen ab.
+- **Bug gefunden und behoben:** Das Abfragen der Session beim Phasen-Event „Lobby“ lieferte noch keine Queue
+  (Session wird kurz nach dem Phasenwechsel befüllt), und ein Moduswechsel in der offenen Lobby löst gar
+  kein Phasen-Event aus. → `/lol-gameflow/v1/session` ist jetzt im WAMP-URI-Filter; Queue-ID `-1` während
+  des Aufbaus wird ignoriert.
+
+### Practice Tool Ende-zu-Ende (2026-11-03, signierter Debug-Build, Bard Support)
+| Schritt | Ergebnis |
+|---|---|
+| Queue | `3140`, `"Multiplayer Practice Tool Custom"` → `summonersRift` (über `gameMode`/Map, ID nicht in der Tabelle) |
+| Panel | 94 ms nach `Mode → champSelect` angedockt, OP.GG-Build Bard Support |
+| Auto-Import | nach dem Lock-in genau einmal `items=true runes=false`, nach dem manuellen Import (seriell) |
+| Queue im Spiel | gemerkte Lobby-Queue übernommen (Map 11 = `mapNumber` 11); Live Client `gameMode "PRACTICETOOL"` |
+| Skill-Overlay | Shielding+1, 293×44 pt, mittig, 288 pt über dem unteren Rand (20 % von 1440) auf 3440×1440; vom Nutzer gesehen; Stufe 1–3 = Q › W › E wie vorgeschlagen, ausgeblendet sobald kein Punkt offen |
+
+### Offen (→ `scripts/spike/16-queue.sh` im Client bzw. Spiel)
+- Skill-Overlay ab Stufe 6 (R) und mit mehreren offenen Punkten live; 16:9-Bildschirm.
+- `gameData.queue` für Classic und Brawl (ID, `gameMode`, `mapId`, `description`).
+- Live-Client-`gameMode` im Spiel für Mayhem (`KIWI`?) und Arena (`CHERRY`?) – in der Lobby bestätigt, im Spiel offen.
+- Skill-Overlay-Position (20 % Höhe über unterem Rand) auf 16:9 und 21:9.
