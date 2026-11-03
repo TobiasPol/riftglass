@@ -26,6 +26,7 @@ struct DecodingTests {
         #expect(session.enemyPicks.map(\.championId) == [238, 64, 222])
         #expect(session.enemyPicks.allSatisfy { $0.position == nil })
         #expect(session.isLocalPickInProgress)
+        #expect(session.completedActionCount == 14) // 10 bans, 4 locked picks
     }
 
     @Test func runePagesAndInventory() throws {

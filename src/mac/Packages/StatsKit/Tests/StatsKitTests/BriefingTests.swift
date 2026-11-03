@@ -26,7 +26,7 @@ struct LaneAssignerTests {
         #expect(lanes[.bottom]?.championId == 222)
         #expect(lanes[.top]?.championId == 54)
         #expect(lanes[.utility]?.championId == 412)
-        #expect(lanes[.middle]?.isLikely == true)
+        #expect(lanes[.middle] == .init(championId: 238, confidence: 0.69, isRevealed: false))
     }
 
     /// Talon is mostly a jungler, but Lee Sin takes the jungle → Talon goes mid, flagged as a guess.
@@ -34,20 +34,26 @@ struct LaneAssignerTests {
         let lanes = LaneAssigner.assign([pick(91, "Talon"), pick(64, "Lee Sin")], rates: rates)
         #expect(lanes[.jungle]?.championId == 64)
         #expect(lanes[.middle]?.championId == 91)
-        #expect(lanes[.middle]?.isLikely == false)
+        #expect(lanes[.middle]?.confidence == 0.24)
         #expect(lanes.count == 2)
     }
 
     @Test func keepsRevealedPositions() {
         let lanes = LaneAssigner.assign([pick(238, "Zed", .jungle), pick(91, "Talon")], rates: rates)
-        #expect(lanes[.jungle] == .init(championId: 238, confidence: 1))
+        #expect(lanes[.jungle] == .init(championId: 238, confidence: 1, isRevealed: true))
         #expect(lanes[.middle]?.championId == 91)
     }
 
-    @Test func unknownChampionsStillGetALane() {
+    /// No statistics → no invented lane (e.g. Jinx as mid opponent when OP.GG is unreachable).
+    @Test func championsWithoutLaneSharesGetNoLane() {
         let lanes = LaneAssigner.assign([pick(1, "Newchamp"), pick(222, "Jinx")], rates: rates)
+        #expect(lanes.count == 1)
         #expect(lanes[.bottom]?.championId == 222)
-        #expect(lanes.values.contains { $0.championId == 1 && $0.confidence == 0 })
+        let offline = LaneAssigner.assign(
+            [pick(238, "Zed"), pick(64, "Lee Sin", .jungle), pick(222, "Jinx")],
+            rates: RoleRates(rates: [:])
+        )
+        #expect(offline == [.jungle: .init(championId: 64, confidence: 1, isRevealed: true)])
     }
 
     @Test func normalizesNames() {

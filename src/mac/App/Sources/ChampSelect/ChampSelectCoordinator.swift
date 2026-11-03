@@ -43,6 +43,8 @@ final class ChampSelectCoordinator {
     @ObservationIgnored let briefingSources = BriefingSources()
     /// OP.GG lane shares, loaded once per app run (the disk cache keeps them for 6 h).
     @ObservationIgnored var roleRates: RoleRates?
+    /// Pending lane-share request, shared so concurrent updates send it only once.
+    @ObservationIgnored var roleRatesTask: Task<RoleRates?, Never>?
     @ObservationIgnored let settings: AppSettings
     /// `gameId-championId` of the last automatic import, so it runs once per pick.
     @ObservationIgnored var autoImportedKey: String?

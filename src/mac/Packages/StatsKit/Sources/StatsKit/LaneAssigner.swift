@@ -12,6 +12,11 @@ public struct RoleRates: Equatable, Sendable {
         rates[Self.normalized(name)]?[role] ?? 0
     }
 
+    /// False when the champion has no lane share at all (not in OP.GG's meta, or no data).
+    public func knows(_ name: String) -> Bool {
+        rates[Self.normalized(name)]?.values.contains { $0 > 0 } ?? false
+    }
+
     /// Letters and digits only, lowercased: "Kog'Maw", "Nunu & Willump" and "Dr. Mundo" match the
     /// spelling of every source.
     public static func normalized(_ name: String) -> String {
@@ -20,7 +25,8 @@ public struct RoleRates: Equatable, Sendable {
 }
 
 /// Guesses which lane each enemy champion plays. The client does not reveal enemy positions in
-/// draft, so the most likely complete assignment (by OP.GG lane share) is chosen.
+/// draft, so the most likely complete assignment (by OP.GG lane share) is chosen. Champions without
+/// any lane share get no lane – a guess without statistics would be arbitrary.
 public enum LaneAssigner {
     public struct Pick: Equatable, Sendable {
         public let championId: Int
@@ -39,11 +45,8 @@ public enum LaneAssigner {
         public let championId: Int
         /// The champion's share of games in this lane (1 for revealed positions).
         public let confidence: Double
-
-        /// Below this the UI marks the lane as a guess.
-        public var isLikely: Bool {
-            confidence >= 0.6
-        }
+        /// True when the client revealed the position; everything else is an estimate.
+        public let isRevealed: Bool
     }
 
     public static func assign(_ picks: [Pick], rates: RoleRates) -> [Role: Assignment] {
@@ -51,15 +54,16 @@ public enum LaneAssigner {
         var open: [Pick] = []
         for pick in picks.prefix(Role.allCases.count) {
             if let role = pick.fixed, result[role] == nil {
-                result[role] = Assignment(championId: pick.championId, confidence: 1)
-            } else {
+                result[role] = Assignment(championId: pick.championId, confidence: 1, isRevealed: true)
+            } else if rates.knows(pick.name) {
                 open.append(pick)
             }
         }
         let freeRoles = Role.allCases.filter { result[$0] == nil }
         let best = bestRoles(for: open, roles: freeRoles, rates: rates)
         for (pick, role) in zip(open, best.roles) {
-            result[role] = Assignment(championId: pick.championId, confidence: rates.rate(of: pick.name, in: role))
+            let confidence = rates.rate(of: pick.name, in: role)
+            result[role] = Assignment(championId: pick.championId, confidence: confidence, isRevealed: false)
         }
         return result
     }

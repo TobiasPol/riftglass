@@ -79,6 +79,11 @@ public struct ChampSelectSession: Decodable, Equatable, Sendable {
         }
     }
 
+    /// Number of completed picks and bans; changes whenever someone locks a champion.
+    public var completedActionCount: Int {
+        (actions ?? []).joined().count { $0.completed == true }
+    }
+
     /// True while it is the local player's turn to pick.
     public var isLocalPickInProgress: Bool {
         (actions ?? []).joined().contains { action in

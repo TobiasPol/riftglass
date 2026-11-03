@@ -309,7 +309,8 @@ Roadmap-Punkt 6 aus §11.5, erweitert. Drei Karten über den Build-Optionen, abs
 - **Gegner-Lanes:** Die LCU nennt in Draft keine Gegner-Positionen (Annahme, `scripts/spike/17-draft.sh`
   prüft das). `LaneAssigner` wählt die wahrscheinlichste vollständige Zuordnung (≤ 5! Permutationen,
   Summe der Log-Lane-Anteile aus `lol_list_lane_meta_champions`, Untergrenze 1 %). Liefert die LCU doch
-  Positionen, gelten sie fest.
+  Positionen, gelten sie fest. Jede geschätzte Lane ist als „vermutlich“ markiert; Champions ohne
+  Lane-Anteil (nicht in OP.GGs Meta, oder OP.GG nicht erreichbar) bekommen keine Lane.
 - **Nur Summoner's Rift** für Lanes, Matchup und Counter; die Team-Karte auch in ARAM & Co.
 - **Sichtbarkeit:** nur `theirTeam.championId > 0` (gelockte Gegner). Gegner-Hovers sind für den Spieler
   unsichtbar und werden nicht verwendet.

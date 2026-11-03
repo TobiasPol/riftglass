@@ -61,7 +61,7 @@ private struct MatchupCard: View {
                 ChampionIcon(key: coordinator.key(of: opponent.championId), champSelect: coordinator, size: 28)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(coordinator.name(of: opponent.championId)).font(.system(size: 12, weight: .semibold))
-                    if !opponent.isLikely {
+                    if !opponent.isRevealed {
                         Text("vermutlich – Lane geschätzt").font(.system(size: 10))
                             .foregroundStyle(Palette.tertiaryText)
                     }
