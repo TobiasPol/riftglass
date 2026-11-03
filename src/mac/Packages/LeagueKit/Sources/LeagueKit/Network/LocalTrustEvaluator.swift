@@ -10,10 +10,11 @@ import Security
 public struct LocalTrustEvaluator: Sendable {
     public static let allowedHost = "127.0.0.1"
 
-    private let anchors: [SecCertificate]
+    /// DER bytes – `Data` is `Sendable` on every SDK, `SecCertificate` is not on older ones (Xcode 16).
+    private let anchorData: [Data]
 
     public init(anchors: [SecCertificate]) {
-        self.anchors = anchors
+        anchorData = anchors.map { SecCertificateCopyData($0) as Data }
     }
 
     /// Loads the bundled Riot root CA.
@@ -25,6 +26,7 @@ public struct LocalTrustEvaluator: Sendable {
     }
 
     public func evaluate(_ trust: SecTrust, host: String, port: Int, expectedPorts: Set<Int>) -> Bool {
+        let anchors = anchorData.compactMap { SecCertificateCreateWithData(nil, $0 as CFData) }
         guard host == Self.allowedHost, expectedPorts.contains(port), !anchors.isEmpty,
               SecTrustSetPolicies(trust, SecPolicyCreateBasicX509()) == errSecSuccess,
               SecTrustSetAnchorCertificates(trust, anchors as CFArray) == errSecSuccess,
