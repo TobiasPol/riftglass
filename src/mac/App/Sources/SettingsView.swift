@@ -35,6 +35,10 @@ struct SettingsView: View {
                 Text("Spielmodus wird erkannt (Ranked, ARAM, ARAM: Mayhem, Arena, URF …). Übernommen wird die "
                     + "erste Option für den passenden Modus; Riftglass ändert nur eigene Runenseiten und Item-Sets.")
                     .font(.caption).foregroundStyle(.secondary)
+                Toggle("Matchup-Briefing (Lane-Gegner, Teams, Counter-Picks)", isOn: $settings.briefingEnabled)
+                Text("Nutzt nur Champions, die du im Champ Select siehst. Gegner-Lanes werden aus OP.GG-Statistiken "
+                    + "geschätzt, Counter-Picks erscheinen nur während deines Picks.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section("Im Spiel") {
                 Toggle("Skillpunkt-Hinweis (welche Fähigkeit als Nächstes)", isOn: $settings.skillOverlayEnabled)

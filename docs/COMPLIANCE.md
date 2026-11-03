@@ -28,6 +28,11 @@ Diese Datei ist verbindlich; Features, die hier als verboten stehen, werden nich
   Taste und levelt nichts (keine Eingabe-Automatisierung). Nur eigene Daten aus dem Live Client.
 - Mayhem-Augments: nur Pick-Anteile im Champ Select. Ein Augment-Overlay im Spiel bräuchte Bildschirm-
   aufnahme/OCR der Auswahlkarten – vor einer Umsetzung mit Riot klären.
+- Matchup-Briefing im Champ Select: nur Champions, die der Spieler sieht (gelockte Gegner – keine
+  Gegner-Hovers, keine Namen oder Ränge der Gegner). Gegner-Lanes werden aus OP.GG-Lane-Anteilen geschätzt
+  und als „vermutlich“ markiert. Counter-Picks nur während des eigenen Picks, als Liste mit Siegquote und
+  Stichprobe („Optionen, keine Empfehlung“), nie automatisch gewählt. Team-Hinweise sind neutrale
+  Beobachtungen („… ist eine Option“), abschaltbar.
 - Ränge aller 10 Spieler (wie Porofessor/Blitz): nur Spieler des eigenen Spiels, abschaltbar.
 - Nutzung der OP.GG-MCP-Schnittstelle in einer App: OP.GG vor dem Release informiert/anfragen.
 

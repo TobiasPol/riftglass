@@ -18,6 +18,23 @@ public struct ChampSelectSession: Decodable, Equatable, Sendable {
         public let assignedPosition: String?
         public let spell1Id: Int?
         public let spell2Id: Int?
+
+        /// Locked or hovered champion (0 means "none").
+        public var shownChampionId: Int? {
+            [championId, championPickIntent].lazy.compactMap(\.self).first { $0 > 0 }
+        }
+
+        /// Normalised position, nil when the client assigns none (blind, custom, enemies).
+        public var position: String? {
+            guard let position = assignedPosition?.lowercased(), !position.isEmpty else { return nil }
+            return position
+        }
+    }
+
+    /// An enemy champion the player can see, with its position if the client reveals it.
+    public struct EnemyPick: Equatable, Hashable, Sendable {
+        public let championId: Int
+        public let position: String?
     }
 
     public struct Action: Decodable, Equatable, Sendable {
@@ -40,18 +57,40 @@ public struct ChampSelectSession: Decodable, Equatable, Sendable {
 
     /// Locked or hovered champion of the local player (0 means "none").
     public var localChampionId: Int? {
-        guard let player = localPlayer else { return nil }
-        for candidate in [player.championId, player.championPickIntent] {
-            if let id = candidate, id > 0 {
-                return id
-            }
-        }
-        return nil
+        localPlayer?.shownChampionId
     }
 
     /// Normalised role (`top`, `jungle`, `middle`, `bottom`, `utility`) or nil in blind/custom games.
     public var localPosition: String? {
-        guard let position = localPlayer?.assignedPosition?.lowercased(), !position.isEmpty else { return nil }
-        return position
+        localPlayer?.position
+    }
+
+    /// Champions of the own team, picked or hovered (the client shows ally hovers).
+    public var allyChampionIds: [Int] {
+        myTeam.compactMap(\.shownChampionId)
+    }
+
+    /// Enemy champions visible to the player. Only `championId` counts: enemy hovers are hidden in
+    /// draft, so a `championPickIntent` there would be information the player cannot see.
+    public var enemyPicks: [EnemyPick] {
+        (theirTeam ?? []).compactMap { member in
+            guard let id = member.championId, id > 0 else { return nil }
+            return EnemyPick(championId: id, position: member.position)
+        }
+    }
+
+    /// True while it is the local player's turn to pick.
+    public var isLocalPickInProgress: Bool {
+        (actions ?? []).joined().contains { action in
+            action.type == "pick" && action.actorCellId == localPlayerCellId && action.isInProgress == true
+        }
+    }
+}
+
+public extension LCURequesting {
+    /// `GET /lol-champ-select/v1/pickable-champion-ids`: champions the player may pick right now
+    /// (owned or free, not banned or taken).
+    func pickableChampionIds() async throws -> Set<Int> {
+        try await Set(get("/lol-champ-select/v1/pickable-champion-ids", as: [Int].self))
     }
 }

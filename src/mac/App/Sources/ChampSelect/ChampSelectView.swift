@@ -50,8 +50,20 @@ struct ChampSelectView: View {
         return parts.joined(separator: " · ")
     }
 
-    @ViewBuilder
+    /// The briefing (matchup, teams, counters) is independent of the own champion, so it shows above
+    /// whatever state the builds are in.
     private var content: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                BriefingSection(coordinator: coordinator)
+                builds
+            }
+        }
+        .scrollIndicators(.never)
+    }
+
+    @ViewBuilder
+    private var builds: some View {
         if coordinator.championId == nil {
             placeholder("Wähle oder hovere einen Champion, um Build-Optionen zu sehen.")
         } else if coordinator.isLoadingBuilds {
@@ -59,17 +71,12 @@ struct ChampSelectView: View {
         } else if coordinator.builds.isEmpty {
             placeholder(Self.emptyText(for: coordinator.mode))
         } else {
-            ScrollView {
-                VStack(spacing: 10) {
-                    if !coordinator.augments.isEmpty {
-                        AugmentsCard(augments: coordinator.augments)
-                    }
-                    ForEach(coordinator.builds) { build in
-                        BuildOptionCard(build: build, coordinator: coordinator)
-                    }
-                }
+            if !coordinator.augments.isEmpty {
+                AugmentsCard(augments: coordinator.augments)
             }
-            .scrollIndicators(.never)
+            ForEach(coordinator.builds) { build in
+                BuildOptionCard(build: build, coordinator: coordinator)
+            }
         }
     }
 

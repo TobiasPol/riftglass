@@ -176,3 +176,24 @@ Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-
 - `gameData.queue` für Classic und Brawl (ID, `gameMode`, `mapId`, `description`).
 - Live-Client-`gameMode` im Spiel für Mayhem (`KIWI`?) und Arena (`CHERRY`?) – in der Lobby bestätigt, im Spiel offen.
 - Skill-Overlay-Position (20 % Höhe über unterem Rand) auf 16:9 und 21:9.
+
+## Spike 4 – Matchup-Briefing (2026-11-03, OP.GG MCP live, ohne Client)
+- `lol_get_lane_matchup_guide(position, my_champion, opponent_champion, lang)` antwortet als **JSON-Text**
+  (nicht Klassen-Notation), ~50 KB, ohne `desired_output_fields`. Genutzt: `data.opponent_champion_tip`
+  (englisch, auch mit `lang: de_DE`), `lane_advantage_champion`, `lane_solo_kill_advantage_champion`
+  (Champion-Name oder leer), `recommended_play_style` (`even`, …) und `data.counters[]`
+  `{champion_id, play, win}` – darin das Duell (Ahri vs. Zed mid: 3966/8004). Fixture (gekürzt):
+  `tests/fixtures/opgg/ahri-zed-mid-guide.json`.
+- `lol_get_champion_analysis` + `data.weak_counters[].{champion_id,champion_name,my_win_rate,counter_win_rate,play}`:
+  3 Counter je Champion/Lane, `counter_win_rate` = Siegquote des Counters. `data.counters_meta` steht in der
+  Feldliste, wird aber als „unmatched“ abgelehnt → nicht anfragen. Fixture: `zed-mid-counters.json`.
+- `lol_list_lane_meta_champions(position: "all")` + `data.positions.<lane>[].{champion,role_rate}`: alle
+  Meta-Champions je Lane mit Anteil, **nur Anzeigenamen** („Kog'Maw“, „Nunu & Willump“, „Wukong“) → Abgleich
+  über normalisierte Namen. ~6 KB. Fixture: `lane-meta.json`.
+- Champ-Select-Fixture `champ-select-session-draft.json` ist **synthetisch** (Normal Draft, 3 Gegner
+  gelockt), bis `17-draft.sh` eine echte Aufnahme liefert.
+
+### Offen (→ `scripts/spike/17-draft.sh` in Normal Draft / Ranked)
+- Liefert `theirTeam[].assignedPosition` in Draft etwas? Wann erscheint `championId` gegnerischer Picks
+  (erst nach Lock-in)?
+- `GET /lol-champ-select/v1/pickable-champion-ids`: Status und Inhalt (gebannte/vergebene Champions entfernt?).

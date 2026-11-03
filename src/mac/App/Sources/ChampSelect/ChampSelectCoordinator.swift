@@ -27,6 +27,8 @@ final class ChampSelectCoordinator {
     private(set) var augments: [AugmentStat] = []
     private(set) var isLoadingBuilds = false
     private(set) var staticData: StaticData?
+    /// Lane matchup, team comp and counter picks (`ChampSelectCoordinator+Briefing`).
+    var briefing = ChampSelectBriefing()
     var actionState: ActionState = .idle
     /// Build the player imported (or the first option) – used for build progress in game.
     var plannedBuild: BuildOption? {
@@ -38,6 +40,9 @@ final class ChampSelectCoordinator {
     @ObservationIgnored let dataDragon = DataDragon()
     @ObservationIgnored private let loader: BuildLoader
     @ObservationIgnored private let augmentProvider = OPGGAugmentProvider()
+    @ObservationIgnored let briefingSources = BriefingSources()
+    /// OP.GG lane shares, loaded once per app run (the disk cache keeps them for 6 h).
+    @ObservationIgnored var roleRates: RoleRates?
     @ObservationIgnored let settings: AppSettings
     /// `gameId-championId` of the last automatic import, so it runs once per pick.
     @ObservationIgnored var autoImportedKey: String?
@@ -126,11 +131,13 @@ final class ChampSelectCoordinator {
         role = nil
         builds = []
         augments = []
+        briefing = ChampSelectBriefing()
         actionState = .idle
     }
 
     func update(session: ChampSelectSession?) {
         self.session = session
+        defer { updateBriefing() }
         let newChampion = session?.localChampionId
         if let queueId = session?.queueId, queueId > 0, queue?.id != queueId {
             // Fallback when the gameflow session was missed. A new champion loads with it anyway.
@@ -173,6 +180,7 @@ final class ChampSelectCoordinator {
         // Champion or queue (incl. Solo vs. Flex) changed meanwhile; the newer load owns the flag.
         guard championId == self.championId, Self.buildKey(queue) == Self.buildKey(effectiveQueue) else { return }
         self.role = role
+        updateBriefing() // the matchup needs the resolved role
         builds = loaded
         isLoadingBuilds = false
         if plannedBuild?.championKey != key || plannedBuild?.queue != loaded.first?.queue {
