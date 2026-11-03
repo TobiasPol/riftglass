@@ -34,20 +34,26 @@ struct ChampSelectView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(coordinator.championName ?? "Champ Select")
                     .font(.system(size: 15, weight: .semibold))
-                Text("Riftglass · Platzhalter-Builds")
+                Text(subtitle)
                     .font(.system(size: 11))
                     .foregroundStyle(Palette.secondaryText)
             }
         }
     }
 
+    private var subtitle: String {
+        guard let role = coordinator.role else { return "Riftglass" }
+        return "Riftglass · \(role.rawValue.capitalized)"
+    }
+
     @ViewBuilder
     private var content: some View {
         if coordinator.championId == nil {
             placeholder("Wähle oder hovere einen Champion, um Build-Optionen zu sehen.")
+        } else if coordinator.isLoadingBuilds {
+            ProgressView().controlSize(.small).frame(maxWidth: .infinity)
         } else if coordinator.builds.isEmpty {
-            placeholder("Für diesen Champion gibt es noch keine Builds. Phase 1 enthält Platzhalter für "
-                + "Garen, Lee Sin, Ahri, Jinx und Lux.")
+            placeholder("Keine Builds verfügbar – OP.GG ist nicht erreichbar und der Client liefert keine Empfehlung.")
         } else {
             ScrollView {
                 VStack(spacing: 10) {
@@ -107,4 +113,6 @@ enum Palette {
     static let secondaryText = Color.white.opacity(0.60)
     static let tertiaryText = Color.white.opacity(0.38)
     static let accent = Color(red: 0.36, green: 0.78, blue: 0.86)
+    static let positive = Color(red: 0.42, green: 0.82, blue: 0.55)
+    static let negative = Color(red: 0.95, green: 0.45, blue: 0.42)
 }

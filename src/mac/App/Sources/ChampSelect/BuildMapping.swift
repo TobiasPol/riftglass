@@ -4,7 +4,8 @@ import StatsKit
 /// Translates a `BuildOption` (StatsKit) into LCU payloads (LeagueKit).
 struct BuildMapping {
     let runePage: NewRunePage
-    let spells: SpellSelection
+    /// Nil when the source has no spell recommendation.
+    let spells: SpellSelection?
     let itemSet: ItemSetDraft
 
     init(build: BuildOption, championId: Int, championName: String) {
@@ -14,9 +15,8 @@ struct BuildMapping {
             subStyleId: build.runes.subStyleId,
             selectedPerkIds: build.runes.perkIds
         )
-        let first = build.summonerSpells.first ?? 4
-        let second = build.summonerSpells.dropFirst().first ?? 14
-        spells = SpellSelection(spell1Id: first, spell2Id: second)
+        spells = build.summonerSpells.count >= 2
+            ? SpellSelection(spell1Id: build.summonerSpells[0], spell2Id: build.summonerSpells[1]) : nil
         itemSet = ItemSetDraft(
             championId: championId,
             title: "Riftglass: \(championName) – \(build.title)",

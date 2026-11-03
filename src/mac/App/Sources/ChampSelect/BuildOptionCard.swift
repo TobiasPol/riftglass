@@ -13,12 +13,17 @@ struct BuildOptionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
+            HStack(alignment: .firstTextBaseline) {
                 Text(build.title).font(.system(size: 13, weight: .semibold))
                 Spacer()
-                Text(build.role.rawValue.capitalized)
+                Text(build.source.attribution)
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(Palette.secondaryText)
+            }
+            if let stats = build.stats {
+                Text(Self.statsLine(stats))
+                    .font(.system(size: 11).monospacedDigit())
+                    .foregroundStyle(stats.winRate >= 0.5 ? Palette.positive : Palette.secondaryText)
             }
             HStack(spacing: 4) {
                 ForEach(Array(build.runes.perkIds.prefix(6).enumerated()), id: \.offset) { index, perkId in
@@ -36,6 +41,11 @@ struct BuildOptionCard: View {
                     ForEach(block.itemIds, id: \.self) { itemIcon($0) }
                 }
             }
+            if !build.skillOrder.isEmpty {
+                Text("Skills: " + build.skillOrder.prefix(9).joined(separator: " › "))
+                    .font(.system(size: 10).monospaced())
+                    .foregroundStyle(Palette.secondaryText)
+            }
             buttons
         }
         .padding(10)
@@ -49,10 +59,19 @@ struct BuildOptionCard: View {
                 .tint(Palette.accent)
             Button("Runen") { coordinator.importRunes(build) }
             Button("Spells") { coordinator.setSpells(build) }
+                .disabled(build.summonerSpells.count < 2)
             Button("Items") { coordinator.importItemSet(build) }
+                .disabled(build.itemBlocks.isEmpty)
         }
         .controlSize(.small)
         .disabled(isRunning)
+    }
+
+    static func statsLine(_ stats: BuildOption.Stats) -> String {
+        let winRate = stats.winRate.formatted(.percent.precision(.fractionLength(1)))
+        let games = stats.games.formatted(.number.notation(.compactName))
+        let pick = stats.pickRate.map { " · Pick " + $0.formatted(.percent.precision(.fractionLength(0))) } ?? ""
+        return "\(winRate) Winrate · \(games) Spiele" + pick
     }
 
     private var isRunning: Bool {

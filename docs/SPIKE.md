@@ -108,3 +108,29 @@ Alle `200` im Lobby-Zustand: `gameflow-phase`, `current-summoner`, `perks/invent
 
 Nicht live geprüft: Ranked-Queue mit zugewiesener Position (Rollenfilter nur per Unit-Test),
 Client-Neustart auf neuem Port während die App läuft, mehrere Bildschirme.
+
+## Spike 2 – im Spiel und Build-Quellen (2026-11-03)
+
+Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-overlay-level.swift`.
+
+| Frage | Ergebnis |
+|---|---|
+| Läuft die LCU im Spiel? | **Nein.** `LeagueClientUx` beendet sich beim Spielstart (macOS-Standard) → im Spiel nur Live Client API |
+| Port 2999 – Zertifikat | gleiches Leaf `CN=rclient` (SAN `127.0.0.1`), Kette nur Leaf; `openssl verify -CAfile riotgames.pem` OK |
+| Live Client Endpunkte | `activeplayer`, `playerlist`, `gamestats`, `activeplayername` → 200 (Fixtures `tests/fixtures/liveclient/`) |
+| `playerlist` enthält | `riotIdGameName`, `riotIdTagLine`, `team`, `position`, `items`, `scores`, `summonerSpells`, `isBot` – **keine PUUID** |
+| Fenster des Spiels | Besitzer `com.riotgames.LeagueofLegends.GameClient`, Ebene **2147483628 = `CGShieldingWindowLevel()`**, Vollbild 3440×1440 |
+| Overlay-Ebene im Vollbild | `.screenSaver` **unsichtbar**, `CGShieldingWindowLevel() + 1` **sichtbar** (vom Nutzer bestätigt) |
+| Riot-Empfehlungen (LCU) | `GET /lol-perks/v1/recommended-pages/champion/{id}/position/{POS}/map/11` → mehrere Seiten mit `perks`, Styles **und `summonerSpellIds`**, keine Items |
+| Positionen pro Champion | `GET /lol-perks/v1/recommended-champion-positions` → `{championId: {recommendedPositions: [...]}}` |
+| Region | `GET /riotclient/region-locale` → `{region: "EUW", …}` |
+
+### OP.GG MCP (`https://mcp-api.op.gg/mcp`, offiziell von OP.GG, ohne Key)
+- JSON-RPC 2.0 über HTTP POST; `tools/call` funktioniert auch **ohne** `initialize`/Session (zustandslos), ~1,5 s.
+- `lol_get_champion_analysis` (`game_mode`, `champion`, `position` ∈ top/mid/jungle/adc/support,
+  `desired_output_fields`): eine Runenseite, Starter/Core/Stiefel, 4.–6.-Item-Alternativen, Spells,
+  Skill-Order, Win-/Pick-/Ban-Rate, Tier. Champion-Name tolerant (`MONKEYKING`, `WUKONG`, `LEE_SIN`).
+- `lol_get_summoner_profile` (`game_name`, `tag_line`, `region`): Rang/LP/W-L pro Queue; unranked → `null`.
+- **Antwortformat ist kein JSON**, sondern eine Klassen-Notation:
+  `class Runes: id,primary_page_id,…` + `LolGetChampionAnalysis("AHRI",Data(…,Runes(8112,8100,[…]),…))`
+  → eigener Parser (`OPGGNotation`). Unzureichende Daten kommen als normales Ergebnis mit Meldungsfeld.

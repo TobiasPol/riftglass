@@ -61,8 +61,13 @@ public struct RuneStyle: Decodable, Equatable, Sendable {
 }
 
 public struct Item: Decodable, Equatable, Sendable {
+    public struct Gold: Decodable, Equatable, Sendable {
+        public let total: Int
+    }
+
     public let name: String
     public let image: DDImage
+    public let gold: Gold?
 }
 
 /// `{ "data": { key: value } }` wrapper used by champion/summoner/item JSONs.
@@ -81,5 +86,15 @@ public struct StaticData: Equatable, Sendable {
 
     public func champion(_ id: Int) -> Champion? {
         championsById[id]
+    }
+
+    /// Total item prices for the gold estimate.
+    public var itemPrices: [Int: Int] {
+        itemsById.compactMapValues { $0.gold?.total }
+    }
+
+    /// Data Dragon key (e.g. "MonkeyKing") → champion.
+    public func champion(key: String) -> Champion? {
+        championsById.values.first { $0.id == key }
     }
 }

@@ -1,0 +1,200 @@
+[
+  {
+    "isDefaultPosition": true,
+    "isRecommendationOverride": false,
+    "keystone": {
+      "id": 8992,
+      "name": "Deathfire Touch"
+    },
+    "perks": [
+      {
+        "id": 8992,
+        "name": "Deathfire Touch",
+        "styleId": 8200
+      },
+      {
+        "id": 8226,
+        "name": "Manaflow Band",
+        "styleId": 8200
+      },
+      {
+        "id": 8210,
+        "name": "Transcendence",
+        "styleId": 8200
+      },
+      {
+        "id": 8237,
+        "name": "Scorch",
+        "styleId": 8200
+      },
+      {
+        "id": 8139,
+        "name": "Taste of Blood",
+        "styleId": 8100
+      },
+      {
+        "id": 8106,
+        "name": "Ultimate Hunter",
+        "styleId": 8100
+      },
+      {
+        "id": 5005,
+        "name": "Attack Speed",
+        "styleId": 8400
+      },
+      {
+        "id": 5008,
+        "name": "Adaptive Force",
+        "styleId": 8400
+      },
+      {
+        "id": 5001,
+        "name": "Health Scaling",
+        "styleId": 8400
+      }
+    ],
+    "position": "MIDDLE",
+    "primaryPerkStyleId": 8200,
+    "primaryRecommendationAttribute": "kCooldown",
+    "recommendationChampionId": 103,
+    "recommendationId": "2026-09-29.000522",
+    "secondaryPerkStyleId": 8100,
+    "secondaryRecommendationAttribute": "kMana",
+    "summonerSpellIds": [
+      4,
+      14
+    ]
+  },
+  {
+    "isDefaultPosition": true,
+    "isRecommendationOverride": false,
+    "keystone": {
+      "id": 8112,
+      "name": "Electrocute"
+    },
+    "perks": [
+      {
+        "id": 8112,
+        "name": "Electrocute",
+        "styleId": 8100
+      },
+      {
+        "id": 8139,
+        "name": "Taste of Blood",
+        "styleId": 8100
+      },
+      {
+        "id": 8140,
+        "name": "Grisly Mementos",
+        "styleId": 8100
+      },
+      {
+        "id": 8106,
+        "name": "Ultimate Hunter",
+        "styleId": 8100
+      },
+      {
+        "id": 8226,
+        "name": "Manaflow Band",
+        "styleId": 8200
+      },
+      {
+        "id": 8210,
+        "name": "Transcendence",
+        "styleId": 8200
+      },
+      {
+        "id": 5005,
+        "name": "Attack Speed",
+        "styleId": 8400
+      },
+      {
+        "id": 5008,
+        "name": "Adaptive Force",
+        "styleId": 8400
+      },
+      {
+        "id": 5001,
+        "name": "Health Scaling",
+        "styleId": 8400
+      }
+    ],
+    "position": "MIDDLE",
+    "primaryPerkStyleId": 8100,
+    "primaryRecommendationAttribute": "kCooldown",
+    "recommendationChampionId": 103,
+    "recommendationId": "2026-09-29.000521",
+    "secondaryPerkStyleId": 8200,
+    "secondaryRecommendationAttribute": "kMana",
+    "summonerSpellIds": [
+      4,
+      14
+    ]
+  },
+  {
+    "isDefaultPosition": true,
+    "isRecommendationOverride": false,
+    "keystone": {
+      "id": 8112,
+      "name": "Electrocute"
+    },
+    "perks": [
+      {
+        "id": 8112,
+        "name": "Electrocute",
+        "styleId": 8100
+      },
+      {
+        "id": 8139,
+        "name": "Taste of Blood",
+        "styleId": 8100
+      },
+      {
+        "id": 8140,
+        "name": "Grisly Mementos",
+        "styleId": 8100
+      },
+      {
+        "id": 8106,
+        "name": "Ultimate Hunter",
+        "styleId": 8100
+      },
+      {
+        "id": 8345,
+        "name": "Biscuit Delivery",
+        "styleId": 8300
+      },
+      {
+        "id": 8347,
+        "name": "Cosmic Insight",
+        "styleId": 8300
+      },
+      {
+        "id": 5005,
+        "name": "Attack Speed",
+        "styleId": 8400
+      },
+      {
+        "id": 5008,
+        "name": "Adaptive Force",
+        "styleId": 8400
+      },
+      {
+        "id": 5001,
+        "name": "Health Scaling",
+        "styleId": 8400
+      }
+    ],
+    "position": "MIDDLE",
+    "primaryPerkStyleId": 8100,
+    "primaryRecommendationAttribute": "kCooldown",
+    "recommendationChampionId": 103,
+    "recommendationId": "2026-09-29.000523",
+    "secondaryPerkStyleId": 8300,
+    "secondaryRecommendationAttribute": "kHealing",
+    "summonerSpellIds": [
+      4,
+      14
+    ]
+  }
+]

@@ -16,6 +16,9 @@ packages:
     path: Packages/StatsKit
   OverlayKit:
     path: Packages/OverlayKit
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.7.0"
 
 settings:
   base:
@@ -32,11 +35,13 @@ targets:
     platform: macOS
     sources:
       - path: App/Sources
+      - path: App/Assets.xcassets
     dependencies:
       - package: LeagueKit
       - package: DataKit
       - package: StatsKit
       - package: OverlayKit
+      - package: Sparkle
     settings:
       base:
         PRODUCT_NAME: Riftglass
@@ -49,7 +54,10 @@ targets:
         CODE_SIGN_IDENTITY: Apple Development
         DEVELOPMENT_TEAM: CQ42H4H5MA
         ENABLE_HARDENED_RUNTIME: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
+        # Sparkle keys (SUFeedURL, SUPublicEDKey) – merged with the generated keys below.
+        INFOPLIST_FILE: App/Info.plist
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_CFBundleDisplayName: Riftglass
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.games

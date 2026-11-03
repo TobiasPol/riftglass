@@ -1,58 +1,77 @@
 # Riftglass
 
-Native macOS companion app for League of Legends (working title): rune/spell/item-set import in
-champ select, later loading-screen ranks and an in-game overlay. Swift 6, SwiftUI + AppKit, no
-Electron, no injection.
+A native macOS companion app for League of Legends: builds and rune import in champ select, ranks and
+a Tab overlay in game. Written in Swift 6 with SwiftUI and AppKit. No Electron, no injection, no memory
+reading. It lives in your menu bar and uses close to 0 % CPU while League is closed.
 
 > **Riftglass isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or
 > anyone officially involved in producing or managing Riot Games properties. Riot Games, and all
 > associated properties are trademarks or registered trademarks of Riot Games, Inc.**
 
-## Status
+## Features
 
-| Phase | Inhalt | Stand |
+**Champ select**: a panel docks next to the League client as soon as you hover a champion:
+- An **OP.GG build** for your champion and role: runes, summoner spells, starter/core/boots, next items,
+  skill order, win rate and sample size.
+- **Riot's own recommendations** from the client, which also work offline.
+- One click imports runes, spells and an item set. Riftglass only replaces **its own** rune page
+  ("Riftglass: …") and item sets. Your other pages and sets (OP.GG, U.GG, Blitz, …) are never touched.
+
+**In game** (hold <kbd>Tab</kbd>):
+- Solo-queue rank, KDA and CS for all ten players.
+- Your CS/min compared with a guide value for your role, and progress on your planned build.
+- At game start, a short banner with every player's rank.
+- Optional, off by default: an item-gold estimate per lane, calculated from visible items only.
+
+**After the game**, the menu bar shows a short summary of your last game.
+
+## Install
+
+1. Download the latest `Riftglass-x.y.z.dmg` from [Releases](https://github.com/TobiasPol/riftglass/releases).
+   It is signed with a Developer ID and notarized by Apple.
+2. Drag Riftglass to Applications and start it. A ◆ appears in the menu bar.
+3. For the Tab overlay, grant **Input Monitoring** when asked, then restart Riftglass. Riftglass only
+   *listens* for the Tab key and never changes or sends input.
+
+Updates arrive automatically through Sparkle (signed with EdDSA).
+
+Requirements: macOS 14 or later, Apple Silicon.
+
+## Data sources and privacy
+
+| Data | Source | Leaves your Mac? |
 |---|---|---|
-| 0 | Scaffolding, Verifikations-Spike (`docs/SPIKE.md`) | fertig (Port 2999 + Overlay-Level → Phase 2) |
-| 1 | Client-Erkennung, LCU (REST + WAMP), Champ-Select-Panel, Import | fertig, Platzhalter-Builds |
-| 2–4 | Overlay, Backend, Verteilung | geplant (`docs/PLAN.md`) |
+| Champ select, rune pages, item sets | League client API (LCU, `127.0.0.1`) | no |
+| In-game stats | Live Client Data API (`127.0.0.1:2999`) | no |
+| Builds, win rates | [OP.GG](https://op.gg) public MCP API | champion + role only |
+| Ranks | OP.GG public MCP API | Riot IDs of the players in your game (can be turned off) |
+| Icons, item data | Riot Data Dragon CDN | no personal data |
 
-## Voraussetzungen
+There is no telemetry, no account and no backend. Details: [PRIVACY.md](PRIVACY.md).
+Build and rank data © OP.GG. Riftglass is not affiliated with OP.GG.
 
-- macOS 14+, Apple Silicon, Xcode 16+ (getestet mit Xcode 27.2)
-- `brew install xcodegen swiftlint swiftformat pre-commit jq` (oder `scripts/bootstrap.sh`, fragt vorher)
-- Ein „Apple Development“-Zertifikat. Team-ID steht in `src/mac/project.yml` (`DEVELOPMENT_TEAM`).
+## What Riftglass will never do
 
-## Befehle
+No enemy ultimate or summoner spell timers, no memory reading, no injection, no input automation,
+nothing the player cannot see in game. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md).
+
+## Build from source
 
 ```bash
-scripts/bootstrap.sh   # einmalig: Tools prüfen, .env anlegen, pre-commit, Xcode-Projekt erzeugen
-scripts/test.sh        # swift test für alle vier Packages
-scripts/lint.sh        # SwiftFormat + SwiftLint (strict); --fix formatiert
-scripts/build.sh       # xcodegen + xcodebuild (signiert); CI: scripts/build.sh CODE_SIGNING_ALLOWED=NO
+brew install xcodegen swiftlint swiftformat pre-commit jq
+scripts/bootstrap.sh                          # .env, pre-commit, Xcode project
+scripts/test.sh                               # unit tests of all packages
+scripts/build.sh CODE_SIGNING_ALLOWED=NO      # unsigned debug build
 ```
 
-Die App liegt danach unter `build/DerivedData/Build/Products/Debug/Riftglass.app` und lebt nur in der
-Menüleiste (◆).
+Signed builds use the team in `src/mac/project.yml`; change `DEVELOPMENT_TEAM` to your own.
+Releases: [docs/RELEASING.md](docs/RELEASING.md). Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Verified facts about the macOS client (ports, certificates, WAMP quirks): [docs/SPIKE.md](docs/SPIKE.md).
 
-## Struktur
+## Contributing
 
-```
-src/mac/project.yml          XcodeGen-Spezifikation (Riftglass.xcodeproj wird generiert, nicht eingecheckt)
-src/mac/App/                 Menüleisten-App, Champ-Select-UI, Verbindungs-Lebenszyklus
-src/mac/Packages/LeagueKit   Prozess-Erkennung, Credentials, TLS, LCU-REST/WAMP, Spielphase, Import-Logik
-src/mac/Packages/DataKit     Data Dragon + Icon-Cache
-src/mac/Packages/StatsKit    BuildProvider (Phase 1: Platzhalter)
-src/mac/Packages/OverlayKit  NSPanel, Docking an den Client
-tests/fixtures/              anonymisierte Aufnahmen vom echten Client
-scripts/spike/               Verifikations-Skripte (brauchen laufenden Client)
-docs/                        PLAN, SPIKE, ARCHITECTURE, COMPLIANCE
-```
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Umgebungsvariablen
+## License
 
-Die macOS-App braucht keine. Für das Backend (Phase 3) siehe `.env.example`: `RIOT_API_KEY`,
-`DATABASE_URL` – nur in `.env` bzw. Dokploy, nie im Repo.
-
-## Regeln
-
-Siehe `docs/COMPLIANCE.md`: keine Gegner-Timer, kein Speicherlesen, keine Injection, keine Automatisierung.
+[MIT](LICENSE) © 2026 Tobias Polley

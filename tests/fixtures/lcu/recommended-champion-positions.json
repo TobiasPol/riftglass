@@ -1,0 +1,28 @@
+{
+  "103": {
+    "recommendedPositions": [
+      "MIDDLE"
+    ]
+  },
+  "222": {
+    "recommendedPositions": [
+      "BOTTOM"
+    ]
+  },
+  "64": {
+    "recommendedPositions": [
+      "JUNGLE"
+    ]
+  },
+  "86": {
+    "recommendedPositions": [
+      "TOP"
+    ]
+  },
+  "99": {
+    "recommendedPositions": [
+      "MIDDLE",
+      "UTILITY"
+    ]
+  }
+}

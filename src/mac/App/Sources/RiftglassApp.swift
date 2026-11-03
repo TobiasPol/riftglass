@@ -4,65 +4,56 @@ import SwiftUI
 @main
 struct RiftglassApp: App {
     @State private var model = AppModel()
+    @State private var updater = Updater()
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarContent(model: model)
+            MenuBarContent(model: model, updater: updater)
         } label: {
-            Image(systemName: model.mode == .dormant ? "diamond" : "diamond.fill")
-                .task { model.start() }
+            MenuBarLabel(model: model)
         }
         .menuBarExtraStyle(.window)
 
+        Window("Willkommen bei Riftglass", id: OnboardingView.windowID) {
+            OnboardingView(settings: model.settings)
+        }
+        .windowResizability(.contentSize)
+
         Settings {
-            SettingsView()
+            SettingsView(settings: model.settings)
+                .environment(updater)
         }
     }
 }
 
-struct MenuBarContent: View {
+/// Menu bar icon; also starts the app model and shows onboarding on first launch.
+private struct MenuBarLabel: View {
     let model: AppModel
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Riftglass").font(.headline)
-            Label(statusText, systemImage: statusIcon)
-                .font(.callout)
-            if let error = model.setupError {
-                Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+        Image(systemName: model.mode == .dormant ? "diamond" : "diamond.fill")
+            .task {
+                model.start()
+                if !model.settings.onboardingCompleted {
+                    WindowFront.open(OnboardingView.windowID, using: openWindow)
+                }
             }
-            Divider()
-            Text(Disclaimer.short)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack {
-                SettingsLink { Text("Einstellungen …") }
-                Spacer()
-                Button("Beenden") { NSApplication.shared.terminate(nil) }
-            }
-        }
-        .padding(14)
-        .frame(width: 280)
     }
+}
 
-    private var statusText: String {
-        switch model.mode {
-        case .dormant: "League ist nicht gestartet"
-        case .client: model.isLCUConnected ? "Mit dem Client verbunden" : "Verbinde mit dem Client …"
-        case .champSelect: "Champ Select"
-        case .inGame: "Im Spiel"
-        case .postGame: "Nach dem Spiel"
-        }
-    }
-
-    private var statusIcon: String {
-        switch model.mode {
-        case .dormant: "moon.zzz"
-        case .client: model.isLCUConnected ? "checkmark.circle" : "arrow.triangle.2.circlepath"
-        case .champSelect: "person.crop.square"
-        case .inGame: "gamecontroller"
-        case .postGame: "chart.bar"
+/// Menu bar apps are not frontmost, so `activate()` alone leaves new windows behind other apps
+/// (e.g. the League client). Open the window, then order it to the front explicitly.
+@MainActor
+enum WindowFront {
+    static func open(_ id: String, using openWindow: OpenWindowAction) {
+        NSApplication.shared.activate()
+        openWindow(id: id)
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(100))
+            let window = NSApplication.shared.windows.first { $0.identifier?.rawValue.contains(id) == true }
+            window?.makeKeyAndOrderFront(nil)
+            window?.orderFrontRegardless()
         }
     }
 }

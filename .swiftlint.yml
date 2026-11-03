@@ -19,7 +19,7 @@ line_length:
   error: 140
   ignores_comments: true
 identifier_name:
-  excluded: [id, x, y, ok]
+  excluded: [id, x, y, ok, me, cs]
 opt_in_rules:
   - force_unwrapping
   - implicitly_unwrapped_optional

@@ -1,0 +1,150 @@
+{
+  "abilities": {
+    "E": {
+      "abilityLevel": 0,
+      "displayName": "anon",
+      "id": "LuxLightStrikeKugel",
+      "rawDescription": "GeneratedTip_Spell_LuxLightStrikeKugel_Description",
+      "rawDisplayName": "GeneratedTip_Spell_LuxLightStrikeKugel_DisplayName"
+    },
+    "Passive": {
+      "displayName": "anon",
+      "id": "LuxIlluminationPassive",
+      "rawDescription": "GeneratedTip_Passive_LuxIlluminationPassive_Description",
+      "rawDisplayName": "GeneratedTip_Passive_LuxIlluminationPassive_DisplayName"
+    },
+    "Q": {
+      "abilityLevel": 1,
+      "displayName": "anon",
+      "id": "LuxLightBinding",
+      "rawDescription": "GeneratedTip_Spell_LuxLightBinding_Description",
+      "rawDisplayName": "GeneratedTip_Spell_LuxLightBinding_DisplayName"
+    },
+    "R": {
+      "abilityLevel": 0,
+      "displayName": "anon",
+      "id": "LuxR",
+      "rawDescription": "GeneratedTip_Spell_LuxR_Description",
+      "rawDisplayName": "GeneratedTip_Spell_LuxR_DisplayName"
+    },
+    "W": {
+      "abilityLevel": 0,
+      "displayName": "anon",
+      "id": "LuxPrismaticWave",
+      "rawDescription": "GeneratedTip_Spell_LuxPrismaticWave_Description",
+      "rawDisplayName": "GeneratedTip_Spell_LuxPrismaticWave_DisplayName"
+    }
+  },
+  "championStats": {
+    "abilityHaste": 0.0,
+    "abilityPower": 18.0,
+    "armor": 21.0,
+    "armorPenetrationFlat": 0.0,
+    "armorPenetrationPercent": 1.0,
+    "attackDamage": 54.0,
+    "attackRange": 550.0,
+    "attackSpeed": 0.6690000295639038,
+    "bonusArmorPenetrationPercent": 1.0,
+    "bonusMagicPenetrationPercent": 1.0,
+    "critChance": 0.0,
+    "critDamage": 200.0,
+    "currentHealth": 590.0,
+    "healShieldPower": 0.0,
+    "healthRegenRate": 1.100000023841858,
+    "lifeSteal": 0.0,
+    "magicLethality": 0.0,
+    "magicPenetrationFlat": 0.0,
+    "magicPenetrationPercent": 1.0,
+    "magicResist": 30.0,
+    "maxHealth": 590.0,
+    "moveSpeed": 725.0,
+    "omnivamp": 0.0,
+    "physicalLethality": 0.0,
+    "physicalVamp": 0.0,
+    "resourceMax": 440.0,
+    "resourceRegenRate": 1.7999999523162842,
+    "resourceType": "MANA",
+    "resourceValue": 440.0,
+    "spellVamp": 0.0,
+    "tenacity": 5.0
+  },
+  "currentGold": 500.0,
+  "fullRunes": {
+    "generalRunes": [
+      {
+        "displayName": "anon",
+        "id": 8229,
+        "rawDescription": "perk_tooltip_ArcaneComet",
+        "rawDisplayName": "perk_displayname_ArcaneComet"
+      },
+      {
+        "displayName": "anon",
+        "id": 8226,
+        "rawDescription": "perk_tooltip_8226",
+        "rawDisplayName": "perk_displayname_8226"
+      },
+      {
+        "displayName": "anon",
+        "id": 8210,
+        "rawDescription": "perk_tooltip_Transcendence",
+        "rawDisplayName": "perk_displayname_Transcendence"
+      },
+      {
+        "displayName": "anon",
+        "id": 8237,
+        "rawDescription": "perk_tooltip_Scorch",
+        "rawDisplayName": "perk_displayname_Scorch"
+      },
+      {
+        "displayName": "anon",
+        "id": 8304,
+        "rawDescription": "perk_tooltip_MagicalFootwear",
+        "rawDisplayName": "perk_displayname_MagicalFootwear"
+      },
+      {
+        "displayName": "anon",
+        "id": 8347,
+        "rawDescription": "perk_tooltip_CosmicInsight",
+        "rawDisplayName": "perk_displayname_CosmicInsight"
+      }
+    ],
+    "keystone": {
+      "displayName": "anon",
+      "id": 8229,
+      "rawDescription": "perk_tooltip_ArcaneComet",
+      "rawDisplayName": "perk_displayname_ArcaneComet"
+    },
+    "primaryRuneTree": {
+      "displayName": "anon",
+      "id": 8200,
+      "rawDescription": "perkstyle_tooltip_7202",
+      "rawDisplayName": "perkstyle_displayname_7202"
+    },
+    "secondaryRuneTree": {
+      "displayName": "anon",
+      "id": 8300,
+      "rawDescription": "perkstyle_tooltip_7203",
+      "rawDisplayName": "perkstyle_displayname_7203"
+    },
+    "statRunes": [
+      {
+        "id": 5008,
+        "rawDescription": "perk_tooltip_StatModAdaptive"
+      },
+      {
+        "id": 5008,
+        "rawDescription": "perk_tooltip_StatModAdaptive"
+      },
+      {
+        "id": 5001,
+        "rawDescription": "perk_tooltip_StatModHealthScaling"
+      }
+    ]
+  },
+  "level": 1,
+  "riotId": "anon",
+  "riotIdGameName": "anon",
+  "riotIdTagLine": "anon",
+  "summonerName": "anon",
+  "teamRelativeColors": true
+}

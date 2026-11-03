@@ -1,0 +1,309 @@
+[
+ {
+  "championName": "Garen",
+  "rawChampionName": "game_character_displayname_Garen",
+  "riotId": "Player0#EUW",
+  "riotIdGameName": "Player0",
+  "riotIdTagLine": "EUW",
+  "summonerName": "Player0",
+  "team": "ORDER",
+  "position": "TOP",
+  "level": 6,
+  "isBot": false,
+  "isDead": false,
+  "items": [],
+  "scores": {
+   "kills": 0,
+   "deaths": 1,
+   "assists": 0,
+   "creepScore": 40,
+   "wardScore": 3.0
+  },
+  "summonerSpells": {}
+ },
+ {
+  "championName": "Lee Sin",
+  "rawChampionName": "game_character_displayname_LeeSin",
+  "riotId": "Player1#EUW",
+  "riotIdGameName": "Player1",
+  "riotIdTagLine": "EUW",
+  "summonerName": "Player1",
+  "team": "ORDER",
+  "position": "JUNGLE",
+  "level": 7,
+  "isBot": false,
+  "isDead": false,
+  "items": [
+   {
+    "canUse": false,
+    "consumable": false,
+    "count": 1,
+    "displayName": "Item",
+    "itemID": 1054,
+    "price": 0,
+    "slot": 0
+   }
+  ],
+  "scores": {
+   "kills": 1,
+   "deaths": 2,
+   "assists": 1,
+   "creepScore": 47,
+   "wardScore": 3.0
+  },
+  "summonerSpells": {}
+ },
+ {
+  "championName": "Ahri",
+  "rawChampionName": "game_character_displayname_Ahri",
+  "riotId": "Player2#EUW",
+  "riotIdGameName": "Player2",
+  "riotIdTagLine": "EUW",
+  "summonerName": "Player2",
+  "team": "ORDER",
+  "position": "MIDDLE",
+  "level": 8,
+  "isBot": false,
+  "isDead": false,
+  "items": [
+   {
+    "canUse": false,
+    "consumable": false,
+    "count": 1,
+    "displayName": "Item",
+    "itemID": 1056,
+    "price": 0,
+    "slot": 0
+   },
+   {
+    "canUse": false,
+    "consumable": false,
+    "count": 1,
+    "displayName": "Item",
+    "itemID": 3020,
+    "price": 0,
+    "slot": 1
+   }
+  ],
+  "scores": {
+   "kills": 2,
+   "deaths": 0,
+   "assists": 2,
+   "creepScore": 54,
+   "wardScore": 3.0
+  },
+  "summonerSpells": {}
+ },
+ {
+  "championName": "Jinx",
+  "rawChampionName": "game_character_displayname_Jinx",
+  "riotId": "Player3#EUW",
+  "riotIdGameName": "Player3",
+  "riotIdTagLine": "EUW",
+  "summonerName": "Player3",
+  "team": "ORDER",
+  "position": "BOTTOM",
+  "level": 6,
+  "isBot": false,
+  "isDead": false,
+  "items": [
+   {
+    "canUse": false,
+    "consumable": false,
+    "count": 1,
+    "displayName": "Item",
+    "itemID": 1055,
+    "price": 0,
+    "slot": 0
+   },
+   {
+    "canUse": false,
+    "consumable": false,
+    "count": 1,
+    "displayName": "Item",
+    "itemID": 3006,
+    "price": 0,
+    "slot": 1
+   },
+   {
+    "canUse": false,
+    "consumable": false,
+    "count": 1,
+    "displayName": "Item",
+    "itemID": 3031,
+    "price": 0,
+    "slot": 2
+   }
+  ],
+  "scores": {
+   "kills": 3,
+   "deaths": 1,
+   "assists": 3,
+   "creepScore": 61,
+   "wardScore": 3.0
+  },
+  "summonerSpells": {}
+ },
+ {
+  "championName": "Lux",
+  "rawChampionName": "game_character_displayname_Lux",
+  "riotId": "Player4#EUW",
+  "riotIdGameName": "Player4",
+  "riotIdTagLine": "EUW",
+  "summonerName": "Player4",
+  "team": "ORDER",
+  "position": "UTILITY",
+  "level": 7,
+  "isBot": false,
+  "isDead": false,
+  "items": [],
+  "scores": {
+   "kills": 0,
+   "deaths": 2,
+   "assists": 4,
+   "creepScore": 68,
+   "wardScore": 3.0
+  },
+  "summonerSpells": {}
+ },
+ {
+  "championName": "Darius",
+  "rawChampionName": "game_character_displayname_Darius",
+  "riotId": "Player5#EUW",
+  "riotIdGameName": "Player5",
+  "riotIdTagLine": "EUW",
+  "summonerName": "Player5",
+  "team": "CHAOS",
+  "position": "TOP",
+  "level": 8,
+  "isBot": false,
+  "isDead": false,
+  "items": [
+   {
+    "canUse": false,
+    "consumable": false,
+    "count": 1,
+    "displayName": "Item",
+    "itemID": 1054,
+    "price": 0,
+    "slot": 0
+   }
+  ],
+  "scores": {
+   "kills": 1,
+   "deaths": 0,
+   "assists": 0,
+   "creepScore": 75,
+   "wardScore": 3.0
+  },
+  "summonerSpells": {}
+ },
+ {
+  "championName": "Vi",
+  "rawChampionName": "game_character_displayname_Vi",
+  "riotId": "Player6#EUW",
+  "riotIdGameName": "Player6",
+  "riotIdTagLine": "EUW",
+  "summonerName": "Player6",
+  "team": "CHAOS",
+  "position": "JUNGLE",
+  "level": 6,
+  "isBot": false,
+  "isDead": false,
+  "items": [],
+  "scores": {
+   "kills": 2,
+   "deaths": 1,
+   "assists": 1,
+   "creepScore": 82,
+   "wardScore": 3.0
+  },
+  "summonerSpells": {}
+ },
+ {
+  "championName": "Zed",
+  "rawChampionName": "game_character_displayname_Zed",
+  "riotId": "Player7#EUW",
+  "riotIdGameName": "Player7",
+  "riotIdTagLine": "EUW",
+  "summonerName": "Player7",
+  "team": "CHAOS",
+  "position": "MIDDLE",
+  "level": 7,
+  "isBot": false,
+  "isDead": false,
+  "items": [
+   {
+    "canUse": false,
+    "consumable": false,
+    "count": 1,
+    "displayName": "Item",
+    "itemID": 1054,
+    "price": 0,
+    "slot": 0
+   }
+  ],
+  "scores": {
+   "kills": 3,
+   "deaths": 2,
+   "assists": 2,
+   "creepScore": 89,
+   "wardScore": 3.0
+  },
+  "summonerSpells": {}
+ },
+ {
+  "championName": "Caitlyn",
+  "rawChampionName": "game_character_displayname_Caitlyn",
+  "riotId": "Player8#EUW",
+  "riotIdGameName": "Player8",
+  "riotIdTagLine": "EUW",
+  "summonerName": "Player8",
+  "team": "CHAOS",
+  "position": "BOTTOM",
+  "level": 8,
+  "isBot": false,
+  "isDead": false,
+  "items": [],
+  "scores": {
+   "kills": 0,
+   "deaths": 0,
+   "assists": 3,
+   "creepScore": 96,
+   "wardScore": 3.0
+  },
+  "summonerSpells": {}
+ },
+ {
+  "championName": "Thresh",
+  "rawChampionName": "game_character_displayname_Thresh",
+  "riotId": "Player9#EUW",
+  "riotIdGameName": "Player9",
+  "riotIdTagLine": "EUW",
+  "summonerName": "Player9",
+  "team": "CHAOS",
+  "position": "UTILITY",
+  "level": 6,
+  "isBot": false,
+  "isDead": false,
+  "items": [
+   {
+    "canUse": false,
+    "consumable": false,
+    "count": 1,
+    "displayName": "Item",
+    "itemID": 1054,
+    "price": 0,
+    "slot": 0
+   }
+  ],
+  "scores": {
+   "kills": 1,
+   "deaths": 1,
+   "assists": 4,
+   "creepScore": 103,
+   "wardScore": 3.0
+  },
+  "summonerSpells": {}
+ }
+]

@@ -40,6 +40,8 @@ struct DataDragonTests {
         #expect(data.champion(62)?.id == "MonkeyKing")
         #expect(data.spellsById[4]?.name == "Blitz")
         #expect(data.itemsById[1056]?.name == "Dorans Ring")
+        #expect(data.itemPrices[1056] == 400)
+        #expect(data.champion(key: "MonkeyKing")?.name == "Wukong")
         #expect(data.runesById[8112]?.key == "Electrocute")
         #expect(data.runeStylesById[8200]?.name == "Zauberei")
     }

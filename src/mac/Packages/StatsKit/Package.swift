@@ -9,8 +9,7 @@ let package = Package(
     targets: [
         .target(
             name: "StatsKit",
-            dependencies: [],
-            resources: [.copy("Resources/placeholder-builds.json")]
+            dependencies: []
         ),
         .testTarget(name: "StatsKitTests", dependencies: ["StatsKit"])
     ]

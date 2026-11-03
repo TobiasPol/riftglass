@@ -11,6 +11,8 @@ final class AppModel {
     private(set) var isLCUConnected = false
     private(set) var setupError: String?
     let champSelect: ChampSelectCoordinator
+    let inGame: InGameCoordinator
+    let settings: AppSettings
 
     @ObservationIgnored private var machine = GameflowStateMachine()
     @ObservationIgnored private let watcher = ClientWatcher()
@@ -19,8 +21,11 @@ final class AppModel {
     @ObservationIgnored private var evaluator: LocalTrustEvaluator?
     @ObservationIgnored private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "AppModel")
 
-    init(champSelect: ChampSelectCoordinator = ChampSelectCoordinator()) {
+    init(settings: AppSettings = .shared) {
+        let champSelect = ChampSelectCoordinator(settings: settings)
         self.champSelect = champSelect
+        self.settings = settings
+        inGame = InGameCoordinator(champSelect: champSelect, settings: settings)
         do {
             evaluator = try LocalTrustEvaluator.bundled()
         } catch {
@@ -62,7 +67,7 @@ final class AppModel {
         connection.stop()
         self.connection = nil
         isLCUConnected = false
-        champSelect.setActions(nil)
+        champSelect.setClient(nil)
         apply(.lcuDisconnected)
     }
 
@@ -70,14 +75,24 @@ final class AppModel {
         switch event {
         case let .connected(client):
             isLCUConnected = true
-            champSelect.setActions(ChampSelectActions(lcu: client))
+            champSelect.setClient(client)
             champSelect.prepare()
+            rememberRegion(client)
         case let .phase(phase):
             apply(.phaseChanged(phase))
         case let .champSelect(session):
             champSelect.update(session: session)
         case .champSelectEnded:
             champSelect.update(session: nil)
+        }
+    }
+
+    /// The LCU is closed in game, so the region for rank lookups is stored while it runs.
+    private func rememberRegion(_ client: LCUClient) {
+        Task { [weak self] in
+            if let region = try? await client.region() {
+                self?.settings.region = region
+            }
         }
     }
 
@@ -89,6 +104,12 @@ final class AppModel {
             champSelect.activate(clientPID: pid)
         } else {
             champSelect.deactivate()
+        }
+        if newMode == .inGame, let evaluator {
+            champSelect.prepare()
+            inGame.start(evaluator: evaluator)
+        } else {
+            inGame.stop()
         }
     }
 }

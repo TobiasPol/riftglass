@@ -1,9 +1,9 @@
-# Riftglass – Implementierungsplan (v3, nach Spike)
+# Riftglass – Implementierungsplan (v4)
 
 > Arbeitstitel. Native macOS-Companion-App für League of Legends, so nah an Blitz.gg / OP.GG wie
 > Riots Regeln und macOS es erlauben. Priorität: macOS-Integration und Performance.
 > v2 enthält die Korrekturen aus einem unabhängigen Review (Abschnitt 8), v3 die Spike-Ergebnisse
-> (Abschnitt 9, Details in `docs/SPIKE.md`).
+> (Abschnitt 9), v4 den Verzicht auf ein eigenes Backend und Spike 2 im Spiel (Abschnitt 10).
 
 ## 1. Ziele und Nicht-Ziele
 
@@ -36,9 +36,9 @@
 | Signierung | **ab Phase 0** mit „Apple Development“-Zertifikat | sonst verfällt die Eingabeüberwachung bei jedem Build |
 | Abhängigkeiten App | keine in Phase 1–2 (URLSession-WebSocket statt Starscream) | weniger Angriffsfläche |
 | Updates | Sparkle 2 (Phase 4) | Standard außerhalb des App Store |
-| Backend (Phase 3) | TypeScript (Node 22, strict), Hono, Postgres, Docker → Dokploy | Engpass ist Riots Rate-Limit |
-| Lint/Format | SwiftLint + SwiftFormat via pre-commit; ESLint + Prettier + Husky im Backend | |
-| CI | GitHub Actions (`macos-15`): build + test; Backend: lint + test + Docker build | |
+| Build-Daten | OP.GG MCP (offiziell, ohne Key) + Riot-Empfehlungen per LCU | kein eigenes Backend, kein Riot-API-Key |
+| Lint/Format | SwiftLint + SwiftFormat via pre-commit | |
+| CI | GitHub Actions (`macos-15`): lint + test + unsigned build; Release lokal (Zertifikate) | |
 
 Kein Mac App Store: die Sandbox erschwert Zugriff auf fremde Prozesse und League-Dateien.
 
@@ -124,16 +124,19 @@ während des Spiels schließen („Client während des Spiels schließen“). Da
 
 ### 4.4 StatsKit
 - Protokoll `BuildProvider` → `builds(champion:role:patch:) async -> [BuildOption]`.
-- Phase 1: `BundledBuildProvider` (handgepflegtes Fixture für ~5 Champions, klar als Platzhalter).
-- Phase 3: `RemoteBuildProvider` gegen das eigene Backend, mit ETag + Disk-Cache.
+- `OPGGBuildProvider`: OP.GG MCP `lol_get_champion_analysis`, Parser für OP.GGs Klassen-Notation,
+  Disk-Cache pro Champion/Rolle (6 h), Quellenangabe „Daten: OP.GG“ in der UI.
+- `RiotRecommendationProvider` (App, braucht LCU): `recommended-pages` → Runen + Spells als weitere Optionen
+  und Fallback, wenn OP.GG nicht erreichbar ist.
+- `OPGGRankProvider`: `lol_get_summoner_profile` für die 10 Riot-IDs aus der Live Client API (abschaltbar).
 
 ### 4.5 OverlayKit
 - **OverlayPanel** (`NSPanel`): `.nonactivatingPanel` bereits im `init(styleMask:)` setzen
   (`[.borderless, .nonactivatingPanel]`), danach `isFloatingPanel = true`, **dann** `level` setzen.
   `collectionBehavior [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]`
   (nie `.fullScreenPrimary`), `becomesKeyOnlyIfNeeded = true`, `hidesOnDeactivate = false`,
-  `hasShadow = false`, `ignoresMouseEvents = true` im Spiel. Level-Kandidaten im Spike testen:
-  `.screenSaver`, notfalls `CGShieldingWindowLevel() + 1`.
+  `hasShadow = false`, `ignoresMouseEvents = true` im Spiel. Level: **`CGShieldingWindowLevel() + 1`**
+  (Spike 2: das Spiel liegt auf `CGShieldingWindowLevel()`, `.screenSaver` ist darunter unsichtbar).
   Ausblenden per `orderOut`, nie per `alphaValue = 0`. Keine `Material`-Unschärfe im Spiel.
 - **ChampSelectPanel**: klickbar, nicht aktivierend, `acceptsFirstMouse` → erster Klick wirkt sofort.
 - **ClientDockController**: `CGWindowListCopyWindowInfo` (Bounds + PID funktionieren ohne
@@ -180,17 +183,14 @@ KDA, CS/min vs. Benchmark, Build-Fortschritt; Gold-Schätzung hinter Schalter.
 **DoD:** Overlay erscheint randlos und im Vollbild; League behält nach 100× Tab den Fokus; funktioniert
 auch, wenn der Client sich im Spiel schließt; Ø < 1 % CPU im Spiel (Instruments, 10-Min-Match).
 
-### Phase 3 – Backend (Builds)
-Hono-API + Postgres; Crawler: `league-v4` Apex-Listen → `match-v5` → Aggregation pro Patch/Champion/Rolle
-(Runen, Items, Spells, Skill-Order, Winrate, Mindest-Stichprobe), Rate-Limiter nach
-`X-App-Rate-Limit`/`X-Method-Rate-Limit`. Ausgabe als statisches JSON mit ETag. Docker multi-stage,
-non-root, Healthcheck, Dokploy. `RIOT_API_KEY`/`DATABASE_URL` nur in `.env`/Dokploy.
-Riot-Key: „Personal API Key“ für privaten Gebrauch; öffentliche Version braucht Production Key.
-**DoD:** App nutzt `RemoteBuildProvider` mit Builds des aktuellen Patches.
+### Phase 3 – Build-Quellen ohne Backend (ersetzt das eigene Backend)
+OP.GG MCP (Builds, Stats, Ränge) + Riot-Empfehlungen per LCU, Disk-Cache, Quellenangabe, Fehler-Fallback.
+Kein Server, kein Riot-API-Key. Vor dem öffentlichen Release OP.GG über die Nutzung informieren.
+**DoD:** Champ Select zeigt OP.GG-Build mit Winrate und Riot-Empfehlungen; ohne Netz bleiben Riot-Empfehlungen.
 
 ### Phase 4 – Feinschliff & Verteilung
-Developer-ID-Signatur + Notarisierung in CI, Sparkle 2 (EdDSA), Onboarding-Feinschliff,
-Instruments-Profiling, Post-Game-Ansicht.
+Developer-ID-Signatur + Notarisierung (lokales Release-Skript, `notarytool`-Keychain-Profil), DMG,
+Sparkle 2 (EdDSA, Appcast im Repo), Onboarding, App-Icon, öffentliches GitHub-Repo (MIT).
 **DoD:** DMG startet auf frischem Mac ohne Gatekeeper-Umgehung; Auto-Update funktioniert.
 
 ## 6. Performance-Budget
@@ -226,3 +226,9 @@ WAMP-Sammel-Topic `OnJsonApiEvent` + URI-Filter statt spezifischer Topics · Abo
 Argumente NUL-getrennt parsen (Leerzeichen im Pfad) · `--riotgamesapi-settings` nie lesen/loggen ·
 Lockfile-PID auf Lebendigkeit prüfen · kein Public-Key-Pinning nötig · Fensterbesitzer `LeagueClientUx`,
 Auswahl ohne Fensternamen · voller Runenseiten-Speicher → Fehler statt fremde Seite ersetzen.
+
+## 10. Änderungen v4 (Spike 2, Entscheidungen)
+Kein eigenes Backend und kein Riot-API-Key (Side-Project, Production-Key unverhältnismäßig) → OP.GG MCP +
+LCU-Empfehlungen · Kein Scraping/keine undokumentierten Endpunkte (League Akari/champ-r tun das) ·
+LCU ist im Spiel beendet → Ränge über Live-Client-Riot-IDs + OP.GG · Overlay auf `CGShieldingWindowLevel()+1` ·
+Gold-Schätzung hinter Schalter, Standard aus · Veröffentlichung als öffentliches GitHub-Repo, MIT.

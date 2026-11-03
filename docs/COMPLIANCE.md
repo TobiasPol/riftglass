@@ -8,7 +8,8 @@ Diese Datei ist verbindlich; Features, die hier als verboten stehen, werden nich
   Prozess-Argumenten/Lockfile des eigenen Benutzers.
 - **Live Client Data API** (`https://127.0.0.1:2999`), nur Daten, die der Spieler im Spiel sehen kann.
 - **Data Dragon** (statische Spieldaten, öffentlich).
-- **Riot API** (Phase 3) nur über das eigene Backend mit eigenem Key.
+- **OP.GG MCP** (`mcp-api.op.gg`, offizielle öffentliche Schnittstelle von OP.GG): Builds, Winrates, Ränge.
+  Quellenangabe in der UI. Kein Scraping, keine undokumentierten Endpunkte. Kein Riot-API-Key.
 
 ## Verboten
 - Gegner-Ultimate-Timer (von Riot seit 13.03.2025 verboten) und Gegner-Summoner-Spell-Timer.
@@ -18,9 +19,10 @@ Diese Datei ist verbindlich; Features, die hier als verboten stehen, werden nich
 - Scraping von Blitz.gg, OP.GG, U.GG o. Ä. Werbung in der App.
 - Apps, die Spielerentscheidungen diktieren: Builds immer als **mehrere Optionen**, nie als Anweisung.
 
-## Policy-Risiken (vor öffentlicher Version mit Riot klären)
-- Gold-Schätzung pro Lane (Phase 2, hinter Schalter, standardmäßig aus).
-- Build-Empfehlungen aus eigenen Statistiken (Phase 3).
+## Policy-Risiken
+- Item-Gold-Schätzung pro Lane: nur aus sichtbaren Items, hinter Schalter, **standardmäßig aus**.
+- Ränge aller 10 Spieler (wie Porofessor/Blitz): nur Spieler des eigenen Spiels, abschaltbar.
+- Nutzung der OP.GG-MCP-Schnittstelle in einer App: OP.GG vor dem Release informiert/anfragen.
 
 ## Pflichten
 - Riot-Hinweis gut sichtbar: Menüleisten-Popover, Champ-Select-Panel, Einstellungen, README.

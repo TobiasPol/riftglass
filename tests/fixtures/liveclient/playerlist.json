@@ -1,0 +1,59 @@
+[
+  {
+    "championName": "Lux",
+    "isBot": false,
+    "isDead": false,
+    "items": [],
+    "level": 1,
+    "position": "NONE",
+    "rawChampionName": "game_character_displayname_Lux",
+    "rawSkinName": "game_character_displayname_Lux",
+    "respawnTimer": 0.0,
+    "riotId": "anon",
+    "riotIdGameName": "anon",
+    "riotIdTagLine": "anon",
+    "runes": {
+      "keystone": {
+        "displayName": "anon",
+        "id": 8229,
+        "rawDescription": "perk_tooltip_ArcaneComet",
+        "rawDisplayName": "perk_displayname_ArcaneComet"
+      },
+      "primaryRuneTree": {
+        "displayName": "anon",
+        "id": 8200,
+        "rawDescription": "perkstyle_tooltip_7202",
+        "rawDisplayName": "perkstyle_displayname_7202"
+      },
+      "secondaryRuneTree": {
+        "displayName": "anon",
+        "id": 8300,
+        "rawDescription": "perkstyle_tooltip_7203",
+        "rawDisplayName": "perkstyle_displayname_7203"
+      }
+    },
+    "scores": {
+      "assists": 0,
+      "creepScore": 0,
+      "deaths": 0,
+      "kills": 0,
+      "wardScore": 0.0
+    },
+    "skinID": 0,
+    "skinName": "Lux",
+    "summonerName": "anon",
+    "summonerSpells": {
+      "summonerSpellOne": {
+        "displayName": "anon",
+        "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+        "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+      },
+      "summonerSpellTwo": {
+        "displayName": "anon",
+        "rawDescription": "GeneratedTip_SummonerSpell_SummonerDot_Description",
+        "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerDot_DisplayName"
+      }
+    },
+    "team": "ORDER"
+  }
+]

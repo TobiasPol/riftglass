@@ -1,6 +1,6 @@
 # Architektur
 
-Stand: Phase 1. Ausführlicher Plan: `PLAN.md`; verifizierte Fakten über den Client: `SPIKE.md`.
+Stand: v0.1 (Phasen 1–4; ein eigenes Backend gibt es nicht). Ausführlicher Plan: `PLAN.md`; verifizierte Fakten über den Client: `SPIKE.md`.
 
 ## Datenfluss
 
@@ -16,7 +16,17 @@ NSWorkspace.runningApplications (KVO)
    ├─ LCUClient (REST, actor)  ◄──────────────── Aktionen ──────────┤─ DataDragon / IconCache (DataKit)
    └─ LCUEventStream (WAMP, actor)                                  └─ ChampSelectPanel + ClientDockController
         └─ [5,"OnJsonApiEvent"] → URI-Filter → phase / champ-select session
+                                                   │ inGame (Spielprozess läuft, LCU meist beendet)
+                                                   ▼
+                                          InGameCoordinator
+                                          ├─ LiveClient (2999, 1 Hz, nur Änderungen)
+                                          ├─ RankLookup → OPGGRankProvider (Riot-IDs aus playerlist)
+                                          ├─ HotkeyMonitor (Tab, listen-only) → OverlayPanel (Shielding+1)
+                                          └─ GameSummary → Menüleiste
 ```
+
+Build-Quellen im Champ Select (`BuildLoader`): `OPGGBuildProvider` (OP.GG MCP, Klassen-Notation →
+`OPGGNotation`, 6-h-Disk-Cache) + `recommended-pages` der LCU (Riot), Duplikate nach Runen entfernt.
 
 ## Module
 
@@ -24,9 +34,10 @@ NSWorkspace.runningApplications (KVO)
 |---|---|---|
 | `LeagueKit` | Prozess-Erkennung, Credentials, TLS (`LocalTrustEvaluator`), REST, WAMP, `GameflowStateMachine`, `RunePagePlanner`, `ItemSetMerger`, `ChampSelectActions` | `ClientWatcher` `@MainActor`; `LCUClient`/`LCUEventStream` sind Actors; Logik ist pur |
 | `DataKit` | Data Dragon (per Patch auf Platte gecacht), Icon-Cache (`NSCache` + Disk) | `DataDragon` Actor, `IconCache` `@MainActor` |
-| `StatsKit` | `BuildProvider`-Protokoll, `BundledBuildProvider` (Platzhalter) | wertbasiert |
-| `OverlayKit` | `ChampSelectPanel` (nicht aktivierend), `ClientDockController` (2 Hz, nur im Champ Select), `DockGeometry` (pur) | `@MainActor` |
-| `App` | `AppModel`, `LCUConnection`, `ChampSelectCoordinator`, SwiftUI-Views | `@MainActor` |
+| `LeagueKit` (Live) | `LiveClient`, `LiveGameSnapshot`, `InGameAnalysis` (CS/min, Build-Fortschritt, Item-Gold) | `LiveClient` Actor, Analyse pur |
+| `StatsKit` | `BuildProvider`, `OPGGClient` (MCP/JSON-RPC), `OPGGNotation`, `OPGGBuildProvider`, `OPGGRankProvider`, `ResponseCache` | Structs + Actor (Cache) |
+| `OverlayKit` | `ChampSelectPanel`, `ClientDockController` (2 Hz, nur Champ Select), `OverlayPanel` (Shielding+1, klick-durchlässig), `HotkeyMonitor`, `DockGeometry` | `@MainActor` |
+| `App` | `AppModel`, `LCUConnection`, `ChampSelectCoordinator`, `InGameCoordinator`, `AppSettings`, Onboarding, Sparkle-`Updater` | `@MainActor` |
 
 ## Entscheidungen
 
