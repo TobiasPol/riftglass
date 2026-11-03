@@ -151,15 +151,18 @@ Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-
 | Lobby | `gameData.queue` | Riftglass |
 |---|---|---|
 | ARAM: Mayhem | `id 2400`, `mapId 12`, `gameMode "KIWI"`, `type "KIWI"`, `description "ARAM: Mayhem"` | `aramMayhem`, 43 ms nach Verbindung |
+| Arena (Moduswechsel in offener Lobby) | `id 1750` (**nicht in `queues.json`**), `mapId 30`, `gameMode "CHERRY"`, `description "Arena 3x6"` | `arena` – zuerst über `CHERRY`, jetzt auch per ID |
 
 - `recommended-pages/champion/103/position/{NONE,MIDDLE}/map/12` → 200, 3 ARAM-Seiten mit Spells `[4, 32]`
   (Flash + Schneeball) – Position egal.
+- `recommended-pages/…/map/30` (Arena) → 200 mit generischen SR-artigen Seiten (Electrocute, `[4, 14]`), obwohl
+  Arena keine Runen nutzt → Riftglass fragt für Arena bewusst keine Empfehlungen ab.
 - **Bug gefunden und behoben:** Das Abfragen der Session beim Phasen-Event „Lobby“ lieferte noch keine Queue
   (Session wird kurz nach dem Phasenwechsel befüllt), und ein Moduswechsel in der offenen Lobby löst gar
   kein Phasen-Event aus. → `/lol-gameflow/v1/session` ist jetzt im WAMP-URI-Filter; Queue-ID `-1` während
   des Aufbaus wird ignoriert.
 
 ### Offen (→ `scripts/spike/16-queue.sh` im Client bzw. Spiel)
-- `gameData.queue` für Arena, Classic, Brawl (ID, `gameMode`, `mapId`, `description`).
-- Live-Client-`gameMode` in Mayhem (`KIWI`?) und Arena (`CHERRY`?) – Annahme aus match-v5.
+- `gameData.queue` für Classic und Brawl (ID, `gameMode`, `mapId`, `description`).
+- Live-Client-`gameMode` im Spiel für Mayhem (`KIWI`?) und Arena (`CHERRY`?) – in der Lobby bestätigt, im Spiel offen.
 - Skill-Overlay-Position (20 % Höhe über unterem Rand) auf 16:9 und 21:9.

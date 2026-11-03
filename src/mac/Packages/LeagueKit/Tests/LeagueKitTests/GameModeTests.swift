@@ -5,7 +5,7 @@ import Testing
 struct GameModeTests {
     @Test(arguments: [
         (420, GameMode.summonersRift), (440, .summonersRift), (480, .summonersRift), (490, .summonersRift),
-        (450, .aram), (2400, .aramMayhem), (1700, .arena), (1710, .arena), (900, .urf), (1900, .urf),
+        (450, .aram), (2400, .aramMayhem), (1700, .arena), (1710, .arena), (1750, .arena), (900, .urf), (1900, .urf),
         (1020, .oneForAll), (1400, .ultimateSpellbook), (1300, .nexusBlitz), (2300, .brawl), (1810, .swarm)
     ])
     func knownQueueIds(queueId: Int, expected: GameMode) {

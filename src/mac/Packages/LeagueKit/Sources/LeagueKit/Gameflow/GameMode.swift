@@ -46,7 +46,8 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// Queue IDs from Riot's `queues.json` (static.developer.riotgames.com/docs/lol/queues.json).
+    /// Queue IDs from Riot's `queues.json` (static.developer.riotgames.com/docs/lol/queues.json),
+    /// plus IDs seen live but missing there (1750 "Arena 3x6", docs/SPIKE.md).
     static let byQueueId: [Int: Self] = {
         var table: [Int: Self] = [:]
         // Draft, Ranked Solo, Blind, Flex, Swiftplay, Quickplay, Clash, Co-op vs. AI, Tutorials.
@@ -59,7 +60,7 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
         for id in [900, 1010, 1900] {
             table[id] = .urf
         }
-        for id in [1700, 1710] {
+        for id in [1700, 1710, 1750] {
             table[id] = .arena
         }
         for id in [1810, 1820, 1830, 1840] {
