@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 – unreleased
+## 0.2.0
 - Game mode detection from the client's queue (Ranked Solo/Flex, Normal, Swiftplay, ARAM,
   ARAM: Mayhem, Arena, URF, One for All, Ultimate Spellbook, Nexus Blitz, Brawl, Swarm, League Classic).
 - Builds per mode: OP.GG Ranked, Flex and ARAM statistics; Mayhem shows the champion's most picked augments.
