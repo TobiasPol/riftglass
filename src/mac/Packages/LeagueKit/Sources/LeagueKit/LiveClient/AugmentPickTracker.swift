@@ -33,7 +33,8 @@ public struct AugmentPickTracker: Equatable, Sendable {
     private var covered = 0
     private var wasDead = false
     private var respawnedAt: Double?
-    private var wasPrompting = false
+    /// Choices that were available while the list was last shown (0 = not shown in this window).
+    private var promptedThrough = 0
     private var started = false
 
     public init() {}
@@ -54,12 +55,14 @@ public struct AugmentPickTracker: Equatable, Sendable {
         wasDead = isDead
         let canShop = isDead || gameTime < Self.startWindow
             || respawnedAt.map { gameTime - $0 < Self.respawnGrace } == true
-        let prompting = canShop && available > covered
-        if wasPrompting, !canShop {
-            covered = available // the window closed while the list was shown
+        if promptedThrough > 0, !canShop {
+            // The window closed while the list was shown – only the choices shown in it count as made;
+            // a level reached on this very snapshot stays pending.
+            covered = max(covered, promptedThrough)
+            promptedThrough = 0
         }
-        wasPrompting = prompting
-        guard prompting else { return nil }
+        guard canShop, available > covered else { return nil }
+        promptedThrough = available
         return AugmentPickPrompt(pick: covered + 1, available: available, total: Self.pickLevels.count)
     }
 }

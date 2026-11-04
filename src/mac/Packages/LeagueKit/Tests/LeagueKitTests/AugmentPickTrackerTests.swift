@@ -46,4 +46,14 @@ struct AugmentPickTrackerTests {
         _ = tracker.update(level: 18, isDead: false, gameTime: 1500)
         #expect(tracker.update(level: 18, isDead: true, gameTime: 1600) == nil)
     }
+
+    @Test func levelReachedAsWindowClosesStaysPending() {
+        var tracker = AugmentPickTracker()
+        _ = tracker.update(level: 3, isDead: false, gameTime: 1)
+        _ = tracker.update(level: 3, isDead: false, gameTime: 100)
+        #expect(tracker.update(level: 10, isDead: true, gameTime: 400)?.pick == 2)
+        #expect(tracker.update(level: 10, isDead: false, gameTime: 420)?.pick == 2)
+        #expect(tracker.update(level: 11, isDead: false, gameTime: 435) == nil) // window closes, level 11 arrives
+        #expect(tracker.update(level: 11, isDead: true, gameTime: 600)?.pick == 3)
+    }
 }

@@ -30,38 +30,44 @@ public struct AugmentInfo: Equatable, Sendable {
 /// IDs match OP.GG's `lol_list_aram_augments`). Riot's Data Dragon has no augment data.
 ///
 /// CommunityDragon only serves `latest`, so the file is cached for a day and the stale copy is used
-/// when offline.
+/// when offline. The in-memory copy follows the same rule (a stale one is retried after a few minutes),
+/// so a patch day mid-session still brings new augments.
 public actor AugmentCatalog {
     public static let baseURL =
         URL(string: "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/")!
     static let timeToLive: TimeInterval = 24 * 3600
+    /// Retry interval after falling back to a stale copy.
+    static let retryInterval: TimeInterval = 10 * 60
 
     private let fetcher: any HTTPFetching
     private let cacheFile: URL
     /// CommunityDragon locale folder (`de_de`, `default` = en_US).
     private let locale: String
-    private var loaded: [Int: AugmentInfo]?
+    private var loaded: (augments: [Int: AugmentInfo], validUntil: Date)?
+    private let now: @Sendable () -> Date
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "AugmentCatalog")
 
     public init(
         fetcher: any HTTPFetching = URLSessionFetcher(),
         cacheDirectory: URL = DataDragon.defaultCacheDirectory.deletingLastPathComponent()
             .appending(path: "cdragon", directoryHint: .isDirectory),
-        locale: String = "de_de"
+        locale: String = "de_de",
+        now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.fetcher = fetcher
         self.locale = locale
+        self.now = now
         cacheFile = cacheDirectory.appending(path: "cherry-augments-\(locale).json")
     }
 
     /// All augments with a rarity, by ID.
     public func augments() async throws -> [Int: AugmentInfo] {
-        if let loaded {
-            return loaded
+        if let loaded, now() < loaded.validUntil {
+            return loaded.augments
         }
-        let data = try await fileData()
+        let (data, freshUntil) = try await fileData()
         let result = try Self.parse(data)
-        loaded = result
+        loaded = (result, freshUntil)
         return result
     }
 
@@ -86,12 +92,13 @@ public actor AugmentCatalog {
         return baseURL.appending(path: "default/" + path.dropFirst(prefix.count).lowercased())
     }
 
-    private func fileData() async throws -> Data {
+    /// The file's data and until when it counts as fresh.
+    private func fileData() async throws -> (Data, Date) {
         let attributes = try? FileManager.default.attributesOfItem(atPath: cacheFile.path)
         let modified = attributes?[.modificationDate] as? Date
         let cached = try? Data(contentsOf: cacheFile)
-        if let cached, let modified, Date().timeIntervalSince(modified) < Self.timeToLive {
-            return cached
+        if let cached, let modified, now().timeIntervalSince(modified) < Self.timeToLive {
+            return (cached, modified.addingTimeInterval(Self.timeToLive))
         }
         do {
             let data = try await fetcher.data(from: Self.baseURL.appending(path: "\(locale)/v1/cherry-augments.json"))
@@ -101,11 +108,12 @@ public actor AugmentCatalog {
                 withIntermediateDirectories: true
             )
             try? data.write(to: cacheFile, options: .atomic)
-            return data
+            try? FileManager.default.setAttributes([.modificationDate: now()], ofItemAtPath: cacheFile.path)
+            return (data, now().addingTimeInterval(Self.timeToLive))
         } catch {
             guard let cached else { throw error }
             logger.notice("CommunityDragon unavailable, using cached augments")
-            return cached
+            return (cached, now().addingTimeInterval(Self.retryInterval))
         }
     }
 }

@@ -50,4 +50,21 @@ struct AugmentCatalogTests {
         #expect(stale[1323]?.name == "Grausamkeit")
         #expect(await fetcher.requests == 2)
     }
+
+    @Test func inMemoryCopyRefreshesAfterExpiry() async throws {
+        let fetcher = CatalogFetcher()
+        let clock = Clock()
+        let catalog = AugmentCatalog(fetcher: fetcher, cacheDirectory: cache, now: { clock.date })
+        _ = try await catalog.augments()
+        _ = try await catalog.augments()
+        #expect(await fetcher.requests == 1)
+        clock.date = clock.date.addingTimeInterval(AugmentCatalog.timeToLive + 1)
+        _ = try await catalog.augments()
+        #expect(await fetcher.requests == 2) // expired in memory and on disk → fetched again
+    }
+}
+
+/// Settable time source for expiry tests.
+private final class Clock: @unchecked Sendable {
+    var date = Date()
 }
