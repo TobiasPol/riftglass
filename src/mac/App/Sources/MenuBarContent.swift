@@ -5,6 +5,7 @@ struct MenuBarContent: View {
     let model: AppModel
     let updater: Updater
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -23,7 +24,7 @@ struct MenuBarContent: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
-                SettingsLink { Text("Einstellungen …") }
+                Button("Einstellungen …") { WindowFront.openSettings(using: openSettings) }
                 Button("Einrichtung") { WindowFront.open(OnboardingView.windowID, using: openWindow) }
                 Spacer()
                 Button("Beenden") { NSApplication.shared.terminate(nil) }
