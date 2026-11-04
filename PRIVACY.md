@@ -14,6 +14,7 @@ log (`os.Logger`) and never contain client tokens.
 | Recipient | When | Data |
 |---|---|---|
 | OP.GG (`mcp-api.op.gg`) | champ select | champion name and role |
+| OP.GG (`mcp-api.op.gg`) | champ select, if "Matchup-Briefing" is on | your champion, the enemy lane champion and the role (no names or IDs of players) |
 | OP.GG (`mcp-api.op.gg`) | game start, if "Ränge über OP.GG laden" is on | Riot IDs (name#tag) of the players in your game, region |
 | Riot Data Dragon (`ddragon.leagueoflegends.com`) | first champ select per patch | nothing personal (static files) |
 | GitHub (`raw.githubusercontent.com`, releases) | update check | standard Sparkle request (app version, macOS version) |

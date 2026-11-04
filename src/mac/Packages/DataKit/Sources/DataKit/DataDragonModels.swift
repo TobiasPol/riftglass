@@ -26,12 +26,23 @@ public struct DDImage: Decodable, Equatable, Sendable {
 }
 
 public struct Champion: Decodable, Equatable, Sendable {
+    /// Riot's rough 0–10 ratings, e.g. Ahri: attack 3, magic 8.
+    public struct Info: Decodable, Equatable, Sendable {
+        public let attack: Int
+        public let defense: Int
+        public let magic: Int
+        public let difficulty: Int
+    }
+
     /// Alias used in asset paths, e.g. "MonkeyKing".
     public let id: String
     /// Numeric champion ID as used by the LCU, e.g. "62".
     public let key: String
     public let name: String
     public let image: DDImage
+    public let info: Info?
+    /// Class tags, primary first, e.g. ["Fighter", "Tank"].
+    public let tags: [String]?
 }
 
 public struct SummonerSpell: Decodable, Equatable, Sendable {

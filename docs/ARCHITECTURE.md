@@ -33,14 +33,23 @@ Welche Statistik (`BuildQueue`: ranked/flex/aram) und welche Importe gelten, ent
 `GameMode`; nach dem Lock-in importiert `ChampSelectCoordinator+AutoImport` das Item-Set (Map des Modus).
 In ARAM: Mayhem zusätzlich `OPGGAugmentProvider` (beliebteste Augments).
 
+Matchup-Briefing (`ChampSelectCoordinator+Briefing`, unabhängig von den Builds): sichtbare Gegner aus
+`ChampSelectSession.enemyPicks` → `LaneAssigner` (StatsKit, pur; OP.GG-Lane-Anteile aus
+`OPGGLaneMetaProvider`, eine Anfrage für alle Champions) → Lane-Gegner → `OPGGMatchupProvider`
+(`lol_get_lane_matchup_guide`, antwortet als **JSON**, nicht in Klassen-Notation) und, nur während des
+eigenen Picks, `OPGGCounterProvider` (`weak_counters`) + `pickable-champion-ids` der LCU. `TeamProfile`/
+`CompHint` (DataKit, pur) schätzen Schadensverteilung und Frontline aus Data Dragons `info`/`tags`.
+Schlüssel im `ChampSelectBriefing` verhindern Arbeit bei identischen WAMP-Sessions und verwerfen späte
+Antworten für einen alten Pick.
+
 ## Module
 
 | Modul | Verantwortung | Nebenläufigkeit |
 |---|---|---|
 | `LeagueKit` | Prozess-Erkennung, Credentials, TLS (`LocalTrustEvaluator`), REST, WAMP, `GameflowStateMachine`, `RunePagePlanner`, `ItemSetMerger`, `ChampSelectActions` | `ClientWatcher` `@MainActor`; `LCUClient`/`LCUEventStream` sind Actors; Logik ist pur |
-| `DataKit` | Data Dragon (per Patch auf Platte gecacht), Icon-Cache (`NSCache` + Disk) | `DataDragon` Actor, `IconCache` `@MainActor` |
+| `DataKit` | Data Dragon (per Patch auf Platte gecacht), Icon-Cache (`NSCache` + Disk), `TeamProfile`/`CompHint` | `DataDragon` Actor, `IconCache` `@MainActor` |
 | `LeagueKit` (Live) | `LiveClient`, `LiveGameSnapshot`, `InGameAnalysis` (CS/min, Build-Fortschritt, Item-Gold) | `LiveClient` Actor, Analyse pur |
-| `StatsKit` | `BuildProvider`, `OPGGClient` (MCP/JSON-RPC), `OPGGNotation`, `OPGGBuildProvider`, `OPGGRankProvider`, `ResponseCache` | Structs + Actor (Cache) |
+| `StatsKit` | `BuildProvider`, `OPGGClient` (MCP/JSON-RPC), `OPGGNotation`, `OPGGBuildProvider`, `OPGGRankProvider`, `OPGGMatchupProvider`, `OPGGCounterProvider`, `OPGGLaneMetaProvider`, `LaneAssigner`, `ResponseCache` | Structs + Actor (Cache) |
 | `OverlayKit` | `ChampSelectPanel`, `ClientDockController` (2 Hz, nur Champ Select), `OverlayPanel` (Shielding+1, klick-durchlässig), `HotkeyMonitor`, `DockGeometry` | `@MainActor` |
 | `App` | `AppModel`, `LCUConnection`, `ChampSelectCoordinator`, `InGameCoordinator`, `AppSettings`, Onboarding, Sparkle-`Updater` | `@MainActor` |
 

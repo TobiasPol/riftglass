@@ -4,7 +4,8 @@
 > Riots Regeln und macOS es erlauben. Priorität: macOS-Integration und Performance.
 > v2 enthält die Korrekturen aus einem unabhängigen Review (Abschnitt 8), v3 die Spike-Ergebnisse
 > (Abschnitt 9), v4 den Verzicht auf ein eigenes Backend und Spike 2 im Spiel (Abschnitt 10),
-> v5 Spielmodus-Erkennung, Auto-Import und Skill-Overlay samt Wettbewerbsvergleich (Abschnitt 11).
+> v5 Spielmodus-Erkennung, Auto-Import und Skill-Overlay samt Wettbewerbsvergleich (Abschnitt 11),
+> v6 das Matchup-Briefing im Champ Select (Abschnitt 12).
 
 ## 1. Ziele und Nicht-Ziele
 
@@ -293,3 +294,28 @@ da weder LCU noch Live Client die angebotenen Augments liefern.
    sieht; nie Gegner-Spells/Ults.
 5. **Post-Game:** Match-Verlauf über OP.GG `lol_list_summoner_matches`, Build-Treue, LP-Verlauf.
 6. **Matchup-Hinweise im Champ Select:** OP.GG `lol_get_lane_matchup_guide` für den Lane-Gegner.
+
+## 12. v6 – Matchup-Briefing im Champ Select (2026-11-03)
+
+Roadmap-Punkt 6 aus §11.5, erweitert. Drei Karten über den Build-Optionen, abschaltbar
+(„Matchup-Briefing“, Standard an):
+
+| Karte | Inhalt | Quelle | Wann |
+|---|---|---|---|
+| Counter-Optionen | Champions mit ihrer Siegquote gegen den Lane-Gegner, Stichprobe; nicht wählbare abgeblendet | OP.GG `lol_get_champion_analysis` → `weak_counters` (≥ 200 Spiele) + LCU `pickable-champion-ids` | nur während des eigenen Picks |
+| Lane-Gegner | Gegner (ggf. „vermutlich“), eigene Siegquote im Duell (≥ 100 Spiele), Lane-/Solo-Kill-Vorteil, Spielweise, Tipp | OP.GG `lol_get_lane_matchup_guide` (JSON, ~50 KB, 6-h-Cache) | sobald eigener Champion (Hover) und Gegner bekannt |
+| Teams | physisch/magisch je Team, Frontline, ≤ 2 neutrale Hinweise | Data Dragon `info`/`tags` (Schätzung) | sobald ein Gegner sichtbar ist, in jedem Modus |
+
+- **Gegner-Lanes:** Die LCU nennt in Draft keine Gegner-Positionen (Annahme, `scripts/spike/17-draft.sh`
+  prüft das). `LaneAssigner` wählt die wahrscheinlichste vollständige Zuordnung (≤ 5! Permutationen,
+  Summe der Log-Lane-Anteile aus `lol_list_lane_meta_champions`, Untergrenze 1 %). Liefert die LCU doch
+  Positionen, gelten sie fest. Jede geschätzte Lane ist als „vermutlich“ markiert; Champions ohne
+  Lane-Anteil (nicht in OP.GGs Meta, oder OP.GG nicht erreichbar) bekommen keine Lane.
+- **Nur Summoner's Rift** für Lanes, Matchup und Counter; die Team-Karte auch in ARAM & Co.
+- **Sichtbarkeit:** nur `theirTeam.championId > 0` (gelockte Gegner). Gegner-Hovers sind für den Spieler
+  unsichtbar und werden nicht verwendet.
+- OP.GGs `opponent_champion_tip` kommt auch mit `lang: de_DE` auf Englisch – wird unverändert angezeigt.
+
+**Nicht in v6:** matchup-spezifischer Build („vs. Zed“, die Guide-Antwort enthält Runen/Items für das
+Duell in eigenem JSON-Format) als zusätzliche `BuildOption`; Synergien mit dem eigenen Laner
+(`data.synergies`).

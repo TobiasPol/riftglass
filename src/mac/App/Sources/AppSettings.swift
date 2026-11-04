@@ -20,6 +20,7 @@ final class AppSettings {
         static let autoItemSet = "autoImportItemSet"
         static let autoRunes = "autoImportRunes"
         static let lastQueue = "lastQueue"
+        static let briefing = "champSelectBriefingEnabled"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -65,6 +66,11 @@ final class AppSettings {
         didSet { defaults.set(autoImportRunes, forKey: Key.autoRunes) }
     }
 
+    /// Champ select: lane matchup, team comp and counter picks (OP.GG + Data Dragon).
+    var briefingEnabled: Bool {
+        didSet { defaults.set(briefingEnabled, forKey: Key.briefing) }
+    }
+
     /// Queue of the last lobby, kept because the LCU is closed in game.
     var lastQueue: GameQueue? {
         didSet { defaults.set(try? JSONEncoder().encode(lastQueue), forKey: Key.lastQueue) }
@@ -78,7 +84,8 @@ final class AppSettings {
         self.defaults = defaults
         defaults.register(defaults: [
             Key.tabOverlay: true, Key.ranks: true, Key.goldEstimate: false,
-            Key.skillOverlay: true, Key.autoItemSet: true, Key.autoRunes: false
+            Key.skillOverlay: true, Key.autoItemSet: true, Key.autoRunes: false,
+            Key.briefing: true
         ])
         tabOverlayEnabled = defaults.bool(forKey: Key.tabOverlay)
         ranksEnabled = defaults.bool(forKey: Key.ranks)
@@ -88,6 +95,7 @@ final class AppSettings {
         skillOverlayEnabled = defaults.bool(forKey: Key.skillOverlay)
         autoImportItemSet = defaults.bool(forKey: Key.autoItemSet)
         autoImportRunes = defaults.bool(forKey: Key.autoRunes)
+        briefingEnabled = defaults.bool(forKey: Key.briefing)
         lastQueue = defaults.data(forKey: Key.lastQueue).flatMap { try? JSONDecoder().decode(GameQueue.self, from: $0) }
         plannedBuild = defaults.data(forKey: Key.plannedBuild)
             .flatMap { try? JSONDecoder().decode(BuildOption.self, from: $0) }

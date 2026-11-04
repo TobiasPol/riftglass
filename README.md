@@ -17,6 +17,9 @@ reading. It lives in your menu bar and uses close to 0 % CPU while League is clo
 - **Game mode detection** (Ranked, Flex, ARAM, ARAM: Mayhem, Arena, URF, …): builds and item sets match
   the mode; in ARAM: Mayhem the champion's most picked augments.
 - **Automatic import after lock-in**: the item set by default, runes and spells if you opt in.
+- A **matchup briefing**: your likely lane opponent with your head-to-head win rate, lane advantage and
+  a tip; both teams' physical/magic damage split and frontline; during your pick turn, counter options
+  against your lane opponent (with win rate and sample size).
 - One click imports runes, spells and an item set. Riftglass only replaces **its own** rune page
   ("Riftglass: …") and item sets. Your other pages and sets (OP.GG, U.GG, Blitz, …) are never touched.
 
@@ -49,6 +52,7 @@ Requirements: macOS 14 or later, Apple Silicon.
 | Champ select, rune pages, item sets | League client API (LCU, `127.0.0.1`) | no |
 | In-game stats | Live Client Data API (`127.0.0.1:2999`) | no |
 | Builds, win rates | [OP.GG](https://op.gg) public MCP API | champion + role only |
+| Matchups, counters, lane shares | OP.GG public MCP API | your champion, the enemy champion and the role |
 | Ranks | OP.GG public MCP API | Riot IDs of the players in your game (can be turned off) |
 | Icons, item data | Riot Data Dragon CDN | no personal data |
 

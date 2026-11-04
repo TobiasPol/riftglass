@@ -13,6 +13,20 @@ struct DecodingTests {
         #expect(session.localChampionId == nil) // nothing hovered yet (championId 0)
         #expect(session.localPosition == nil) // practice tool: no assigned position
         #expect(session.timer?.phase == "BAN_PICK")
+        #expect(session.enemyPicks.isEmpty)
+        #expect(session.isLocalPickInProgress) // practice tool: own pick action is open
+    }
+
+    /// Synthetic normal draft: three enemies locked, local player (mid) hovering during their turn.
+    @Test func draftSessionTeams() throws {
+        let session: ChampSelectSession = try Fixture.decode("lcu/champ-select-session-draft.json")
+        #expect(session.localChampionId == 103)
+        #expect(session.localPosition == "middle")
+        #expect(session.allyChampionIds == [86, 254, 103])
+        #expect(session.enemyPicks.map(\.championId) == [238, 64, 222])
+        #expect(session.enemyPicks.allSatisfy { $0.position == nil })
+        #expect(session.isLocalPickInProgress)
+        #expect(session.completedActionCount == 14) // 10 bans, 4 locked picks
     }
 
     @Test func runePagesAndInventory() throws {
