@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+- Champ select: matchup briefing with your likely lane opponent (inferred lanes are marked "vermutlich"),
+  matchup tips and head-to-head win rate from OP.GG, counter picks during your own pick turn, and a
+  team-comp summary (damage split, frontline). Only locked champions are used; toggle in settings.
+- Fix: "Einstellungen …" in the menu bar opens the Settings window in front of other apps.
+
 ## 0.2.0
 - Game mode detection from the client's queue (Ranked Solo/Flex, Normal, Swiftplay, ARAM,
   ARAM: Mayhem, Arena, URF, One for All, Ultimate Spellbook, Nexus Blitz, Brawl, Swarm, League Classic).
