@@ -108,10 +108,11 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// Modern rune pages apply. Arena/Swarm have none; League Classic uses the old runes/masteries.
+    /// Modern rune pages apply. Arena/Swarm have none; ARAM: Mayhem disables them ("Rune settings are
+    /// disabled in Mayhem", Riot support; augments replace them); League Classic uses old runes/masteries.
     public var usesRunePages: Bool {
         switch self {
-        case .arena, .swarm, .leagueClassic: false
+        case .arena, .swarm, .aramMayhem, .leagueClassic: false
         default: true
         }
     }
@@ -134,7 +135,7 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// The mode has augments (ARAM: Mayhem augment stats come from OP.GG).
+    /// The mode has augments (ARAM: Mayhem augment stats come from OP.GG; see `AugmentPickTracker`).
     public var hasAugments: Bool {
         self == .aramMayhem || self == .arena
     }

@@ -1,0 +1,83 @@
+[
+ {
+  "id": 1205,
+  "augmentNameId": "ARAM_ADAPt",
+  "nameTRA": "ADAPtieren",
+  "simpleNameTRA": "",
+  "summaryDescription": "",
+  "augmentSmallIconPath": "/lol-game-data/assets/ASSETS/UX/Cherry/Augments/Icons/ADAPt_small.png",
+  "rarity": "kSilver"
+ },
+ {
+  "id": 1004,
+  "augmentNameId": "ARAM_BacktoBasics",
+  "nameTRA": "Zurück zu den Wurzeln",
+  "simpleNameTRA": "",
+  "summaryDescription": "",
+  "augmentSmallIconPath": "/lol-game-data/assets/ASSETS/UX/Cherry/Augments/Icons/BackToBasics_small.png",
+  "rarity": "kPrismatic"
+ },
+ {
+  "id": 1323,
+  "augmentNameId": "ARAM_Cruelty",
+  "nameTRA": "Grausamkeit",
+  "simpleNameTRA": "",
+  "summaryDescription": "",
+  "augmentSmallIconPath": "/lol-game-data/assets/ASSETS/UX/Kiwi/Augments/Icons/Cruelty_small.png",
+  "rarity": "kPrismatic"
+ },
+ {
+  "id": 1026,
+  "augmentNameId": "ARAM_DontBlink",
+  "nameTRA": "Nicht blinzeln",
+  "simpleNameTRA": "",
+  "summaryDescription": "",
+  "augmentSmallIconPath": "/lol-game-data/assets/ASSETS/UX/Cherry/Augments/Icons/DontBlink_small.png",
+  "rarity": "kSilver"
+ },
+ {
+  "id": 1389,
+  "augmentNameId": "HandOfBaron",
+  "nameTRA": "Hand des Barons",
+  "simpleNameTRA": "",
+  "summaryDescription": "",
+  "augmentSmallIconPath": "/lol-game-data/assets/ASSETS/UX/Kiwi/Augments/Icons/HandofBaron_small.png",
+  "rarity": "kPrismatic"
+ },
+ {
+  "id": 2123,
+  "augmentNameId": "Overloaded",
+  "nameTRA": "Überladen",
+  "simpleNameTRA": "",
+  "summaryDescription": "",
+  "augmentSmallIconPath": "/lol-game-data/assets/ASSETS/UX/Kiwi/Augments/Icons/GenericAbilityAugmentIcon_Prismatic.png",
+  "rarity": "kPrismatic"
+ },
+ {
+  "id": 341,
+  "augmentNameId": "CraftingAugmentSlot",
+  "nameTRA": "Du erhältst einen Augmentierungsplatz.",
+  "simpleNameTRA": "",
+  "summaryDescription": "",
+  "augmentSmallIconPath": "/lol-game-data/assets/ASSETS/UX/Cherry/Augments/Icons/Crafting_Slot_small.png",
+  "rarity": "kEventChoice"
+ },
+ {
+  "id": 1141,
+  "augmentNameId": "ARAM_AllForYou",
+  "nameTRA": "Alles für dich",
+  "simpleNameTRA": "",
+  "summaryDescription": "",
+  "augmentSmallIconPath": "/lol-game-data/assets/ASSETS/UX/Cherry/Augments/Icons/AllForYou_small.png",
+  "rarity": "kGold"
+ },
+ {
+  "id": 1002,
+  "augmentNameId": "ARAM_ApexInventor",
+  "nameTRA": "Spitzenerfinder",
+  "simpleNameTRA": "",
+  "summaryDescription": "",
+  "augmentSmallIconPath": "/lol-game-data/assets/ASSETS/UX/Cherry/Augments/Icons/ApexInventor_small.png",
+  "rarity": "kGold"
+ }
+]

@@ -34,6 +34,15 @@ final class InGameCoordinator {
     /// Skill order for the current champion; nil until resolved (champ select or OP.GG).
     @ObservationIgnored var skillOrder: [String]?
     @ObservationIgnored var skillOrderTask: Task<Void, Never>?
+    /// ARAM: Mayhem augment list for the player's champion (`InGameCoordinator+Augments`).
+    var augmentBoard: AugmentBoard?
+    @ObservationIgnored var augmentTracker = AugmentPickTracker()
+    /// The tracker's current prompt, kept while the panel is hidden (app switch, Tab held).
+    @ObservationIgnored var augmentPrompt: AugmentPickPrompt?
+    /// What the augment panel currently shows (nil = hidden).
+    @ObservationIgnored var shownAugmentPrompt: AugmentPickPrompt?
+    @ObservationIgnored var augmentPanel: OverlayPanel?
+    @ObservationIgnored var augmentTask: Task<Void, Never>?
     /// Hides the skill pill the moment another app comes to the front (snapshots may pause).
     @ObservationIgnored var activationObserver: (any NSObjectProtocol)?
     @ObservationIgnored private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "InGame")
@@ -54,6 +63,7 @@ final class InGameCoordinator {
         queue = nil
         self.rememberedQueue = rememberedQueue
         resetSkills()
+        resetAugments()
         ranks = [:]
         rankLookup.reset()
         bannerShown = false
@@ -84,6 +94,7 @@ final class InGameCoordinator {
         tabPanel?.dismiss()
         bannerPanel?.dismiss()
         resetSkills()
+        resetAugments()
         isTabHeld = false
         snapshot = nil
         logger.info("Game ended")
@@ -103,6 +114,7 @@ final class InGameCoordinator {
         }
         self.snapshot = snapshot
         updateSkillOverlay(snapshot)
+        updateAugmentOverlay(snapshot)
         if settings.ranksEnabled, let region = settings.region {
             rankLookup.lookUp(snapshot.players, region: region) { [weak self] key, rank in
                 self?.ranks[key] = rank
@@ -131,6 +143,7 @@ final class InGameCoordinator {
 
     private func setTabHeld(_ held: Bool) {
         isTabHeld = held
+        refreshAugmentOverlay() // the Tab panel lists the augments itself and would overlap
         guard held, snapshot != nil else {
             tabPanel?.dismiss()
             return
@@ -146,11 +159,22 @@ final class InGameCoordinator {
         if bannerPanel == nil {
             bannerPanel = OverlayPanel(rootView: RanksBannerView(coordinator: self))
         }
-        bannerPanel?.present(on: gameScreen(), topInset: 120)
+        bannerPanel?.present(on: gameScreen(), topInset: bannerTopInset)
         Task { [weak self] in
             try? await Task.sleep(for: .seconds(20))
             self?.bannerPanel?.dismiss()
         }
+    }
+
+    /// The banner sits below the augment list while that is visible (both appear at match start).
+    private var bannerTopInset: CGFloat {
+        guard let augmentPanel, augmentPanel.isVisible else { return 120 }
+        return Self.augmentTopInset + augmentPanel.frame.height + 12
+    }
+
+    func repositionBanner() {
+        guard bannerPanel?.isVisible == true else { return }
+        bannerPanel?.present(on: gameScreen(), topInset: bannerTopInset)
     }
 
     /// Screen of the game window (largest window of the game process), else the primary screen.

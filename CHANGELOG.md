@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+- ARAM: Mayhem in game: the champion's strong augments per rarity (Prismatic, Gold, Silver) appear at the
+  top of the screen whenever an augment choice is likely open – at the start and after levels 7, 11 and 15,
+  while dead or in the fountain. Icons and names match the client; grades S/A/B/C from OP.GG performance,
+  plus pick share. Also in the Tab overlay. Toggle in settings. The offered cards are not read.
+- Champ select (Mayhem): augment card ranked the same way, per rarity, instead of by popularity.
+- Fix: no rune import in ARAM: Mayhem (runes are disabled in the mode).
+
 ## 0.3.0
 - Champ select: matchup briefing with your likely lane opponent (inferred lanes are marked "vermutlich"),
   matchup tips and head-to-head win rate from OP.GG, counter picks during your own pick turn, and a

@@ -42,6 +42,11 @@ struct SettingsView: View {
             }
             Section("Im Spiel") {
                 Toggle("Skillpunkt-Hinweis (welche Fähigkeit als Nächstes)", isOn: $settings.skillOverlayEnabled)
+                Toggle("ARAM: Mayhem – Augment-Liste bei jeder Augment-Wahl", isOn: $settings.augmentOverlayEnabled)
+                Text("Erscheint zu Spielbeginn und nach Stufe 7, 11 und 15, sobald du tot oder im Brunnen bist: "
+                    + "starke Augments deines Champions pro Seltenheit (OP.GG). Die angebotenen Karten liest "
+                    + "Riftglass nicht aus. Mit gehaltenem Tab jederzeit sichtbar.")
+                    .font(.caption).foregroundStyle(.secondary)
                 Toggle("Tab-Overlay (Ränge, CS/min, Build-Fortschritt)", isOn: $settings.tabOverlayEnabled)
                 InputMonitoringStep()
                 Toggle("Ränge über OP.GG laden", isOn: $settings.ranksEnabled)

@@ -34,6 +34,7 @@ extension InGameCoordinator {
                 } else {
                     self.hideSkills()
                 }
+                self.refreshAugmentOverlay()
             }
         }
     }

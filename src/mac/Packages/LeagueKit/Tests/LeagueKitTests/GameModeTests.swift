@@ -31,6 +31,7 @@ struct GameModeTests {
         #expect(GameMode.summonersRift.hasLanes && GameMode.summonersRift.itemSetMapId == 11)
         #expect(!GameMode.aram.hasLanes && GameMode.aram.itemSetMapId == 12)
         #expect(GameMode.aramMayhem.itemSetMapId == 12 && GameMode.aramMayhem.hasAugments)
+        #expect(!GameMode.aramMayhem.usesRunePages && GameMode.aram.usesRunePages)
         #expect(!GameMode.arena.usesRunePages && GameMode.arena.itemSetMapId == nil)
     }
 
