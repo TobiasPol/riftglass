@@ -23,6 +23,11 @@ struct TabOverlayView: View {
                     Divider().overlay(Palette.hairline)
                     MyGameRow(me: me, snapshot: snapshot, coordinator: coordinator)
                 }
+                // ARAM: Mayhem – always reachable, also when the automatic list guessed the timing wrong.
+                if let board = coordinator.augmentBoard, !board.isEmpty {
+                    Divider().overlay(Palette.hairline)
+                    AugmentColumnsView(board: board, limit: 3, icons: coordinator.champSelect.icons, iconSize: 18)
+                }
             }
             Text("Riftglass · Ränge: OP.GG · " + Disclaimer.short)
                 .font(.system(size: 9))

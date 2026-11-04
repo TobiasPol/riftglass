@@ -26,8 +26,13 @@ Diese Datei ist verbindlich; Features, die hier als verboten stehen, werden nich
   und die Spell-Auswahl des Spielers ändern. Abschaltbar in den Einstellungen.
 - Skillpunkt-Overlay: zeigt die nächste Fähigkeit einer Statistik-Skill-Order als Hinweis; drückt keine
   Taste und levelt nichts (keine Eingabe-Automatisierung). Nur eigene Daten aus dem Live Client.
-- Mayhem-Augments: nur Pick-Anteile im Champ Select. Ein Augment-Overlay im Spiel bräuchte Bildschirm-
-  aufnahme/OCR der Auswahlkarten – vor einer Umsetzung mit Riot klären.
+- Mayhem-Augments (Champ Select + Overlay im Spiel): statische OP.GG-Statistik des eigenen Champions, vor
+  dem Spiel bekannt (Riot: Overlays mit „static data that is available prior to the game“ erlaubt). Pro
+  Seltenheit mehrere Optionen mit relativer Einstufung (S/A/B/C aus OP.GG `performance`) und Pick-Anteil –
+  **nie Siegquoten** („Products cannot display win rates for Augments“, developer.riotgames.com/docs/lol),
+  nie eine einzelne Anweisung. Das Overlay erscheint anhand der eigenen Stufe und des eigenen Todes-Status
+  (Live Client); die angebotenen Karten werden **nicht** gelesen. Bildschirmaufnahme/OCR der Auswahlkarten
+  bleibt ausgeschlossen, bis Riot es bestätigt. Abschaltbar.
 - Matchup-Briefing im Champ Select: nur Champions, die der Spieler sieht (gelockte Gegner – keine
   Gegner-Hovers, keine Namen oder Ränge der Gegner). Gegner-Lanes werden aus OP.GG-Lane-Anteilen geschätzt
   und als „vermutlich“ markiert. Counter-Picks nur während des eigenen Picks, als Liste mit Siegquote und

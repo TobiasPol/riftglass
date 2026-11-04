@@ -319,3 +319,23 @@ Roadmap-Punkt 6 aus §11.5, erweitert. Drei Karten über den Build-Optionen, abs
 **Nicht in v6:** matchup-spezifischer Build („vs. Zed“, die Guide-Antwort enthält Runen/Items für das
 Duell in eigenem JSON-Format) als zusätzliche `BuildOption`; Synergien mit dem eigenen Laner
 (`data.synergies`).
+
+## 13. v7 – ARAM: Mayhem: Augment-Overlay im Spiel (2026-11-04)
+
+Roadmap-Punkt 3 aus §11.5, **ohne** Bildschirmaufnahme. Fakten: docs/SPIKE.md (ARAM: Mayhem Regeln).
+
+- **Wann:** Riot bietet Augments zu Spielbeginn (Stufe 3) und bei Stufe 7, 11, 15 an, wählbar nur tot oder
+  im Brunnen. `AugmentPickTracker` (LeagueKit, pur) bildet das aus Live-Client-Daten nach: Wahl offen, sobald
+  die Stufe erreicht ist; sichtbar, solange der Spieler shoppen kann (tot, die ersten 75 s, 15 s nach dem
+  Respawn). Endet so ein Fenster, gilt die Wahl als getroffen. App mitten im Spiel gestartet → frühere Wahlen
+  gelten als erledigt. Mehrere offene Wahlen werden angezeigt („+1 weitere offen“).
+- **Was:** pro Seltenheit (Prismatisch, Gold, Silber – ein Angebot hat nur eine) die besten 5 des Champions
+  mit Icon, lokalisiertem Namen, Einstufung S/A/B/C und Pick-Anteil. Oben mittig (Karten sind in der Mitte),
+  klick-durchlässig, nur mit League im Vordergrund. Im Tab-Overlay die besten 3 je Seltenheit.
+- **Ranking** (`AugmentRanking`, StatsKit): OP.GG `performance`, zum pick-gewichteten Mittel der Seltenheit
+  geschrumpft (`w = pick / (pick + 0,05)`), < 1 % Picks verworfen; Einstufung nach Rangperzentil
+  (15/25/35/25 %). Relativ, weil OP.GGs Skala undokumentiert ist.
+- **Runen:** in Mayhem deaktiviert → `GameMode.aramMayhem.usesRunePages = false` (kein Runen-Import mehr).
+- **Nicht in v7:** angebotene Karten erkennen (OCR/ScreenCaptureKit – Policy-Frage, COMPLIANCE.md);
+  gewählte Augments nach dem Spiel (LCU-EOG-Daten, Spike nötig); aktiver Headliner (26.21) und Augment-
+  Synergien; Sprache des Clients statt fest `de_de`.

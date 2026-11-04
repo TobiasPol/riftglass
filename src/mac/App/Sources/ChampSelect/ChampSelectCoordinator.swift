@@ -23,8 +23,8 @@ final class ChampSelectCoordinator {
     private(set) var championId: Int?
     private(set) var role: Role?
     private(set) var builds: [BuildOption] = []
-    /// ARAM: Mayhem only – most picked augments for the champion (OP.GG).
-    private(set) var augments: [AugmentStat] = []
+    /// ARAM: Mayhem only – the champion's augments per rarity, ranked by OP.GG performance.
+    private(set) var augmentBoard: AugmentBoard?
     private(set) var isLoadingBuilds = false
     private(set) var staticData: StaticData?
     /// Lane matchup, team comp and counter picks (`ChampSelectCoordinator+Briefing`).
@@ -39,7 +39,8 @@ final class ChampSelectCoordinator {
     @ObservationIgnored let icons = IconCache()
     @ObservationIgnored let dataDragon = DataDragon()
     @ObservationIgnored private let loader: BuildLoader
-    @ObservationIgnored private let augmentProvider = OPGGAugmentProvider()
+    /// Shared with the in-game overlay (one in-memory augment catalog).
+    @ObservationIgnored let augmentLoader = AugmentBoardLoader()
     @ObservationIgnored let briefingSources = BriefingSources()
     /// OP.GG lane shares, loaded once per app run (the disk cache keeps them for 6 h).
     @ObservationIgnored var roleRates: RoleRates?
@@ -84,7 +85,7 @@ final class ChampSelectCoordinator {
         queue = newQueue
         if Self.buildKey(newQueue) != Self.buildKey(old), let championId {
             builds = []
-            augments = []
+            augmentBoard = nil
             Task { await loadBuilds(for: championId, session: session) }
         }
     }
@@ -132,7 +133,7 @@ final class ChampSelectCoordinator {
         championId = nil
         role = nil
         builds = []
-        augments = []
+        augmentBoard = nil
         briefing = ChampSelectBriefing()
         actionState = .idle
     }
@@ -156,7 +157,7 @@ final class ChampSelectCoordinator {
         championId = newChampion
         actionState = .idle
         builds = []
-        augments = []
+        augmentBoard = nil
         Task { await loadBuilds(for: newChampion, session: session) }
     }
 
@@ -195,11 +196,12 @@ final class ChampSelectCoordinator {
     /// Optional card, loaded independently so a slow OP.GG answer never delays builds or auto import.
     private func loadAugments(championId: Int, queue: GameQueue) {
         guard queue.mode == .aramMayhem else { return }
-        Task { [augmentProvider] in
+        Task { [augmentLoader] in
             do {
-                let loaded = try await augmentProvider.augments(championId: championId, limit: 6)
+                let board = try await augmentLoader.board(championId: championId)
                 guard championId == self.championId, queue.mode == mode else { return }
-                augments = loaded
+                augmentBoard = board
+                icons.prefetch(board.iconURLs)
             } catch {
                 logger.notice("OP.GG augments unavailable: \(String(describing: error), privacy: .public)")
             }

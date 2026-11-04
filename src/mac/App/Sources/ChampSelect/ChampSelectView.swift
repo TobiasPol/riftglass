@@ -71,8 +71,8 @@ struct ChampSelectView: View {
         } else if coordinator.builds.isEmpty {
             placeholder(Self.emptyText(for: coordinator.mode))
         } else {
-            if !coordinator.augments.isEmpty {
-                AugmentsCard(augments: coordinator.augments)
+            if let board = coordinator.augmentBoard, !board.isEmpty {
+                AugmentsCard(board: board, icons: coordinator.icons)
             }
             ForEach(coordinator.builds) { build in
                 BuildOptionCard(build: build, coordinator: coordinator)
@@ -140,30 +140,4 @@ enum Palette {
     static let accent = Color(red: 0.36, green: 0.78, blue: 0.86)
     static let positive = Color(red: 0.42, green: 0.82, blue: 0.55)
     static let negative = Color(red: 0.95, green: 0.45, blue: 0.42)
-}
-
-/// ARAM: Mayhem: the champion's most picked augments – information, not a pick instruction.
-private struct AugmentsCard: View {
-    let augments: [AugmentStat]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Beliebte Augments").font(.system(size: 13, weight: .semibold))
-                Spacer()
-                Text("Daten: OP.GG").font(.system(size: 10, weight: .medium)).foregroundStyle(Palette.secondaryText)
-            }
-            ForEach(augments) { augment in
-                HStack {
-                    Text(augment.name).font(.system(size: 11)).lineLimit(1)
-                    Spacer()
-                    Text(augment.pickRate.formatted(.percent.precision(.fractionLength(0))))
-                        .font(.system(size: 11).monospacedDigit())
-                        .foregroundStyle(Palette.secondaryText)
-                }
-            }
-        }
-        .padding(10)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-    }
 }

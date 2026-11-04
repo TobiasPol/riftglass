@@ -54,8 +54,13 @@ struct OPGGModeTests {
             cache: ResponseCache(name: "t", directory: directory)
         )
         let augments = try await provider.augments(championId: 103, limit: 3)
+        // Goldrend and Searing Dawn tie at 17 %: lower ID first, deterministic.
         #expect(augments.map(\.name) == ["Cruelty", "Searing Dawn", "Goldrend"])
         #expect(abs(augments[0].pickRate - 0.19) < 0.0001)
+        #expect(augments[0].performance.map { abs($0 - 80.74) < 0.0001 } == true)
+        let all = try await provider.augments(championId: 103)
+        #expect(all.count > 40 && !all.contains { $0.name.isEmpty })
+        #expect(await poster.bodies.count == 1) // second call served from cache
         let body = try #require(await poster.bodies.first)
         let request = try JSONSerialization.jsonObject(with: body) as? [String: Any]
         let arguments = (request?["params"] as? [String: Any])?["arguments"] as? [String: Any]

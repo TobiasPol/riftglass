@@ -143,7 +143,9 @@ Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-
 | League Classic | seit Patch 26.15 (bis Jan. 2027), Draft/Co-op/Custom, **Queue-ID nicht in `queues.json`** → Erkennung über Queue-Namen, live prüfen |
 | OP.GG `game_mode` | Schema: `ranked`, `flex`, `urf`, `aram`, `nexus_blitz`. `ranked`/`flex`/`aram` liefern Builds; **`urf`/`nexus_blitz` lehnen jede Position ab** („must be NONE“, `none`/`NONE` → „invalid“) → nicht nutzbar |
 | OP.GG ARAM | `position` Pflicht, wird ignoriert (`mid`/`top`/`adc` identisch); Fixture `opgg/ahri-aram.json`. Starter/Spells kommen als Klasse `Boots(…)` – Zuordnung ist positionell, Parser unverändert |
-| OP.GG Augments | `lol_list_aram_augments(champion_id)` → `Augment(id,name,tier,popular)`; `popular` = Pick-Anteil. `tier`/`performance` undokumentiert → nicht angezeigt. Fixture `opgg/ahri-aram-augments.json` |
+| OP.GG Augments | `lol_list_aram_augments(champion_id)` → `Augment(id,name,tier,performance,popular)` (Schema 2026-11-04 dokumentiert `desc`, `performance` = „performance score … on the selected champion“). `popular` = Pick-Anteil; `tier` (3–5) ist nur ein Pick-Anteil-Bucket (3 ≈ ≥ 17 %, 5 ≤ 5 %) → ungenutzt. `performance` ≈ 60–140, Ausreißer nur bei ~0 % Picks; manche `name` = `null`. **Keine Siegquote** (Riot verbietet Augment-Winrates). IDs = CommunityDragon. Fixture `opgg/ahri-aram-augments.json` |
+| Augment-Metadaten | CommunityDragon `…/global/<locale>/v1/cherry-augments.json` (Arena + Mayhem): `id`, `nameTRA` (lokalisiert, de_de ≠ OP.GG-Englisch), `rarity` `kSilver/kGold/kPrismatic/kEventChoice`, `augmentSmallIconPath` → kleingeschrieben unter `global/default/` (HTTP 200). Fixture `cdragon/cherry-augments-de.json` (gekürzt) |
+| ARAM: Mayhem Regeln | Riot-Support: „Rune settings are disabled in Mayhem“, kein Exhaust; erstes Augment zu Spielbeginn (Stufe 3), weitere bei 7/11/15; Wahl nur tot/im Brunnen. Ein Angebot = 3 Augments einer Seltenheit, 1 Reroll. Weder LCU noch Live Client liefern angebotene oder gewählte Augments |
 | OP.GG Skill-Order | `data.skills.order` = 15 Schritte (Stufe 1–15), `data.skill_masteries` = Max-Reihenfolge |
 | Live Client Fähigkeiten | `activeplayer.abilities.{Q,W,E,R}.abilityLevel` (Fixture `liveclient/activeplayer.json`) |
 
@@ -175,6 +177,9 @@ Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-
 - Skill-Overlay ab Stufe 6 (R) und mit mehreren offenen Punkten live; 16:9-Bildschirm.
 - `gameData.queue` für Classic und Brawl (ID, `gameMode`, `mapId`, `description`).
 - Live-Client-`gameMode` im Spiel für Mayhem (`KIWI`?) und Arena (`CHERRY`?) – in der Lobby bestätigt, im Spiel offen.
+- Mayhem-Augment-Overlay live: erscheint es zu Spielbeginn und beim Tod nach Stufe 7/11/15, verdeckt es die
+  Auswahlkarten nicht (oben, 28 pt), liefert `playerlist[].isDead` in Mayhem zuverlässig? `allgamedata`-Dump
+  auf Augment-Felder prüfen.
 - Skill-Overlay-Position (20 % Höhe über unterem Rand) auf 16:9 und 21:9.
 
 ## Spike 4 – Matchup-Briefing (2026-11-03, OP.GG MCP live, ohne Client)

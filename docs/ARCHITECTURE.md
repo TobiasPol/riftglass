@@ -31,7 +31,10 @@ Build-Quellen im Champ Select (`BuildLoader`): `OPGGBuildProvider` (OP.GG MCP, K
 `OPGGNotation`, 6-h-Disk-Cache) + `recommended-pages` der LCU (Riot), Duplikate nach Runen entfernt.
 Welche Statistik (`BuildQueue`: ranked/flex/aram) und welche Importe gelten, entscheidet der erkannte
 `GameMode`; nach dem Lock-in importiert `ChampSelectCoordinator+AutoImport` das Item-Set (Map des Modus).
-In ARAM: Mayhem zusätzlich `OPGGAugmentProvider` (beliebteste Augments).
+In ARAM: Mayhem zusätzlich `AugmentBoardLoader` (App): `OPGGAugmentProvider` + `AugmentCatalog` (DataKit,
+CommunityDragon: Seltenheit, lokalisierter Name, Icon) → `AugmentRanking` (StatsKit, pur, pro Seltenheit) →
+`AugmentBoard`. Im Spiel zeigt `InGameCoordinator+Augments` das Board, solange `AugmentPickTracker`
+(LeagueKit, pur: Stufe 3/7/11/15 + tot/Brunnen) eine Wahl vermutet; mit Tab jederzeit.
 
 Matchup-Briefing (`ChampSelectCoordinator+Briefing`, unabhängig von den Builds): sichtbare Gegner aus
 `ChampSelectSession.enemyPicks` → `LaneAssigner` (StatsKit, pur; OP.GG-Lane-Anteile aus

@@ -34,6 +34,12 @@ final class InGameCoordinator {
     /// Skill order for the current champion; nil until resolved (champ select or OP.GG).
     @ObservationIgnored var skillOrder: [String]?
     @ObservationIgnored var skillOrderTask: Task<Void, Never>?
+    /// ARAM: Mayhem augment list for the player's champion (`InGameCoordinator+Augments`).
+    var augmentBoard: AugmentBoard?
+    @ObservationIgnored var augmentTracker = AugmentPickTracker()
+    @ObservationIgnored var augmentPrompt: AugmentPickPrompt?
+    @ObservationIgnored var augmentPanel: OverlayPanel?
+    @ObservationIgnored var augmentTask: Task<Void, Never>?
     /// Hides the skill pill the moment another app comes to the front (snapshots may pause).
     @ObservationIgnored var activationObserver: (any NSObjectProtocol)?
     @ObservationIgnored private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "InGame")
@@ -54,6 +60,7 @@ final class InGameCoordinator {
         queue = nil
         self.rememberedQueue = rememberedQueue
         resetSkills()
+        resetAugments()
         ranks = [:]
         rankLookup.reset()
         bannerShown = false
@@ -84,6 +91,7 @@ final class InGameCoordinator {
         tabPanel?.dismiss()
         bannerPanel?.dismiss()
         resetSkills()
+        resetAugments()
         isTabHeld = false
         snapshot = nil
         logger.info("Game ended")
@@ -103,6 +111,7 @@ final class InGameCoordinator {
         }
         self.snapshot = snapshot
         updateSkillOverlay(snapshot)
+        updateAugmentOverlay(snapshot)
         if settings.ranksEnabled, let region = settings.region {
             rankLookup.lookUp(snapshot.players, region: region) { [weak self] key, rank in
                 self?.ranks[key] = rank
