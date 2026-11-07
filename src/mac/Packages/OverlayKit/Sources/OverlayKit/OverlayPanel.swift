@@ -62,7 +62,7 @@ public final class OverlayPanel: NSPanel {
     }
 
     /// Pure placement math (AppKit coordinates, origin bottom-left).
-    public static func origin(for anchor: Anchor, size: CGSize, in frame: CGRect) -> CGPoint {
+    public nonisolated static func origin(for anchor: Anchor, size: CGSize, in frame: CGRect) -> CGPoint {
         let centredX = frame.midX - size.width / 2
         switch anchor {
         case let .top(inset):
