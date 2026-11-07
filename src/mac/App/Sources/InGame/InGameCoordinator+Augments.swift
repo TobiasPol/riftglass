@@ -50,8 +50,9 @@ extension InGameCoordinator {
             isDead: me.isDead ?? false,
             gameTime: snapshot.stats.gameTime
         )
-        if prompt != nil, augmentPrompt == nil, augmentOverride == .hidden {
-            augmentOverride = .auto // ⌥A hides the list until the next choice
+        // ⌥A hides the list until the next choice – also one reached while the window stays open.
+        if let prompt, augmentOverride == .hidden, prompt.available > augmentPrompt?.available ?? 0 {
+            augmentOverride = .auto
         }
         if prompt != augmentPrompt {
             let time = Int(snapshot.stats.gameTime), dead = me.isDead ?? false

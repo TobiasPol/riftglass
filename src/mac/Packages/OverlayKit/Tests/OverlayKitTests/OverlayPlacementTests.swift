@@ -37,6 +37,26 @@ struct OverlayPlacementTests {
         #expect(abs(narrow.x - (1512 - 16 - 250)) < 0.5)
     }
 
+    /// The stacked rank banner (≈ 180 × 300) and the augment list (250 × 434) must clear the cards
+    /// (±0.486 × height, measured live) on 16:10, 16:9 and 21:9.
+    @Test func cardSidePanelsClearTheCards() {
+        let banner = CGSize(width: 180, height: 300), list = CGSize(width: 250, height: 434)
+        let right = OverlayPanel.Anchor.besideCentre(.right, clearHalfWidth: 0.5, gap: 24, centreY: 0.42)
+        for screen in [
+            CGRect(x: 0, y: 0, width: 1512, height: 982),
+            CGRect(x: 0, y: 0, width: 1920, height: 1080),
+            CGRect(x: 0, y: 0, width: 3440, height: 1440)
+        ] {
+            let cardHalf = screen.height * 0.486
+            let bannerX = OverlayPanel.origin(for: right, size: banner, in: screen).x
+            #expect(bannerX >= screen.midX + cardHalf)
+            #expect(bannerX + banner.width <= screen.maxX)
+            let listX = OverlayPanel.origin(for: cards, size: list, in: screen).x
+            #expect(listX + list.width <= screen.midX - cardHalf)
+            #expect(listX >= screen.minX)
+        }
+    }
+
     @Test func centredAnchorsKeepTheirMeaning() {
         let screen = CGRect(x: 0, y: 0, width: 1000, height: 1000)
         let size = CGSize(width: 200, height: 100)

@@ -12,7 +12,11 @@ if not keys:
 catalog = json.load(open("src/mac/App/Sources/Localizable.xcstrings"))["strings"]
 def ok(key):
     entry = catalog.get(key, {})
-    return entry.get("shouldTranslate") is False or "de" in entry.get("localizations", {})
+    if entry.get("shouldTranslate") is False:
+        return True
+    unit = entry.get("localizations", {}).get("de", {}).get("stringUnit", {})
+    # Xcode adds untranslated entries as state "new" with the English value – those don't count.
+    return unit.get("state") == "translated" and bool(unit.get("value", "").strip())
 missing = sorted(k for k in keys if not ok(k))
 for key in missing:
     print(f"missing German translation: {key!r}")

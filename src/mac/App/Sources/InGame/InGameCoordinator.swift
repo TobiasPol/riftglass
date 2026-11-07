@@ -185,7 +185,7 @@ final class InGameCoordinator {
     }
 
     /// Mayhem opens the augment cards at match start and announces the mode at the top centre, so the
-    /// banner goes right of the cards there (the augment list is on the left).
+    /// banner goes right of the cards there, stacked to fit (the augment list is on the left).
     private var bannerAnchor: OverlayPanel.Anchor {
         queue?.mode == .aramMayhem ? Self.cardSide(.right) : .top(120)
     }
@@ -193,7 +193,8 @@ final class InGameCoordinator {
     /// Shows the ranks of all players for a few seconds at the start of the game.
     private func showBanner() {
         if bannerPanel == nil {
-            bannerPanel = OverlayPanel(rootView: RanksBannerView(coordinator: self))
+            let stacked = queue?.mode == .aramMayhem
+            bannerPanel = OverlayPanel(rootView: RanksBannerView(coordinator: self, stacked: stacked))
         }
         bannerPanel?.present(on: gameScreen(), anchor: bannerAnchor)
         Task { [weak self] in

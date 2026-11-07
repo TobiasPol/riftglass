@@ -7,17 +7,14 @@ import SwiftUI
 @MainActor
 @Observable
 final class Updater {
-    // Debug builds carry the release's version with build 1, so Sparkle would offer to replace them
-    // with the published release mid-test; they only check when asked to.
-    #if DEBUG
-        private static let startsAutomatically = false
-    #else
-        private static let startsAutomatically = true
-    #endif
+    @ObservationIgnored private let policy = UpdateCheckPolicy()
+    @ObservationIgnored private let controller: SPUStandardUpdaterController
 
-    @ObservationIgnored private let controller = SPUStandardUpdaterController(
-        startingUpdater: startsAutomatically, updaterDelegate: nil, userDriverDelegate: nil
-    )
+    init() {
+        controller = SPUStandardUpdaterController(
+            startingUpdater: true, updaterDelegate: policy, userDriverDelegate: nil
+        )
+    }
 
     var automaticallyChecksForUpdates: Bool {
         get {
@@ -33,10 +30,22 @@ final class Updater {
 
     func checkForUpdates() {
         NSApplication.shared.activate()
-        if !Self.startsAutomatically {
-            try? controller.updater.start()
-        }
         controller.checkForUpdates(nil)
+    }
+}
+
+/// Debug builds carry the release's version with build 1, so Sparkle would offer to replace them with
+/// the published release mid-test. They refuse every background check for the whole session; "Check
+/// now" still works and the stored automatic-check preference (shared with Release) is left alone.
+final class UpdateCheckPolicy: NSObject, SPUUpdaterDelegate {
+    func updater(_: SPUUpdater, mayPerform updateCheck: SPUUpdateCheck) throws {
+        #if DEBUG
+            guard updateCheck == .updates else {
+                throw NSError(domain: "Riftglass", code: 1, userInfo: [
+                    NSLocalizedDescriptionKey: "Automatic update checks are off in Debug builds."
+                ])
+            }
+        #endif
     }
 }
 
