@@ -1,0 +1,1293 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    " · Pick %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " · Pick %@"
+          }
+        }
+      }
+    },
+    "%@ CS/min": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ CS/min"
+          }
+        }
+      }
+    },
+    "%@ don’t exist in %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ gibt es in %2$@ nicht."
+          }
+        }
+      }
+    },
+    "%@ games": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Spiele"
+          }
+        }
+      }
+    },
+    "%@ imported.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ übernommen."
+          }
+        }
+      }
+    },
+    "%@ physical · %@ magic": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ physisch · %2$@ magisch"
+          }
+        }
+      }
+    },
+    "%@ win rate · %@ games": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ Winrate · %2$@ Spiele"
+          }
+        }
+      }
+    },
+    "%@ · %@ games": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ Spiele"
+          }
+        }
+      }
+    },
+    "%@ – hold Tab for overlay": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ – Tab halten für Overlay"
+          }
+        }
+      }
+    },
+    "%lld": {
+      "shouldTranslate": false
+    },
+    "%lld enemy assassins – defensive items are an option.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Assassinen beim Gegner – defensive Items sind eine Option."
+          }
+        }
+      }
+    },
+    "%lld min": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min"
+          }
+        }
+      }
+    },
+    "%lld skill points": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Skillpunkte"
+          }
+        }
+      }
+    },
+    "%lld/%lld/%lld": {
+      "shouldTranslate": false
+    },
+    "+%lld pending": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%lld offen"
+          }
+        }
+      }
+    },
+    "ARAM: Mayhem – augment list at every augment choice": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ARAM: Mayhem – Augment-Liste bei jeder Augment-Wahl"
+          }
+        }
+      }
+    },
+    "ARAM: Mayhem – augment overlay (⌥A)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ARAM: Mayhem – Augment-Overlay (⌥A)"
+          }
+        }
+      }
+    },
+    "About Riftglass": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über Riftglass"
+          }
+        }
+      }
+    },
+    "Action failed: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktion fehlgeschlagen: %@"
+          }
+        }
+      }
+    },
+    "After the game": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach dem Spiel"
+          }
+        }
+      }
+    },
+    "All rarities": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Seltenheiten"
+          }
+        }
+      }
+    },
+    "Appears next to the selection cards at game start and after levels 7, 11 and 15, once you are dead or in the fountain: your champion's strong augments per rarity (OP.GG). Riftglass does not read the offered cards. ⌥A hides the list until the next choice and shows it again (needs Input Monitoring); holding Tab shows it any time.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erscheint neben den Auswahlkarten zu Spielbeginn und nach Stufe 7, 11 und 15, sobald du tot oder im Brunnen bist: starke Augments deines Champions pro Seltenheit (OP.GG). Die angebotenen Karten liest Riftglass nicht aus. ⌥A blendet die Liste bis zur nächsten Wahl aus und wieder ein (braucht Eingabeüberwachung), mit gehaltenem Tab ist sie jederzeit sichtbar."
+          }
+        }
+      }
+    },
+    "Augment choice %lld/%lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Augment-Wahl %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "Automatic: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch: %@"
+          }
+        }
+      }
+    },
+    "Blue": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blau"
+          }
+        }
+      }
+    },
+    "Boots": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stiefel"
+          }
+        }
+      },
+      "extractionState": "manual",
+      "comment": "Item set block title from StatsKit, looked up at runtime (BuildText.blockTitle)."
+    },
+    "Build": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build"
+          }
+        }
+      }
+    },
+    "Build: %lld/%lld planned items": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build: %1$lld/%2$lld geplante Items"
+          }
+        }
+      }
+    },
+    "Builds, win rates and ranks come from OP.GG (public interface, no account). For ranks, the Riot IDs of the players in your game are sent to OP.GG – you can turn this off in Settings. Riot's recommendations come straight from your client.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Builds, Winrates und Ränge kommen von OP.GG (öffentliche Schnittstelle, ohne Konto). Für Ränge werden die Riot-IDs der Spieler deines Spiels an OP.GG gesendet – abschaltbar in den Einstellungen. Riot-Empfehlungen kommen direkt aus deinem Client."
+          }
+        }
+      }
+    },
+    "CS/min": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CS/min"
+          }
+        }
+      }
+    },
+    "Champ Select": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Champ Select"
+          }
+        }
+      }
+    },
+    "Champ Select · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Champ Select · %@"
+          }
+        }
+      }
+    },
+    "Check for updates automatically": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch nach Updates suchen"
+          }
+        }
+      }
+    },
+    "Check now": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt prüfen"
+          }
+        }
+      }
+    },
+    "Connected to the client": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit dem Client verbunden"
+          }
+        }
+      }
+    },
+    "Connecting to the client …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinde mit dem Client …"
+          }
+        }
+      }
+    },
+    "Core": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kern"
+          }
+        }
+      },
+      "extractionState": "manual",
+      "comment": "Item set block title from StatsKit, looked up at runtime (BuildText.blockTitle)."
+    },
+    "Counter options vs. %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counter-Optionen gegen %@"
+          }
+        }
+      }
+    },
+    "Data sources": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenquellen"
+          }
+        }
+      }
+    },
+    "Data: OP.GG": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten: OP.GG"
+          }
+        }
+      }
+    },
+    "Enemy": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gegner"
+          }
+        }
+      }
+    },
+    "Enemy ~%@ magic – magic resist is an option.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gegner ~%@ magisch – Magieresistenz ist eine Option."
+          }
+        }
+      }
+    },
+    "Enemy ~%@ physical – armor is an option.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gegner ~%@ physisch – Rüstung ist eine Option."
+          }
+        }
+      }
+    },
+    "Estimate from visible items": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schätzung aus sichtbaren Items"
+          }
+        }
+      }
+    },
+    "Estimate: Data Dragon": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schätzung: Data Dragon"
+          }
+        }
+      }
+    },
+    "Frontline %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frontline %lld"
+          }
+        }
+      }
+    },
+    "Game loading …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spiel lädt …"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allgemein"
+          }
+        }
+      }
+    },
+    "Gold": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold"
+          }
+        }
+      }
+    },
+    "Guide value %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richtwert %@"
+          }
+        }
+      }
+    },
+    "Import all": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles übernehmen"
+          }
+        }
+      }
+    },
+    "Import item set automatically after lock-in": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item-Set nach dem Lock-in automatisch übernehmen"
+          }
+        }
+      }
+    },
+    "Import runes & spells automatically": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runen & Spells automatisch übernehmen"
+          }
+        }
+      }
+    },
+    "Importing %@ …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ wird übernommen …"
+          }
+        }
+      }
+    },
+    "In game": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Spiel"
+          }
+        }
+      }
+    },
+    "In-game hotkeys (Tab, ⌥A)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hotkeys im Spiel (Tab, ⌥A)"
+          }
+        }
+      }
+    },
+    "Input Monitoring allowed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eingabeüberwachung erlaubt"
+          }
+        }
+      }
+    },
+    "Input Monitoring missing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eingabeüberwachung fehlt"
+          }
+        }
+      }
+    },
+    "Item gold estimate per lane (experimental)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item-Gold-Schätzung pro Lane (experimentell)"
+          }
+        }
+      }
+    },
+    "Item gold vs. lane": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item-Gold vs. Lane"
+          }
+        }
+      }
+    },
+    "Item set": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item-Set"
+          }
+        }
+      }
+    },
+    "Item sets": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item-Sets"
+          }
+        }
+      }
+    },
+    "Items": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Items"
+          }
+        }
+      }
+    },
+    "Lane advantage: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lane-Vorteil: %@"
+          }
+        }
+      }
+    },
+    "Lane opponent": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lane-Gegner"
+          }
+        }
+      }
+    },
+    "Last game": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letztes Spiel"
+          }
+        }
+      }
+    },
+    "Launch at login": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei der Anmeldung starten"
+          }
+        }
+      }
+    },
+    "League Classic uses old runes, masteries and items – Riftglass imports nothing here.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "League Classic nutzt alte Runen, Meisterschaften und Items – Riftglass importiert hier nichts."
+          }
+        }
+      }
+    },
+    "League is not running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "League ist nicht gestartet"
+          }
+        }
+      }
+    },
+    "Let’s go": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los geht’s"
+          }
+        }
+      }
+    },
+    "Little frontline on your team – a sturdy pick or build is an option.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaum Frontline im eigenen Team – ein robuster Pick oder Build ist eine Option."
+          }
+        }
+      }
+    },
+    "Load ranks from OP.GG": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ränge über OP.GG laden"
+          }
+        }
+      }
+    },
+    "Matchup briefing (lane opponent, teams, counter picks)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matchup-Briefing (Lane-Gegner, Teams, Counter-Picks)"
+          }
+        }
+      }
+    },
+    "Next: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächstes: %@"
+          }
+        }
+      }
+    },
+    "No builds available – OP.GG is unreachable and the client has no recommendation.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Builds verfügbar – OP.GG ist nicht erreichbar und der Client liefert keine Empfehlung."
+          }
+        }
+      }
+    },
+    "No connection to the League client.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Verbindung zum League-Client."
+          }
+        }
+      }
+    },
+    "No data": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Daten"
+          }
+        }
+      }
+    },
+    "No free rune page slot. Delete a page in the client – Riftglass only replaces its own pages.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein freier Runenseiten-Platz. Lösche eine Seite im Client – Riftglass ersetzt nur eigene Seiten."
+          }
+        }
+      }
+    },
+    "OP.GG": {
+      "shouldTranslate": false
+    },
+    "OP.GG statistics · ⌥A hides": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OP.GG-Statistik · ⌥A blendet aus"
+          }
+        }
+      }
+    },
+    "Only from visible items. Whether Riot allows this is unclear – so it is off by default.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur aus sichtbaren Items. Ob Riot das erlaubt, ist ungeklärt – daher standardmäßig aus."
+          }
+        }
+      }
+    },
+    "Only reads local interfaces of the League client (LCU, Live Client Data API). No memory reading, no injection, no input automation, no telemetry. Builds and ranks: OP.GG. Riftglass only changes its own rune pages and item sets.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liest nur lokale Schnittstellen des League-Clients (LCU, Live Client Data API). Kein Speicherlesen, keine Injection, keine Eingabe-Automatisierung, keine Telemetrie. Builds und Ränge: OP.GG. Riftglass ändert nur eigene Runenseiten und Item-Sets."
+          }
+        }
+      }
+    },
+    "Only uses champions you can see in champ select. Enemy lanes are estimated from OP.GG statistics; counter picks only appear during your pick.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutzt nur Champions, die du im Champ Select siehst. Gegner-Lanes werden aus OP.GG-Statistiken geschätzt, Counter-Picks erscheinen nur während deines Picks."
+          }
+        }
+      }
+    },
+    "Open System Settings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemeinstellungen öffnen"
+          }
+        }
+      }
+    },
+    "Pick or hover a champion to see build options.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle oder hovere einen Champion, um Build-Optionen zu sehen."
+          }
+        }
+      }
+    },
+    "Pick share": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick-Anteil"
+          }
+        }
+      }
+    },
+    "Play style: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielweise: %@"
+          }
+        }
+      }
+    },
+    "Prismatic": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prismatisch"
+          }
+        }
+      }
+    },
+    "Quit": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beenden"
+          }
+        }
+      }
+    },
+    "Recommendation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empfehlung"
+          }
+        }
+      }
+    },
+    "Red": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rot"
+          }
+        }
+      }
+    },
+    "Request access": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugriff anfragen"
+          }
+        }
+      }
+    },
+    "Restart Riftglass": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riftglass neu starten"
+          }
+        }
+      }
+    },
+    "Riftglass": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riftglass"
+          }
+        }
+      }
+    },
+    "Riftglass has no build data for %@ (OP.GG only covers Ranked, Flex and ARAM).": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für %@ hat Riftglass keine Build-Daten (OP.GG liefert nur Ranked, Flex und ARAM)."
+          }
+        }
+      }
+    },
+    "Riftglass lives in the menu bar. In champ select it docks next to the League client and imports runes, spells and item sets. In game, holding Tab shows ranks, CS/min and your build progress.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riftglass lebt in der Menüleiste. Im Champ Select dockt es neben den League-Client und importiert Runen, Spells und Item-Sets. Im Spiel zeigt es beim Halten von Tab Ränge, CS/min und deinen Build-Fortschritt."
+          }
+        }
+      }
+    },
+    "Riftglass only reads whether Tab or ⌥A is pressed (listen-only, no input is changed). Riftglass has to be restarted after allowing it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riftglass liest nur, ob Tab oder ⌥A gedrückt ist (Listen-only, keine Eingaben werden verändert). Nach dem Erlauben muss Riftglass neu gestartet werden."
+          }
+        }
+      }
+    },
+    "Riftglass · Ranks: OP.GG · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riftglass · Ränge: OP.GG · %@"
+          }
+        }
+      }
+    },
+    "Riot certificate missing from the app bundle.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riot-Zertifikat fehlt im App-Bundle."
+          }
+        }
+      }
+    },
+    "Rune pages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runenseiten"
+          }
+        }
+      }
+    },
+    "Runes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runen"
+          }
+        }
+      }
+    },
+    "Runes & spells": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runen & Spells"
+          }
+        }
+      }
+    },
+    "Runes are disabled in Mayhem. In game the list appears at every augment choice.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runen sind in Mayhem deaktiviert. Im Spiel erscheint die Liste bei jeder Augment-Wahl."
+          }
+        }
+      }
+    },
+    "Sends the Riot IDs of the players in your current game to OP.GG.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sendet die Riot-IDs der Spieler deines aktuellen Spiels an OP.GG."
+          }
+        }
+      }
+    },
+    "Settings …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen …"
+          }
+        }
+      }
+    },
+    "Setup": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einrichtung"
+          }
+        }
+      }
+    },
+    "Silver": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silber"
+          }
+        }
+      }
+    },
+    "Skill point": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skillpunkt"
+          }
+        }
+      }
+    },
+    "Skill point hint (which ability to level next)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skillpunkt-Hinweis (welche Fähigkeit als Nächstes)"
+          }
+        }
+      }
+    },
+    "Solo kills: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo-Kills: %@"
+          }
+        }
+      }
+    },
+    "Spells": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spells"
+          }
+        }
+      }
+    },
+    "Starter": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        }
+      },
+      "extractionState": "manual",
+      "comment": "Item set block title from StatsKit, looked up at runtime (BuildText.blockTitle)."
+    },
+    "Strong augments": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starke Augments"
+          }
+        }
+      }
+    },
+    "Tab overlay (ranks, CS/min, build progress)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab-Overlay (Ränge, CS/min, Build-Fortschritt)"
+          }
+        }
+      }
+    },
+    "Teams": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teams"
+          }
+        }
+      }
+    },
+    "The client rejected the action (HTTP %lld).": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Client hat die Aktion abgelehnt (HTTP %lld)."
+          }
+        }
+      }
+    },
+    "The game mode is detected (Ranked, ARAM, ARAM: Mayhem, Arena, URF …). The first option for that mode is imported; Riftglass only changes its own rune pages and item sets.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Spielmodus wird erkannt (Ranked, ARAM, ARAM: Mayhem, Arena, URF …). Übernommen wird die erste Option für den passenden Modus; Riftglass ändert nur eigene Runenseiten und Item-Sets."
+          }
+        }
+      }
+    },
+    "Then": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Danach"
+          }
+        }
+      },
+      "extractionState": "manual",
+      "comment": "Item set block title from StatsKit, looked up at runtime (BuildText.blockTitle)."
+    },
+    "This rune page is invalid (outdated placeholder data?).": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Runenseite ist ungültig (Platzhalter-Daten veraltet?)."
+          }
+        }
+      }
+    },
+    "Version": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        }
+      }
+    },
+    "Welcome to Riftglass": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Willkommen bei Riftglass"
+          }
+        }
+      }
+    },
+    "Win rate of the counter in this lane – options, not a recommendation.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siegquote des Counters in dieser Lane – Optionen, keine Empfehlung."
+          }
+        }
+      }
+    },
+    "Your team": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Team"
+          }
+        }
+      }
+    },
+    "aggressive": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aggressiv"
+          }
+        }
+      }
+    },
+    "defensive": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "defensiv"
+          }
+        }
+      }
+    },
+    "even": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ausgeglichen"
+          }
+        }
+      }
+    },
+    "likely – lane estimated": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vermutlich – Lane geschätzt"
+          }
+        }
+      }
+    },
+    "then": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "danach"
+          }
+        }
+      }
+    },
+    "unavailable": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nicht verfügbar"
+          }
+        }
+      }
+    },
+    "you": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "du"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -29,7 +29,7 @@ final class AppModel {
         do {
             evaluator = try LocalTrustEvaluator.bundled()
         } catch {
-            setupError = "Riot-Zertifikat fehlt im App-Bundle."
+            setupError = String(localized: "Riot certificate missing from the app bundle.")
             logger.fault("riotgames.pem missing: \(error.localizedDescription, privacy: .public)")
         }
     }

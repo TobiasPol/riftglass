@@ -12,7 +12,10 @@ struct TabOverlayView: View {
             if let snapshot = coordinator.snapshot {
                 HStack(alignment: .top, spacing: 16) {
                     // Practice tool / custom games may have an empty team.
-                    ForEach([("ORDER", "Blau"), ("CHAOS", "Rot")], id: \.0) { team, title in
+                    ForEach(
+                        [("ORDER", String(localized: "Blue")), ("CHAOS", String(localized: "Red"))],
+                        id: \.0
+                    ) { team, title in
                         let players = snapshot.players.filter { $0.team == team }
                         if !players.isEmpty {
                             TeamColumn(title: title, players: players, coordinator: coordinator)
@@ -29,7 +32,7 @@ struct TabOverlayView: View {
                     AugmentColumnsView(board: board, limit: 3, icons: coordinator.champSelect.icons, iconSize: 18)
                 }
             }
-            Text("Riftglass · Ränge: OP.GG · " + Disclaimer.short)
+            Text("Riftglass · Ranks: OP.GG · \(Disclaimer.short)")
                 .font(.system(size: 9))
                 .foregroundStyle(Palette.tertiaryText)
         }
@@ -97,7 +100,8 @@ private struct MyGameRow: View {
                 metric(
                     "CS/min",
                     value: cs.formatted(.number.precision(.fractionLength(1))),
-                    detail: InGameAnalysis.csBenchmark(for: me).map { "Richtwert \($0.formatted())" },
+                    detail: InGameAnalysis.csBenchmark(for: me)
+                        .map { String(localized: "Guide value \($0.formatted())") },
                     good: InGameAnalysis.csBenchmark(for: me).map { cs >= $0 }
                 )
             }
@@ -108,9 +112,9 @@ private struct MyGameRow: View {
             if coordinator.settings.goldEstimateEnabled, let prices = coordinator.champSelect.staticData?.itemPrices,
                let diff = InGameAnalysis.laneGoldDifference(for: me, in: snapshot, prices: prices) {
                 metric(
-                    "Item-Gold vs. Lane",
+                    "Item gold vs. lane",
                     value: (diff >= 0 ? "+" : "") + diff.formatted(),
-                    detail: "Schätzung aus sichtbaren Items",
+                    detail: String(localized: "Estimate from visible items"),
                     good: diff >= 0
                 )
             }
@@ -121,10 +125,10 @@ private struct MyGameRow: View {
     private var nextItemName: String? {
         InGameAnalysis.nextItem(owned: me.items, planned: plannedItems)
             .flatMap { coordinator.champSelect.staticData?.itemsById[$0]?.name }
-            .map { "Nächstes: \($0)" }
+            .map { String(localized: "Next: \($0)") }
     }
 
-    private func metric(_ title: String, value: String, detail: String?, good: Bool?) -> some View {
+    private func metric(_ title: LocalizedStringKey, value: String, detail: String?, good: Bool?) -> some View {
         VStack(alignment: .leading, spacing: 1) {
             Text(title).font(.system(size: 10)).foregroundStyle(Palette.secondaryText)
             Text(value).font(.system(size: 16, weight: .semibold).monospacedDigit())

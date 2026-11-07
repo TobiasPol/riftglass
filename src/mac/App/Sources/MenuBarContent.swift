@@ -15,6 +15,10 @@ struct MenuBarContent: View {
             if let error = model.setupError {
                 Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
             }
+            Toggle("ARAM: Mayhem – augment overlay (⌥A)", isOn: Bindable(model.settings).augmentOverlayEnabled)
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .font(.callout)
             if let game = model.inGame.lastGame {
                 lastGame(game)
             }
@@ -24,10 +28,10 @@ struct MenuBarContent: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
-                Button("Einstellungen …") { WindowFront.openSettings(using: openSettings) }
-                Button("Einrichtung") { WindowFront.open(OnboardingView.windowID, using: openWindow) }
+                Button("Settings …") { WindowFront.openSettings(using: openSettings) }
+                Button("Setup") { WindowFront.open(OnboardingView.windowID, using: openWindow) }
                 Spacer()
-                Button("Beenden") { NSApplication.shared.terminate(nil) }
+                Button("Quit") { NSApplication.shared.terminate(nil) }
             }
             .controlSize(.small)
         }
@@ -37,7 +41,7 @@ struct MenuBarContent: View {
 
     private func lastGame(_ game: GameSummary) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Letztes Spiel").font(.caption).foregroundStyle(.secondary)
+            Text("Last game").font(.caption).foregroundStyle(.secondary)
             HStack(spacing: 12) {
                 Text(game.championName).font(.callout.weight(.semibold))
                 Text(game.kdaText).monospacedDigit()
@@ -48,20 +52,30 @@ struct MenuBarContent: View {
             }
             .font(.callout)
             if game.buildTotal > 0 {
-                Text("Build: \(game.buildDone)/\(game.buildTotal) geplante Items").font(.caption)
+                Text("Build: \(game.buildDone)/\(game.buildTotal) planned items").font(.caption)
             }
         }
     }
 
     private var statusText: String {
         switch model.mode {
-        case .dormant: "League ist nicht gestartet"
-        case .client: model.isLCUConnected ? "Mit dem Client verbunden" : "Verbinde mit dem Client …"
-        case .champSelect: "Champ Select · " + (model.champSelect.queue?.displayName ?? "…")
-        case .inGame: model.inGame.snapshot == nil
-            ? "Spiel lädt …" : "\(model.inGame.queue?.displayName ?? "Im Spiel") – Tab halten für Overlay"
-        case .postGame: "Nach dem Spiel"
+        case .dormant: String(localized: "League is not running")
+        case .client:
+            if model.isLCUConnected {
+                String(localized: "Connected to the client")
+            } else {
+                String(localized: "Connecting to the client …")
+            }
+        case .champSelect: String(localized: "Champ Select · \(model.champSelect.queue?.displayName ?? "…")")
+        case .inGame: inGameStatus
+        case .postGame: String(localized: "After the game")
         }
+    }
+
+    private var inGameStatus: String {
+        guard model.inGame.snapshot != nil else { return String(localized: "Game loading …") }
+        let mode = model.inGame.queue?.displayName ?? String(localized: "In game")
+        return String(localized: "\(mode) – hold Tab for overlay")
     }
 
     private var statusIcon: String {

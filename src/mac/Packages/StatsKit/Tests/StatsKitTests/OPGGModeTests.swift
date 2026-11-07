@@ -30,7 +30,7 @@ struct OPGGModeTests {
         #expect(build.championKey == "Ahri")
         #expect(build.runes.perkIds == [8128, 8126, 8140, 8106, 8009, 8014, 5008, 5008, 5001])
         #expect(build.summonerSpells == [4, 32])
-        #expect(build.itemBlocks.map(\.title) == ["Start", "Kern", "Stiefel", "Danach"])
+        #expect(build.itemBlocks.map(\.title) == ["Starter", "Core", "Boots", "Then"])
         #expect(build.itemBlocks[3].itemIds == [3089, 3135, 3157])
         #expect(build.skillOrder.prefix(3) == ["Q", "W", "E"])
         let arguments = try await arguments(poster)

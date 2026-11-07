@@ -327,15 +327,19 @@ Roadmap-Punkt 3 aus §11.5, **ohne** Bildschirmaufnahme. Fakten: docs/SPIKE.md (
 - **Wann:** Riot bietet Augments zu Spielbeginn (Stufe 3) und bei Stufe 7, 11, 15 an, wählbar nur tot oder
   im Brunnen. `AugmentPickTracker` (LeagueKit, pur) bildet das aus Live-Client-Daten nach: Wahl offen, sobald
   die Stufe erreicht ist; sichtbar, solange der Spieler shoppen kann (tot, die ersten 75 s, 15 s nach dem
-  Respawn). Endet so ein Fenster, gilt die Wahl als getroffen. App mitten im Spiel gestartet → frühere Wahlen
+  Respawn). Endet so ein Fenster nach mindestens 5 s, gilt die Wahl als getroffen. App mitten im Spiel gestartet → frühere Wahlen
   gelten als erledigt. Mehrere offene Wahlen werden angezeigt („+1 weitere offen“).
 - **Was:** pro Seltenheit (Prismatisch, Gold, Silber – ein Angebot hat nur eine) die besten 5 des Champions
-  mit Icon, lokalisiertem Namen, Einstufung S/A/B/C und Pick-Anteil. Oben mittig (Karten sind in der Mitte),
-  klick-durchlässig, nur mit League im Vordergrund. Im Tab-Overlay die besten 3 je Seltenheit.
+  mit Icon, lokalisiertem Namen, Einstufung S/A/B/C und Pick-Anteil. Links neben den Auswahlkarten (oben mittig
+  verdeckte es live die mittlere Karte), klick-durchlässig, nur mit League im Vordergrund; der Skill-Hinweis
+  weicht solange aus. ⌥A blendet sie bis zur nächsten Wahl aus bzw. jederzeit ein. Im Tab-Overlay die besten
+  3 je Seltenheit.
 - **Ranking** (`AugmentRanking`, StatsKit): OP.GG `performance`, zum pick-gewichteten Mittel der Seltenheit
   geschrumpft (`w = pick / (pick + 0,05)`), < 1 % Picks verworfen; Einstufung nach Rangperzentil
   (15/25/35/25 %). Relativ, weil OP.GGs Skala undokumentiert ist.
 - **Runen:** in Mayhem deaktiviert → `GameMode.aramMayhem.usesRunePages = false` (kein Runen-Import mehr).
 - **Nicht in v7:** angebotene Karten erkennen (OCR/ScreenCaptureKit – Policy-Frage, COMPLIANCE.md);
   gewählte Augments nach dem Spiel (LCU-EOG-Daten, Spike nötig); aktiver Headliner (26.21) und Augment-
-  Synergien; Sprache des Clients statt fest `de_de`.
+  Synergien.
+- **Sprache (2026-11-07):** UI Englisch (Quellsprache) + Deutsch (`Localizable.xcstrings`), folgt macOS;
+  Data Dragon, CommunityDragon und OP.GG-`lang` folgen der App-Sprache (`GameDataLocale`).

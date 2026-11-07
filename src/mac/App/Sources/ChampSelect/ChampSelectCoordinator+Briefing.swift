@@ -27,7 +27,7 @@ struct ChampSelectBriefing {
 /// OP.GG sources of the briefing.
 struct BriefingSources {
     let laneMeta = OPGGLaneMetaProvider()
-    let matchups = OPGGMatchupProvider()
+    let matchups = OPGGMatchupProvider(language: GameDataLocale.dataDragon)
     let counters = OPGGCounterProvider()
 }
 

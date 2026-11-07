@@ -28,23 +28,23 @@ private struct CounterPicksCard: View {
     let briefing: ChampSelectBriefing
 
     var body: some View {
-        BriefingCard(title: "Counter-Optionen gegen \(coordinator.name(of: opponentId))", source: "Daten: OP.GG") {
+        BriefingCard(title: "Counter options vs. \(coordinator.name(of: opponentId))", source: "Data: OP.GG") {
             ForEach(briefing.counterPicks) { pick in
                 let available = briefing.pickableIds?.contains(pick.id) ?? true
                 HStack(spacing: 8) {
                     ChampionIcon(key: coordinator.key(of: pick.id), champSelect: coordinator, size: 20)
                     Text(pick.name).font(.system(size: 11)).lineLimit(1)
                     if !available {
-                        Text("nicht verfügbar").font(.system(size: 10)).foregroundStyle(Palette.tertiaryText)
+                        Text("unavailable").font(.system(size: 10)).foregroundStyle(Palette.tertiaryText)
                     }
                     Spacer()
-                    Text("\(percent(pick.winRate)) · \(pick.games.formatted()) Spiele")
+                    Text("\(percent(pick.winRate)) · \(pick.games.formatted()) games")
                         .font(.system(size: 11).monospacedDigit())
                         .foregroundStyle(Palette.secondaryText)
                 }
                 .opacity(available ? 1 : 0.45)
             }
-            Text("Siegquote des Counters in dieser Lane – Optionen, keine Empfehlung.")
+            Text("Win rate of the counter in this lane – options, not a recommendation.")
                 .font(.system(size: 10)).foregroundStyle(Palette.tertiaryText)
         }
     }
@@ -56,13 +56,13 @@ private struct MatchupCard: View {
     let matchup: MatchupBrief?
 
     var body: some View {
-        BriefingCard(title: "Lane-Gegner", source: "Daten: OP.GG") {
+        BriefingCard(title: "Lane opponent", source: "Data: OP.GG") {
             HStack(spacing: 8) {
                 ChampionIcon(key: coordinator.key(of: opponent.championId), champSelect: coordinator, size: 28)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(coordinator.name(of: opponent.championId)).font(.system(size: 12, weight: .semibold))
                     if !opponent.isRevealed {
-                        Text("vermutlich – Lane geschätzt").font(.system(size: 10))
+                        Text("likely – lane estimated").font(.system(size: 10))
                             .foregroundStyle(Palette.tertiaryText)
                     }
                 }
@@ -72,7 +72,7 @@ private struct MatchupCard: View {
                         Text(percent(winRate)).font(.system(size: 13, weight: .semibold).monospacedDigit())
                             .foregroundStyle(winRate >= 0.52 ? Palette.positive : winRate <= 0.48 ? Palette
                                 .negative : Palette.text)
-                        Text("\(games.formatted()) Spiele").font(.system(size: 10))
+                        Text("\(games.formatted()) games").font(.system(size: 10))
                             .foregroundStyle(Palette.secondaryText)
                     }
                 }
@@ -85,11 +85,11 @@ private struct MatchupCard: View {
 
     @ViewBuilder
     private func details(_ matchup: MatchupBrief) -> some View {
-        let opponentName = coordinator.name(of: opponent.championId)
+        let opponentName = coordinator.name(of: opponent.championId), you = String(localized: "you")
         let facts = [
-            matchup.laneAdvantage.map { "Lane-Vorteil: \($0 == .me ? "du" : opponentName)" },
-            matchup.soloKillAdvantage.map { "Solo-Kills: \($0 == .me ? "du" : opponentName)" },
-            matchup.playStyle.map { "Spielweise: \(Self.playStyle($0))" }
+            matchup.laneAdvantage.map { String(localized: "Lane advantage: \($0 == .me ? you : opponentName)") },
+            matchup.soloKillAdvantage.map { String(localized: "Solo kills: \($0 == .me ? you : opponentName)") },
+            matchup.playStyle.map { String(localized: "Play style: \(Self.playStyle($0))") }
         ].compactMap(\.self)
         if !facts.isEmpty {
             Text(facts.joined(separator: " · ")).font(.system(size: 11)).foregroundStyle(Palette.secondaryText)
@@ -101,9 +101,9 @@ private struct MatchupCard: View {
 
     static func playStyle(_ value: String) -> String {
         switch value.lowercased() {
-        case "even": "ausgeglichen"
-        case "aggressive": "aggressiv"
-        case "passive", "defensive": "defensiv"
+        case "even": String(localized: "even")
+        case "aggressive": String(localized: "aggressive")
+        case "passive", "defensive": String(localized: "defensive")
         default: value
         }
     }
@@ -113,9 +113,9 @@ private struct TeamCompCard: View {
     let briefing: ChampSelectBriefing
 
     var body: some View {
-        BriefingCard(title: "Teams", source: "Schätzung: Data Dragon") {
-            row("Dein Team", briefing.ally)
-            row("Gegner", briefing.enemy)
+        BriefingCard(title: "Teams", source: "Estimate: Data Dragon") {
+            row("Your team", briefing.ally)
+            row("Enemy", briefing.enemy)
             ForEach(Array(briefing.hints.enumerated()), id: \.offset) { _, hint in
                 Label(Self.text(hint), systemImage: "lightbulb")
                     .font(.system(size: 11))
@@ -124,7 +124,7 @@ private struct TeamCompCard: View {
         }
     }
 
-    private func row(_ title: String, _ team: TeamProfile) -> some View {
+    private func row(_ title: LocalizedStringKey, _ team: TeamProfile) -> some View {
         HStack(spacing: 8) {
             Text(title).font(.system(size: 11)).frame(width: 62, alignment: .leading)
             DamageBar(physicalShare: team.physicalShare)
@@ -135,10 +135,14 @@ private struct TeamCompCard: View {
 
     static func text(_ hint: CompHint) -> String {
         switch hint {
-        case let .enemyMostlyPhysical(share): "Gegner ~\(percent(share)) physisch – Rüstung ist eine Option."
-        case let .enemyMostlyMagic(share): "Gegner ~\(percent(share)) magisch – Magieresistenz ist eine Option."
-        case let .manyEnemyAssassins(count): "\(count) Assassinen beim Gegner – defensive Items sind eine Option."
-        case .noAllyFrontline: "Kaum Frontline im eigenen Team – ein robuster Pick oder Build ist eine Option."
+        case let .enemyMostlyPhysical(share):
+            String(localized: "Enemy ~\(percent(share)) physical – armor is an option.")
+        case let .enemyMostlyMagic(share):
+            String(localized: "Enemy ~\(percent(share)) magic – magic resist is an option.")
+        case let .manyEnemyAssassins(count):
+            String(localized: "\(count) enemy assassins – defensive items are an option.")
+        case .noAllyFrontline:
+            String(localized: "Little frontline on your team – a sturdy pick or build is an option.")
         }
     }
 }
@@ -160,13 +164,14 @@ private struct DamageBar: View {
         }
         .frame(height: 6)
         .clipShape(Capsule())
-        .help(physicalShare.map { "\(percent($0)) physisch · \(percent(1 - $0)) magisch" } ?? "Keine Daten")
+        .help(physicalShare.map { String(localized: "\(percent($0)) physical · \(percent(1 - $0)) magic") }
+            ?? String(localized: "No data"))
     }
 }
 
 private struct BriefingCard<Content: View>: View {
-    let title: String
-    let source: String
+    let title: LocalizedStringKey
+    let source: LocalizedStringKey
     @ViewBuilder let content: Content
 
     var body: some View {

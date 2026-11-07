@@ -1,6 +1,11 @@
 import AppKit
 import SwiftUI
 
+/// Which side of a centred area an `OverlayPanel.Anchor.besideCentre` panel takes.
+public enum OverlaySide: Equatable, Sendable {
+    case left, right
+}
+
 /// Click-through overlay above the (fullscreen) game.
 ///
 /// The game window sits on `CGShieldingWindowLevel()`; `.screenSaver` is invisible below it, so the
@@ -40,13 +45,42 @@ public final class OverlayPanel: NSPanel {
         false
     }
 
-    /// Vertical placement; the panel is always centred horizontally.
+    /// Placement on the screen; all but `besideCentre` centre the panel horizontally.
     public enum Anchor: Equatable, Sendable {
         /// Distance from the top edge of the screen.
         case top(CGFloat)
+        /// Distance from the top edge, as a fraction of the screen height (clears League's top HUD
+        /// independently of resolution).
+        case topFraction(CGFloat)
         /// Distance from the bottom edge, as a fraction of the screen height (resolution-independent,
         /// e.g. 0.2 sits above League's ability bar).
         case bottomFraction(CGFloat)
+        /// Beside a centred area `clearHalfWidth × screen height` wide on each side of the middle (e.g.
+        /// League's selection cards), `gap` points away, vertically centred at `centreY` (fraction of
+        /// the height from the top). Never leaves the screen.
+        case besideCentre(OverlaySide, clearHalfWidth: CGFloat, gap: CGFloat, centreY: CGFloat)
+    }
+
+    /// Pure placement math (AppKit coordinates, origin bottom-left).
+    public nonisolated static func origin(for anchor: Anchor, size: CGSize, in frame: CGRect) -> CGPoint {
+        let centredX = frame.midX - size.width / 2
+        switch anchor {
+        case let .top(inset):
+            return CGPoint(x: centredX, y: frame.maxY - inset - size.height)
+        case let .topFraction(fraction):
+            return CGPoint(x: centredX, y: frame.maxY - frame.height * fraction - size.height)
+        case let .bottomFraction(fraction):
+            return CGPoint(x: centredX, y: frame.minY + frame.height * fraction)
+        case let .besideCentre(side, clearHalfWidth, gap, centreY):
+            let margin: CGFloat = 16, offset = frame.height * clearHalfWidth + gap
+            let x = switch side {
+            case .left: max(frame.minX + margin, frame.midX - offset - size.width)
+            case .right: min(frame.maxX - margin - size.width, frame.midX + offset)
+            }
+            let centre = frame.maxY - frame.height * centreY
+            let y = min(max(frame.minY + margin, centre - size.height / 2), frame.maxY - margin - size.height)
+            return CGPoint(x: x, y: y)
+        }
     }
 
     /// Sizes the panel to its SwiftUI content and shows it horizontally centred near the top of `screen`.
@@ -57,12 +91,8 @@ public final class OverlayPanel: NSPanel {
     public func present(on screen: NSScreen?, anchor: Anchor) {
         guard let screen = screen ?? NSScreen.screens.first else { return }
         let size = hostingView.fittingSize
-        let frame = screen.frame
-        let y = switch anchor {
-        case let .top(inset): frame.maxY - inset - size.height
-        case let .bottomFraction(fraction): frame.minY + frame.height * fraction
-        }
-        setFrame(NSRect(x: frame.midX - size.width / 2, y: y, width: size.width, height: size.height), display: true)
+        let origin = Self.origin(for: anchor, size: size, in: screen.frame)
+        setFrame(NSRect(origin: origin, size: size), display: true)
         if !isVisible {
             orderFrontRegardless()
         }

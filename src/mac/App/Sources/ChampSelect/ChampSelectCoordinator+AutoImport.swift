@@ -11,7 +11,7 @@ extension ChampSelectCoordinator {
         let mode = mode.rawValue
         logger.info("Auto import: items=\(plan.items) runes=\(plan.runes) mode=\(mode, privacy: .public)")
         runSteps(
-            "Automatisch: \(plan.label)",
+            String(localized: "Automatic: \(plan.label)"),
             build: plan.build,
             runes: plan.runes,
             spells: plan.runes,
@@ -26,7 +26,8 @@ extension ChampSelectCoordinator {
         let items: Bool
 
         var label: String {
-            [items ? "Item-Set" : nil, runes ? "Runen & Spells" : nil].compactMap(\.self).joined(separator: ", ")
+            [items ? String(localized: "Item set") : nil, runes ? String(localized: "Runes & spells") : nil]
+                .compactMap(\.self).joined(separator: ", ")
         }
     }
 

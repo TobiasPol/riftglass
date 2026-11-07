@@ -10,20 +10,23 @@ struct OnboardingView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Label("Willkommen bei Riftglass", systemImage: "diamond.fill")
+            Label("Welcome to Riftglass", systemImage: "diamond.fill")
                 .font(.title2.weight(.semibold))
-            Text("Riftglass lebt in der Menüleiste. Im Champ Select dockt es neben den League-Client und "
-                + "importiert Runen, Spells und Item-Sets. Im Spiel zeigt es beim Halten von Tab Ränge, "
-                + "CS/min und deinen Build-Fortschritt.")
-                .fixedSize(horizontal: false, vertical: true)
+            Text("""
+            Riftglass lives in the menu bar. In champ select it docks next to the League client and imports \
+            runes, spells and item sets. In game, holding Tab shows ranks, CS/min and your build progress.
+            """)
+            .fixedSize(horizontal: false, vertical: true)
             InputMonitoringStep()
-            GroupBox("Datenquellen") {
-                Text("Builds, Winrates und Ränge kommen von OP.GG (öffentliche Schnittstelle, ohne Konto). "
-                    + "Für Ränge werden die Riot-IDs der Spieler deines Spiels an OP.GG gesendet – "
-                    + "abschaltbar in den Einstellungen. Riot-Empfehlungen kommen direkt aus deinem Client.")
-                    .font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            GroupBox("Data sources") {
+                Text("""
+                Builds, win rates and ranks come from OP.GG (public interface, no account). For ranks, the Riot \
+                IDs of the players in your game are sent to OP.GG – you can turn this off in Settings. Riot's \
+                recommendations come straight from your client.
+                """)
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             Text(Disclaimer.full)
                 .font(.caption)
@@ -31,7 +34,7 @@ struct OnboardingView: View {
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
                 Spacer()
-                Button("Los geht’s") {
+                Button("Let’s go") {
                     settings.onboardingCompleted = true
                     dismissWindow(id: OnboardingView.windowID)
                 }
@@ -51,23 +54,25 @@ struct InputMonitoringStep: View {
     private let refresh = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        GroupBox("Tab-Overlay im Spiel") {
+        GroupBox("In-game hotkeys (Tab, ⌥A)") {
             VStack(alignment: .leading, spacing: 8) {
                 Label(
-                    granted ? "Eingabeüberwachung erlaubt" : "Eingabeüberwachung fehlt",
+                    granted ? "Input Monitoring allowed" : "Input Monitoring missing",
                     systemImage: granted ? "checkmark.circle.fill" : "exclamationmark.circle"
                 )
                 .foregroundStyle(granted ? .green : .orange)
-                Text("Riftglass liest nur, ob Tab gedrückt ist (Listen-only, keine Eingaben werden verändert). "
-                    + "Nach dem Erlauben muss Riftglass neu gestartet werden.")
-                    .font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text("""
+                Riftglass only reads whether Tab or ⌥A is pressed (listen-only, no input is changed). Riftglass \
+                has to be restarted after allowing it.
+                """)
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
                 HStack {
                     if !granted {
-                        Button("Zugriff anfragen") { granted = HotkeyMonitor.requestPermission() }
-                        Button("Systemeinstellungen öffnen") { Self.openPrivacySettings() }
+                        Button("Request access") { granted = HotkeyMonitor.requestPermission() }
+                        Button("Open System Settings") { Self.openPrivacySettings() }
                     }
-                    Button("Riftglass neu starten") { Self.relaunch() }
+                    Button("Restart Riftglass") { Self.relaunch() }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

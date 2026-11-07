@@ -22,7 +22,7 @@ NSWorkspace.runningApplications (KVO)
                                           InGameCoordinator
                                           ├─ LiveClient (2999, 1 Hz, nur Änderungen)
                                           ├─ RankLookup → OPGGRankProvider (Riot-IDs aus playerlist)
-                                          ├─ HotkeyMonitor (Tab, listen-only) → OverlayPanel (Shielding+1)
+                                          ├─ HotkeyMonitor (Tab, ⌥A, listen-only) → OverlayPanel (Shielding+1)
                                           ├─ SkillOrderAdvisor (abilities + Skill-Order) → Skillpunkt-Overlay
                                           └─ GameSummary → Menüleiste
 ```

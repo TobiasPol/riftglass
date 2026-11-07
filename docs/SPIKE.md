@@ -176,10 +176,19 @@ Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-
 ### Offen (→ `scripts/spike/16-queue.sh` im Client bzw. Spiel)
 - Skill-Overlay ab Stufe 6 (R) und mit mehreren offenen Punkten live; 16:9-Bildschirm.
 - `gameData.queue` für Classic und Brawl (ID, `gameMode`, `mapId`, `description`).
-- Live-Client-`gameMode` im Spiel für Mayhem (`KIWI`?) und Arena (`CHERRY`?) – in der Lobby bestätigt, im Spiel offen.
-- Mayhem-Augment-Overlay live: erscheint es zu Spielbeginn und beim Tod nach Stufe 7/11/15, verdeckt es die
-  Auswahlkarten nicht (oben, 28 pt), liefert `playerlist[].isDead` in Mayhem zuverlässig? `allgamedata`-Dump
-  auf Augment-Felder prüfen.
+- Live-Client-`gameMode` im Spiel für Arena (`CHERRY`?) – in der Lobby bestätigt, im Spiel offen.
+- ~~Mayhem live~~ → **bestätigt 2026-11-07** (27-min-Spiel, 3440×1440, Telemetrie + Screenshots): Live-Client
+  `gameMode "KIWI"`, `mapNumber 12`; `allPlayers[].isDead`/`respawnTimer` zuverlässig; `allgamedata` hat
+  **keine Augment-Felder**, Events nur Kills/Türme/Inhibs. Die Auswahlkarten (3 Karten + Reroll) liegen
+  mittig bei ±0,49 × Höhe um die Bildmitte, oben ab 18 % der Höhe, Mitte bei 42 % → ein Panel oben mittig
+  verdeckt die mittlere Karte; links der Karten ist frei. Darunter erscheint ein Tooltip der Karte (73–86 %
+  der Höhe), wo der Skill-Hinweis (20 % über unten) liegt. Dieselbe Karten-UI zeigt auch **„Stat Anvil“-
+  Shards** (z. B. tot auf Stufe 5) – nicht jede Kartenwahl ist eine Augment-Wahl. Stufe 7 wurde 14 s nach
+  einem Respawn erreicht; das 1-s-Restfenster der Brunnen-Kulanz darf die Wahl nicht als erledigt zählen.
+  2. Runde (Varus): Ladebildschirm liefert schon Snapshots mit `gameTime 0` (98 s) – zeitgesteuerte Overlays
+  erst ab `gameTime > 0`. Zu Spielbeginn blendet Mayhem oben mittig den Modus-Hinweis ein („Command Line“).
+  **Wiederbelebung** durch einen Verbündeten („You have been revived!“, `respawnTimer` noch 33 s, nach 3 s
+  `isDead false`) lässt die Augment-Karten offen – wie ein Respawn behandelt, passt.
 - Skill-Overlay-Position (20 % Höhe über unterem Rand) auf 16:9 und 21:9.
 
 ## Spike 4 – Matchup-Briefing (2026-11-03, OP.GG MCP live, ohne Client)

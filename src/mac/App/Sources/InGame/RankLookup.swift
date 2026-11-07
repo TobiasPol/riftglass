@@ -16,7 +16,11 @@ final class RankLookup {
     private var requested: Set<String> = []
     /// Failed lookups wait this long before the next attempt (be gentle with OP.GG).
     private let retryDelay: TimeInterval = 30
+    /// Players that still fail after this many attempts are given up for the game (live 2026-11-07:
+    /// two players failed every 30 s for 27 minutes).
+    private let maxAttempts = 3
     private var failedAt: [String: Date] = [:]
+    private var attempts: [String: Int] = [:]
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "Ranks")
 
     init(provider: OPGGRankProvider = OPGGRankProvider()) {
@@ -26,6 +30,7 @@ final class RankLookup {
     func reset() {
         requested = []
         failedAt = [:]
+        attempts = [:]
     }
 
     /// Calls `update` for every resolved player, keyed by `LivePlayer.displayID`.
@@ -37,14 +42,17 @@ final class RankLookup {
     ) {
         let requests = players.compactMap { player -> Request? in
             let key = player.displayID
-            guard player.isBot != true, !requested.contains(key),
+            guard player.isBot != true, !requested.contains(key), attempts[key, default: 0] < maxAttempts,
                   failedAt[key].map({ Date().timeIntervalSince($0) > retryDelay }) ?? true,
                   let parts = player.riotIDParts
             else { return nil }
             return Request(key: key, gameName: parts.gameName, tagLine: parts.tagLine)
         }
         guard !requests.isEmpty else { return }
-        requests.forEach { requested.insert($0.key) }
+        for request in requests {
+            requested.insert(request.key)
+            attempts[request.key, default: 0] += 1
+        }
         logger.info("Looking up \(requests.count) ranks in \(region, privacy: .public)")
         Task {
             await withTaskGroup(of: (String, PlayerRank?).self) { group in
@@ -53,12 +61,7 @@ final class RankLookup {
                         deliver(result, update: update)
                     }
                     group.addTask { [provider] in
-                        let rank = try? await provider.soloRank(
-                            gameName: request.gameName,
-                            tagLine: request.tagLine,
-                            region: region
-                        )
-                        return (request.key, rank)
+                        await (request.key, Self.fetch(request, region: region, provider: provider))
                     }
                 }
                 for await result in group {
@@ -68,10 +71,26 @@ final class RankLookup {
         }
     }
 
+    /// Nil on failure; logs the error type only – the message may echo the player's Riot ID.
+    private nonisolated static func fetch(
+        _ request: Request,
+        region: String,
+        provider: OPGGRankProvider
+    ) async -> PlayerRank? {
+        do {
+            return try await provider.soloRank(gameName: request.gameName, tagLine: request.tagLine, region: region)
+        } catch {
+            let kind = String(describing: type(of: error))
+            Logger(subsystem: "de.polleydigital.riftglass", category: "Ranks")
+                .notice("Rank lookup error: \(kind, privacy: .public)")
+            return nil
+        }
+    }
+
     private func deliver(_ result: (String, PlayerRank?), update: @MainActor (String, PlayerRank) -> Void) {
         guard let rank = result.1 else {
-            let delay = Int(retryDelay)
-            logger.notice("Rank lookup failed – retrying in \(delay) s")
+            let delay = Int(retryDelay), attempt = attempts[result.0, default: 0], limit = maxAttempts
+            logger.notice("Rank lookup failed (attempt \(attempt)/\(limit)) – retry in \(delay) s")
             requested.remove(result.0)
             failedAt[result.0] = Date()
             return

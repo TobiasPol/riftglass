@@ -96,7 +96,7 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
         case .brawl: "Brawl"
         case .swarm: "Swarm"
         case .leagueClassic: "League Classic"
-        case .unknown: "Unbekannter Modus"
+        case .unknown: "Unknown mode"
         }
     }
 

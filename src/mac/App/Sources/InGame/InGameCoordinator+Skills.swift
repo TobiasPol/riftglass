@@ -40,7 +40,8 @@ extension InGameCoordinator {
     }
 
     func updateSkillOverlay(_ snapshot: LiveGameSnapshot) {
-        guard settings.skillOverlayEnabled, let active = snapshot.activePlayer, let me = snapshot.me,
+        guard settings.skillOverlayEnabled, augmentPanel?.isVisible != true, let active = snapshot.activePlayer,
+              let me = snapshot.me,
               let order = resolveSkillOrder(for: me)
         else { return hideSkills() }
         let advice = SkillOrderAdvisor.advice(
@@ -63,7 +64,7 @@ extension InGameCoordinator {
         skillPanel?.present(on: gameScreen(), anchor: .bottomFraction(0.2))
     }
 
-    private func hideSkills() {
+    func hideSkills() {
         skillAdvice = nil
         skillPanel?.dismiss()
     }

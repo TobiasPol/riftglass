@@ -8,12 +8,12 @@ struct SkillOverlayView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Text(advice.unspentPoints > 1 ? "\(advice.unspentPoints) Skillpunkte" : "Skillpunkt")
+            Text(advice.unspentPoints > 1 ? "\(advice.unspentPoints) skill points" : "Skill point")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(Palette.secondaryText)
             KeyCap(slot: advice.next, prominent: true)
             if !advice.then.isEmpty {
-                Text("danach").font(.system(size: 10)).foregroundStyle(Palette.tertiaryText)
+                Text("then").font(.system(size: 10)).foregroundStyle(Palette.tertiaryText)
                 ForEach(Array(advice.then.enumerated()), id: \.offset) { _, slot in
                     KeyCap(slot: slot, prominent: false)
                 }
