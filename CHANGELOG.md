@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0
+- Riftglass is now in **English and German** and follows your macOS language (per app: System Settings →
+  General → Language & Region → Applications). Champion, item, rune and augment names follow it too.
+- ARAM: Mayhem: the augment list now sits **left of the selection cards** as one narrow column instead of
+  covering the middle card at the top. **⌥A** hides it until the next choice or shows it any time; there is
+  also a switch in the menu bar.
+- ARAM: Mayhem: a choice is no longer lost when you reach a new level just before leaving the fountain –
+  each choice must have been open for 5 seconds to count as made.
+- ARAM: Mayhem: the skill-point hint steps aside while the augment list is shown (it covered the card
+  description), and the rank banner sits right of the cards.
+- Rank banner waits for the game to start (a long loading screen used to let it expire unseen).
+- Fewer requests: ranks that can't be found are given up after three tries instead of every 30 seconds.
+
 ## 0.4.0
 - ARAM: Mayhem in game: the champion's strong augments per rarity (Prismatic, Gold, Silver) appear at the
   top of the screen whenever an augment choice is likely open – at the start and after levels 7, 11 and 15,
