@@ -7,8 +7,16 @@ import SwiftUI
 @MainActor
 @Observable
 final class Updater {
+    // Debug builds carry the release's version with build 1, so Sparkle would offer to replace them
+    // with the published release mid-test; they only check when asked to.
+    #if DEBUG
+        private static let startsAutomatically = false
+    #else
+        private static let startsAutomatically = true
+    #endif
+
     @ObservationIgnored private let controller = SPUStandardUpdaterController(
-        startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil
+        startingUpdater: startsAutomatically, updaterDelegate: nil, userDriverDelegate: nil
     )
 
     var automaticallyChecksForUpdates: Bool {
@@ -25,6 +33,9 @@ final class Updater {
 
     func checkForUpdates() {
         NSApplication.shared.activate()
+        if !Self.startsAutomatically {
+            try? controller.updater.start()
+        }
         controller.checkForUpdates(nil)
     }
 }
@@ -35,9 +46,9 @@ struct UpdateSettingsRow: View {
     var body: some View {
         @Bindable var updater = updater
         HStack {
-            Toggle("Automatisch nach Updates suchen", isOn: $updater.automaticallyChecksForUpdates)
+            Toggle("Check for updates automatically", isOn: $updater.automaticallyChecksForUpdates)
             Spacer()
-            Button("Jetzt prüfen") { updater.checkForUpdates() }
+            Button("Check now") { updater.checkForUpdates() }
         }
     }
 }

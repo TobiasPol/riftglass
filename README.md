@@ -29,6 +29,9 @@ reading. It lives in your menu bar and uses close to 0 % CPU while League is clo
 - At game start, a short banner with every player's rank.
 - A **skill-point hint** above the ability bar whenever you can level an ability, following OP.GG's
   most common skill order.
+- **ARAM: Mayhem**: whenever an augment choice is open (game start, then levels 7, 11 and 15 while dead
+  or in the fountain), your champion's strong augments per rarity appear left of the selection cards.
+  <kbd>⌥A</kbd> hides the list until the next choice or shows it any time.
 - Optional, off by default: an item-gold estimate per lane, calculated from visible items only.
 
 **After the game**, the menu bar shows a short summary of your last game.
@@ -38,8 +41,12 @@ reading. It lives in your menu bar and uses close to 0 % CPU while League is clo
 1. Download the latest `Riftglass-x.y.z.dmg` from [Releases](https://github.com/TobiasPol/riftglass/releases).
    It is signed with a Developer ID and notarized by Apple.
 2. Drag Riftglass to Applications and start it. A ◆ appears in the menu bar.
-3. For the Tab overlay, grant **Input Monitoring** when asked, then restart Riftglass. Riftglass only
-   *listens* for the Tab key and never changes or sends input.
+3. For the Tab overlay and <kbd>⌥A</kbd>, grant **Input Monitoring** when asked, then restart Riftglass.
+   Riftglass only *listens* for these keys and never changes or sends input.
+
+Riftglass is in **English and German** and follows your macOS language; champion, item and augment
+names use the same language. To pick one for Riftglass only: System Settings → General → Language &
+Region → Applications.
 
 Updates arrive automatically through Sparkle (signed with EdDSA).
 

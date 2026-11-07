@@ -76,7 +76,7 @@ struct BuildLoader {
         guard page.perkIds.count == 9 else { return nil }
         return BuildOption(
             id: "riot-\(champion.id)-\(role.rawValue)-\(index)",
-            title: "Riot · \(page.keystone?.name ?? "Empfehlung")",
+            title: "Riot · \(page.keystone?.name ?? String(localized: "Recommendation"))",
             role: role,
             championKey: champion.key,
             queue: queue,

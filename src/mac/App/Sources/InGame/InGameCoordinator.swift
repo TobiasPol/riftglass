@@ -40,7 +40,9 @@ final class InGameCoordinator {
     /// The tracker's current prompt, kept while the panel is hidden (app switch, Tab held).
     @ObservationIgnored var augmentPrompt: AugmentPickPrompt?
     /// What the augment panel currently shows (nil = hidden).
-    @ObservationIgnored var shownAugmentPrompt: AugmentPickPrompt?
+    @ObservationIgnored var shownAugmentContent: AugmentPanelContent?
+    /// ⌥A state for the augment overlay, reset every game.
+    @ObservationIgnored var augmentOverride = AugmentOverride.auto
     @ObservationIgnored var augmentPanel: OverlayPanel?
     @ObservationIgnored var augmentTask: Task<Void, Never>?
     /// Hides the skill pill the moment another app comes to the front (snapshots may pause).
@@ -105,14 +107,21 @@ final class InGameCoordinator {
     private func handle(_ snapshot: LiveGameSnapshot) {
         if self.snapshot == nil {
             let region = settings.region ?? "nil"
-            logger.info("First snapshot: \(snapshot.players.count) players, me=\(snapshot.me != nil), region=\(region)")
+            logger.notice("""
+            First snapshot: \(snapshot.players.count) players, me=\(snapshot.me != nil), \
+            region=\(region, privacy: .public), mode=\(snapshot.stats.gameMode ?? "nil", privacy: .public), \
+            map=\(snapshot.stats.mapNumber ?? -1)
+            """)
             queue = GameQueue.resolvedInGame(
                 remembered: rememberedQueue,
                 liveGameMode: snapshot.stats.gameMode,
                 mapNumber: snapshot.stats.mapNumber
             )
+            let resolved = String(describing: queue)
+            logger.notice("Queue resolved: \(resolved, privacy: .public)")
         }
         self.snapshot = snapshot
+        logTick(snapshot)
         updateSkillOverlay(snapshot)
         updateAugmentOverlay(snapshot)
         if settings.ranksEnabled, let region = settings.region {
@@ -120,7 +129,8 @@ final class InGameCoordinator {
                 self?.ranks[key] = rank
             }
         }
-        if !bannerShown, settings.ranksEnabled, snapshot.players.count > 1 {
+        // Game time stays 0 on the loading screen (98 s live) – the banner would expire unseen.
+        if !bannerShown, settings.ranksEnabled, snapshot.players.count > 1, snapshot.stats.gameTime > 0 {
             bannerShown = true
             showBanner()
         }
@@ -129,16 +139,36 @@ final class InGameCoordinator {
         }
     }
 
+    /// Debug trace, one line per snapshot (`info` is not persisted; `log stream --level info`).
+    private func logTick(_ snapshot: LiveGameSnapshot) {
+        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier == LeagueBundleID.game
+        let tab = isTabHeld, aug = augmentPanel?.isVisible ?? false, skill = skillPanel?.isVisible ?? false
+        logger.info("""
+        tick t=\(Int(snapshot.stats.gameTime)) mode=\(snapshot.stats.gameMode ?? "nil", privacy: .public) \
+        lvl=\(snapshot.activePlayer?.level ?? -1) dead=\(snapshot.me?.isDead ?? false) front=\(front) \
+        tab=\(tab) augPanel=\(aug) skillPanel=\(skill)
+        """)
+    }
+
     // MARK: - Overlays
 
+    /// Tab (held overlay) and ⌥A (augment toggle) share one listen-only tap.
     private func startHotkey() {
-        guard settings.tabOverlayEnabled, HotkeyMonitor.hasPermission else { return }
+        guard HotkeyMonitor.hasPermission else {
+            logger.notice("Hotkeys off – Input Monitoring not granted")
+            return
+        }
         let monitor = HotkeyMonitor()
         monitor.isActive = { NSWorkspace.shared.frontmostApplication?.bundleIdentifier == LeagueBundleID.game }
-        monitor.onTabChange = { [weak self] down in self?.setTabHeld(down) }
+        monitor.onTabChange = { [weak self] down in
+            guard let self, settings.tabOverlayEnabled || !down else { return }
+            setTabHeld(down)
+        }
+        monitor.onToggle = { [weak self] in self?.toggleAugmentOverlay() }
         if monitor.start() {
             hotkey = monitor
         }
+        logger.notice("Hotkeys started: \(monitor.isRunning)")
     }
 
     private func setTabHeld(_ held: Bool) {
@@ -154,27 +184,22 @@ final class InGameCoordinator {
         tabPanel?.present(on: gameScreen())
     }
 
+    /// Mayhem opens the augment cards at match start and announces the mode at the top centre, so the
+    /// banner goes right of the cards there (the augment list is on the left).
+    private var bannerAnchor: OverlayPanel.Anchor {
+        queue?.mode == .aramMayhem ? Self.cardSide(.right) : .top(120)
+    }
+
     /// Shows the ranks of all players for a few seconds at the start of the game.
     private func showBanner() {
         if bannerPanel == nil {
             bannerPanel = OverlayPanel(rootView: RanksBannerView(coordinator: self))
         }
-        bannerPanel?.present(on: gameScreen(), topInset: bannerTopInset)
+        bannerPanel?.present(on: gameScreen(), anchor: bannerAnchor)
         Task { [weak self] in
             try? await Task.sleep(for: .seconds(20))
             self?.bannerPanel?.dismiss()
         }
-    }
-
-    /// The banner sits below the augment list while that is visible (both appear at match start).
-    private var bannerTopInset: CGFloat {
-        guard let augmentPanel, augmentPanel.isVisible else { return 120 }
-        return Self.augmentTopInset + augmentPanel.frame.height + 12
-    }
-
-    func repositionBanner() {
-        guard bannerPanel?.isVisible == true else { return }
-        bannerPanel?.present(on: gameScreen(), topInset: bannerTopInset)
     }
 
     /// Screen of the game window (largest window of the game process), else the primary screen.

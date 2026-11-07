@@ -2,16 +2,21 @@ import AppKit
 import CoreGraphics
 import os
 
-/// Watches the Tab key with a **listen-only** event tap (never blocks or alters input).
+/// Watches the Tab key and the ⌥A overlay toggle with a **listen-only** event tap (never blocks or
+/// alters input – the game still receives both keys).
 ///
 /// Runs on the main run loop – a listen-only tap cannot delay input, so no extra thread is needed.
 /// Requires Input Monitoring; after granting it macOS needs an app restart.
 @MainActor
 public final class HotkeyMonitor {
     public static let tabKeyCode: Int64 = 48
+    /// `kVK_ANSI_A`; with Option (and no ⌘/⌃) it toggles the augment overlay.
+    public static let toggleKeyCode: Int64 = 0
 
     /// Called with `true` on key down and `false` on key up (repeats are ignored).
     public var onTabChange: ((Bool) -> Void)?
+    /// Called on ⌥A key down (repeats are ignored).
+    public var onToggle: (() -> Void)?
     /// Events are only reported while this returns true (e.g. the game is frontmost).
     public var isActive: () -> Bool = { true }
 
@@ -75,18 +80,27 @@ public final class HotkeyMonitor {
         setDown(false)
     }
 
-    fileprivate func handle(_ type: CGEventType, keyCode: Int64, isRepeat: Bool) {
+    fileprivate func handle(_ type: CGEventType, keyCode: Int64, isRepeat: Bool, flags: CGEventFlags) {
         switch type {
         case .tapDisabledByTimeout, .tapDisabledByUserInput:
             if let tap {
                 CGEvent.tapEnable(tap: tap, enable: true)
             }
         case .keyDown, .keyUp:
-            guard keyCode == Self.tabKeyCode, !isRepeat else { return }
-            setDown(type == .keyDown && isActive())
+            guard !isRepeat else { return }
+            if keyCode == Self.tabKeyCode {
+                setDown(type == .keyDown && isActive())
+            } else if keyCode == Self.toggleKeyCode, type == .keyDown, Self.isToggleChord(flags), isActive() {
+                onToggle?()
+            }
         default:
             break
         }
+    }
+
+    /// Option held, Command and Control not (⌥⇧A also counts).
+    nonisolated static func isToggleChord(_ flags: CGEventFlags) -> Bool {
+        flags.contains(.maskAlternate) && !flags.contains(.maskCommand) && !flags.contains(.maskControl)
     }
 
     private func setDown(_ down: Bool) {
@@ -107,8 +121,9 @@ private func hotkeyCallback(
         // Read plain values here; the CGEvent itself must not cross into the actor.
         let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
         let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+        let flags = event.flags
         // The tap's run loop source is on the main run loop.
-        MainActor.assumeIsolated { monitor.handle(type, keyCode: keyCode, isRepeat: isRepeat) }
+        MainActor.assumeIsolated { monitor.handle(type, keyCode: keyCode, isRepeat: isRepeat, flags: flags) }
     }
     return Unmanaged.passUnretained(event)
 }

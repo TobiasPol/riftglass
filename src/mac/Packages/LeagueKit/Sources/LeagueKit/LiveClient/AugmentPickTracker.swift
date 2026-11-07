@@ -20,8 +20,9 @@ public struct AugmentPickPrompt: Equatable, Sendable {
 /// Neither the LCU nor the Live Client report the offered or chosen augments (docs/SPIKE.md), so the
 /// tracker approximates the selection screen: a choice is owed once the champion reaches one of
 /// `pickLevels`, and the screen can only open while the player may shop – dead, in the fountain at
-/// match start, or shortly after respawning. When such a shop window closes while the list was shown,
-/// the choice counts as made. Holding Tab shows the list regardless.
+/// match start, or shortly after respawning. When such a shop window closes after the list was shown
+/// for at least `minimumWindow` seconds, the choice counts as made (a one-second tail of the respawn
+/// grace is no chance to pick – seen live). Holding Tab shows the list regardless.
 public struct AugmentPickTracker: Equatable, Sendable {
     /// Riot: first augment at match start (ARAM starts at level 3), more at 7, 11 and 15.
     public static let pickLevels = [3, 7, 11, 15]
@@ -29,12 +30,16 @@ public struct AugmentPickTracker: Equatable, Sendable {
     public static let startWindow: Double = 75
     /// Seconds after a respawn the player is still in the fountain.
     public static let respawnGrace: Double = 15
+    /// Shorter shop windows leave the choice pending.
+    public static let minimumWindow: Double = 5
 
     private var covered = 0
     private var wasDead = false
     private var respawnedAt: Double?
     /// Choices that were available while the list was last shown (0 = not shown in this window).
     private var promptedThrough = 0
+    /// Game time the current window's prompt first appeared.
+    private var promptedSince: Double?
     private var started = false
 
     public init() {}
@@ -58,11 +63,15 @@ public struct AugmentPickTracker: Equatable, Sendable {
         if promptedThrough > 0, !canShop {
             // The window closed while the list was shown – only the choices shown in it count as made;
             // a level reached on this very snapshot stays pending.
-            covered = max(covered, promptedThrough)
+            if gameTime - (promptedSince ?? gameTime) >= Self.minimumWindow {
+                covered = max(covered, promptedThrough)
+            }
             promptedThrough = 0
+            promptedSince = nil
         }
         guard canShop, available > covered else { return nil }
         promptedThrough = available
+        promptedSince = promptedSince ?? gameTime
         return AugmentPickPrompt(pick: covered + 1, available: available, total: Self.pickLevels.count)
     }
 }

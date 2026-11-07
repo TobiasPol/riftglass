@@ -34,7 +34,7 @@ struct BuildOptionCard: View {
             }
             ForEach(build.itemBlocks, id: \.title) { block in
                 HStack(spacing: 4) {
-                    Text(block.title)
+                    Text(BuildText.blockTitle(block.title))
                         .font(.system(size: 10))
                         .foregroundStyle(Palette.secondaryText)
                         .frame(width: 52, alignment: .leading)
@@ -54,10 +54,10 @@ struct BuildOptionCard: View {
 
     private var buttons: some View {
         HStack(spacing: 6) {
-            Button("Alles übernehmen") { coordinator.importAll(build) }
+            Button("Import all") { coordinator.importAll(build) }
                 .buttonStyle(.borderedProminent)
                 .tint(Palette.accent)
-            Button("Runen") { coordinator.importRunes(build) }
+            Button("Runes") { coordinator.importRunes(build) }
                 .disabled(!coordinator.mode.usesRunePages)
             Button("Spells") { coordinator.setSpells(build) }
                 .disabled(build.summonerSpells.count < 2)
@@ -71,8 +71,9 @@ struct BuildOptionCard: View {
     static func statsLine(_ stats: BuildOption.Stats) -> String {
         let winRate = stats.winRate.formatted(.percent.precision(.fractionLength(1)))
         let games = stats.games.formatted(.number.notation(.compactName))
-        let pick = stats.pickRate.map { " · Pick " + $0.formatted(.percent.precision(.fractionLength(0))) } ?? ""
-        return "\(winRate) Winrate · \(games) Spiele" + pick
+        let line = String(localized: "\(winRate) win rate · \(games) games")
+        guard let pickRate = stats.pickRate else { return line }
+        return line + String(localized: " · Pick \(pickRate.formatted(.percent.precision(.fractionLength(0))))")
     }
 
     private var isRunning: Bool {

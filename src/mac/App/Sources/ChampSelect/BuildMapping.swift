@@ -22,9 +22,16 @@ struct BuildMapping {
         itemSet = ItemSetDraft(
             championId: championId,
             title: "Riftglass: \(championName) – \(build.title)",
-            blocks: build.itemBlocks.map { .init(title: $0.title, itemIds: $0.itemIds) },
+            blocks: build.itemBlocks.map { .init(title: BuildText.blockTitle($0.title), itemIds: $0.itemIds) },
             mapId: itemSetMapId
         )
+    }
+}
+
+/// Build texts from StatsKit are English identifiers; shown and written to the client localized.
+enum BuildText {
+    static func blockTitle(_ title: String) -> String {
+        String(localized: String.LocalizationValue(title))
     }
 }
 
@@ -38,15 +45,17 @@ enum ActionErrorText {
         case let partial as PartialImportError:
             partial.failures.joined(separator: "\n")
         case RuneImportError.noFreeSlot:
-            "Kein freier Runenseiten-Platz. Lösche eine Seite im Client – Riftglass ersetzt nur eigene Seiten."
+            String(localized: """
+            No free rune page slot. Delete a page in the client – Riftglass only replaces its own pages.
+            """)
         case RuneImportError.invalidPage:
-            "Diese Runenseite ist ungültig (Platzhalter-Daten veraltet?)."
+            String(localized: "This rune page is invalid (outdated placeholder data?).")
         case let MissingDataError.unsupportedInMode(what, mode):
-            "\(what) gibt es in \(mode.displayName) nicht."
+            String(localized: "\(what) don’t exist in \(mode.displayName).")
         case let LCUError.http(status, _):
-            "Der Client hat die Aktion abgelehnt (HTTP \(status))."
+            String(localized: "The client rejected the action (HTTP \(status)).")
         default:
-            "Aktion fehlgeschlagen: \(error.localizedDescription)"
+            String(localized: "Action failed: \(error.localizedDescription)")
         }
     }
 }

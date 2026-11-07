@@ -24,45 +24,54 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Allgemein") {
-                Toggle("Bei der Anmeldung starten", isOn: $launchAtLogin)
+            Section("General") {
+                Toggle("Launch at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in setLaunchAtLogin(enabled) }
                 UpdateSettingsRow()
             }
             Section("Champ Select") {
-                Toggle("Item-Set nach dem Lock-in automatisch übernehmen", isOn: $settings.autoImportItemSet)
-                Toggle("Runen & Spells automatisch übernehmen", isOn: $settings.autoImportRunes)
-                Text("Spielmodus wird erkannt (Ranked, ARAM, ARAM: Mayhem, Arena, URF …). Übernommen wird die "
-                    + "erste Option für den passenden Modus; Riftglass ändert nur eigene Runenseiten und Item-Sets.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Toggle("Matchup-Briefing (Lane-Gegner, Teams, Counter-Picks)", isOn: $settings.briefingEnabled)
-                Text("Nutzt nur Champions, die du im Champ Select siehst. Gegner-Lanes werden aus OP.GG-Statistiken "
-                    + "geschätzt, Counter-Picks erscheinen nur während deines Picks.")
-                    .font(.caption).foregroundStyle(.secondary)
+                Toggle("Import item set automatically after lock-in", isOn: $settings.autoImportItemSet)
+                Toggle("Import runes & spells automatically", isOn: $settings.autoImportRunes)
+                Text("""
+                The game mode is detected (Ranked, ARAM, ARAM: Mayhem, Arena, URF …). The first option for that \
+                mode is imported; Riftglass only changes its own rune pages and item sets.
+                """)
+                .font(.caption).foregroundStyle(.secondary)
+                Toggle("Matchup briefing (lane opponent, teams, counter picks)", isOn: $settings.briefingEnabled)
+                Text("""
+                Only uses champions you can see in champ select. Enemy lanes are estimated from OP.GG \
+                statistics; counter picks only appear during your pick.
+                """)
+                .font(.caption).foregroundStyle(.secondary)
             }
-            Section("Im Spiel") {
-                Toggle("Skillpunkt-Hinweis (welche Fähigkeit als Nächstes)", isOn: $settings.skillOverlayEnabled)
-                Toggle("ARAM: Mayhem – Augment-Liste bei jeder Augment-Wahl", isOn: $settings.augmentOverlayEnabled)
-                Text("Erscheint zu Spielbeginn und nach Stufe 7, 11 und 15, sobald du tot oder im Brunnen bist: "
-                    + "starke Augments deines Champions pro Seltenheit (OP.GG). Die angebotenen Karten liest "
-                    + "Riftglass nicht aus. Mit gehaltenem Tab jederzeit sichtbar.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Toggle("Tab-Overlay (Ränge, CS/min, Build-Fortschritt)", isOn: $settings.tabOverlayEnabled)
+            Section("In game") {
+                Toggle("Skill point hint (which ability to level next)", isOn: $settings.skillOverlayEnabled)
+                Toggle("ARAM: Mayhem – augment list at every augment choice", isOn: $settings.augmentOverlayEnabled)
+                Text("""
+                Appears next to the selection cards at game start and after levels 7, 11 and 15, once you are \
+                dead or in the fountain: your champion's strong augments per rarity (OP.GG). Riftglass does not \
+                read the offered cards. ⌥A hides the list until the next choice and shows it again (needs Input \
+                Monitoring); holding Tab shows it any time.
+                """)
+                .font(.caption).foregroundStyle(.secondary)
+                Toggle("Tab overlay (ranks, CS/min, build progress)", isOn: $settings.tabOverlayEnabled)
                 InputMonitoringStep()
-                Toggle("Ränge über OP.GG laden", isOn: $settings.ranksEnabled)
-                Text("Sendet die Riot-IDs der Spieler deines aktuellen Spiels an OP.GG.")
+                Toggle("Load ranks from OP.GG", isOn: $settings.ranksEnabled)
+                Text("Sends the Riot IDs of the players in your current game to OP.GG.")
                     .font(.caption).foregroundStyle(.secondary)
-                Toggle("Item-Gold-Schätzung pro Lane (experimentell)", isOn: $settings.goldEstimateEnabled)
-                Text("Nur aus sichtbaren Items. Ob Riot das erlaubt, ist ungeklärt – daher standardmäßig aus.")
+                Toggle("Item gold estimate per lane (experimental)", isOn: $settings.goldEstimateEnabled)
+                Text("Only from visible items. Whether Riot allows this is unclear – so it is off by default.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Section("Über Riftglass") {
+            Section("About Riftglass") {
                 LabeledContent("Version", value: version)
-                Text("Liest nur lokale Schnittstellen des League-Clients (LCU, Live Client Data API). Kein "
-                    + "Speicherlesen, keine Injection, keine Eingabe-Automatisierung, keine Telemetrie. "
-                    + "Builds und Ränge: OP.GG. Riftglass ändert nur eigene Runenseiten und Item-Sets.")
-                    .font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text("""
+                Only reads local interfaces of the League client (LCU, Live Client Data API). No memory reading, \
+                no injection, no input automation, no telemetry. Builds and ranks: OP.GG. Riftglass only changes \
+                its own rune pages and item sets.
+                """)
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
                 Text(Disclaimer.full)
                     .font(.caption)
                     .foregroundStyle(.secondary)

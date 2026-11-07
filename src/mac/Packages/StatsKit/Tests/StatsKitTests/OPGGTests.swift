@@ -79,7 +79,7 @@ struct OPGGBuildProviderTests {
         #expect(build.runes.primaryStyleId == 8100 && build.runes.subStyleId == 8200)
         #expect(build.runes.perkIds == [8112, 8139, 8140, 8106, 8210, 8226, 5005, 5008, 5001])
         #expect(build.summonerSpells == [4, 14])
-        #expect(build.itemBlocks.map(\.title) == ["Start", "Kern", "Stiefel", "Danach"])
+        #expect(build.itemBlocks.map(\.title) == ["Starter", "Core", "Boots", "Then"])
         #expect(build.itemBlocks[1].itemIds == [3118, 4645, 3157])
         #expect(build.skillOrder.prefix(3) == ["W", "Q", "E"])
         #expect(abs((build.stats?.winRate ?? 0) - 9325.0 / 17690.0) < 0.0001)

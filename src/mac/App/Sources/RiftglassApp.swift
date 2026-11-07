@@ -14,7 +14,7 @@ struct RiftglassApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        Window("Willkommen bei Riftglass", id: OnboardingView.windowID) {
+        Window("Welcome to Riftglass", id: OnboardingView.windowID) {
             OnboardingView(settings: model.settings)
         }
         .windowResizability(.contentSize)

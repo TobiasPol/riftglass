@@ -92,10 +92,10 @@ public struct OPGGBuildProvider: BuildProvider {
     private static func itemBlocks(_ data: NotationValue) -> [BuildOption.ItemBlock] {
         let alternatives = data["fourth_items"]?.list.compactMap { $0["ids"]?.ints.first } ?? []
         let blocks: [(String, [Int])] = [
-            ("Start", data["starter_items"]?["ids"]?.ints ?? []),
-            ("Kern", data["core_items"]?["ids"]?.ints ?? []),
-            ("Stiefel", data["boots"]?["ids"]?.ints ?? []),
-            ("Danach", Array(alternatives.prefix(3)))
+            ("Starter", data["starter_items"]?["ids"]?.ints ?? []),
+            ("Core", data["core_items"]?["ids"]?.ints ?? []),
+            ("Boots", data["boots"]?["ids"]?.ints ?? []),
+            ("Then", Array(alternatives.prefix(3)))
         ]
         return blocks.filter { !$0.1.isEmpty }.map { BuildOption.ItemBlock(title: $0.0, itemIds: $0.1) }
     }

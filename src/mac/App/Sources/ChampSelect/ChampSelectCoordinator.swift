@@ -37,7 +37,7 @@ final class ChampSelectCoordinator {
     }
 
     @ObservationIgnored let icons = IconCache()
-    @ObservationIgnored let dataDragon = DataDragon()
+    @ObservationIgnored let dataDragon = DataDragon(locale: GameDataLocale.dataDragon)
     @ObservationIgnored private let loader: BuildLoader
     /// Shared with the in-game overlay (one in-memory augment catalog).
     @ObservationIgnored let augmentLoader = AugmentBoardLoader()

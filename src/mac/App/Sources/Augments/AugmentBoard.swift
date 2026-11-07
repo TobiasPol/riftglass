@@ -61,7 +61,7 @@ struct AugmentBoard: Equatable, Sendable {
 /// the catalog is held in memory, so the second load for the same champion costs nothing.
 struct AugmentBoardLoader: Sendable {
     let provider = OPGGAugmentProvider()
-    let catalog = AugmentCatalog()
+    let catalog = AugmentCatalog(locale: GameDataLocale.communityDragon)
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "Augments")
 
     func board(championId: Int) async throws -> AugmentBoard {

@@ -26,15 +26,22 @@ public struct OPGGMatchupProvider: Sendable {
 
     private let client: OPGGClient
     private let cache: ResponseCache
+    /// OP.GG `lang`, e.g. `en_US` or `de_DE`.
+    private let language: String
 
-    public init(client: OPGGClient = OPGGClient(), cache: ResponseCache = ResponseCache(name: "opgg-matchups")) {
+    public init(
+        client: OPGGClient = OPGGClient(),
+        cache: ResponseCache = ResponseCache(name: "opgg-matchups"),
+        language: String = "en_US"
+    ) {
         self.client = client
         self.cache = cache
+        self.language = language
     }
 
     public func matchup(my champion: ChampionRef, against opponent: ChampionRef, role: Role) async throws
         -> MatchupBrief {
-        let cacheKey = "\(champion.key)-\(opponent.key)-\(role.opggPosition)"
+        let cacheKey = "\(champion.key)-\(opponent.key)-\(role.opggPosition)-\(language)"
         let text: String
         if let cached = await cache.value(for: cacheKey) {
             text = cached
@@ -43,7 +50,7 @@ public struct OPGGMatchupProvider: Sendable {
                 "position": .string(role.opggPosition),
                 "my_champion": .string(champion.key.uppercased()),
                 "opponent_champion": .string(opponent.key.uppercased()),
-                "lang": .string("de_DE")
+                "lang": .string(language)
             ])
             await cache.store(text, for: cacheKey)
         }

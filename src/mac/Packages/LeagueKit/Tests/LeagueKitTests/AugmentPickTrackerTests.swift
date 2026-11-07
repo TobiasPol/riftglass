@@ -56,4 +56,16 @@ struct AugmentPickTrackerTests {
         #expect(tracker.update(level: 11, isDead: false, gameTime: 435) == nil) // window closes, level 11 arrives
         #expect(tracker.update(level: 11, isDead: true, gameTime: 600)?.pick == 3)
     }
+
+    /// Live game 2026-11-07: level 7 reached 14 s after a respawn, the grace ended one second later.
+    @Test func shortWindowLeavesPickPending() {
+        var tracker = AugmentPickTracker()
+        _ = tracker.update(level: 3, isDead: false, gameTime: 1)
+        _ = tracker.update(level: 3, isDead: false, gameTime: 76)
+        _ = tracker.update(level: 6, isDead: true, gameTime: 220)
+        _ = tracker.update(level: 6, isDead: false, gameTime: 238)
+        #expect(tracker.update(level: 7, isDead: false, gameTime: 252)?.pick == 2)
+        #expect(tracker.update(level: 7, isDead: false, gameTime: 253) == nil)
+        #expect(tracker.update(level: 7, isDead: true, gameTime: 302)?.pick == 2)
+    }
 }

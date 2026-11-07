@@ -5,7 +5,7 @@ options:
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true
-  developmentLanguage: de
+  developmentLanguage: en
 
 packages:
   LeagueKit:
@@ -28,6 +28,10 @@ settings:
     ARCHS: arm64
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     DEAD_CODE_STRIPPING: YES
+    # English source strings, German in App/Sources/Localizable.xcstrings; emits .stringsdata so
+    # scripts can check the catalog covers every extracted key.
+    SWIFT_EMIT_LOC_STRINGS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
 
 targets:
   Riftglass:

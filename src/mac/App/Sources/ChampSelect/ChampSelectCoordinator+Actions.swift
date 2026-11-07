@@ -4,26 +4,30 @@ import StatsKit
 extension ChampSelectCoordinator {
     /// Runs all imports independently; one failing (e.g. full rune storage) does not block the others.
     func importAll(_ build: BuildOption) {
-        runSteps("Build", build: build, runes: true, spells: true, items: true)
+        runSteps(String(localized: "Build"), build: build, runes: true, spells: true, items: true)
     }
 
     func importRunes(_ build: BuildOption) {
-        perform("Runen", build: build) { [mode] actions, mapping in
-            guard mode.usesRunePages else { throw MissingDataError.unsupportedInMode("Runenseiten", mode) }
+        perform(String(localized: "Runes"), build: build) { [mode] actions, mapping in
+            guard mode.usesRunePages else {
+                throw MissingDataError.unsupportedInMode(String(localized: "Rune pages"), mode)
+            }
             try await actions.importRunes(mapping.runePage)
         }
     }
 
     func setSpells(_ build: BuildOption) {
-        perform("Spells", build: build) { actions, mapping in
+        perform(String(localized: "Spells"), build: build) { actions, mapping in
             guard let spells = mapping.spells else { throw MissingDataError.spells }
             try await actions.setSpells(spells)
         }
     }
 
     func importItemSet(_ build: BuildOption) {
-        perform("Item-Set", build: build) { [mode] actions, mapping in
-            guard mode.itemSetMapId != nil else { throw MissingDataError.unsupportedInMode("Item-Sets", mode) }
+        perform(String(localized: "Item set"), build: build) { [mode] actions, mapping in
+            guard mode.itemSetMapId != nil else {
+                throw MissingDataError.unsupportedInMode(String(localized: "Item sets"), mode)
+            }
             try await actions.mergeItemSet(mapping.itemSet)
         }
     }
@@ -35,13 +39,13 @@ extension ChampSelectCoordinator {
         perform(label, build: build) { actions, mapping in
             var steps: [(String, () async throws -> Void)] = []
             if runes, mode.usesRunePages {
-                steps.append(("Runen", { try await actions.importRunes(mapping.runePage) }))
+                steps.append((String(localized: "Runes"), { try await actions.importRunes(mapping.runePage) }))
             }
             if spells, let selection = mapping.spells {
-                steps.append(("Spells", { try await actions.setSpells(selection) }))
+                steps.append((String(localized: "Spells"), { try await actions.setSpells(selection) }))
             }
             if items, mode.itemSetMapId != nil, !build.itemBlocks.isEmpty {
-                steps.append(("Item-Set", { try await actions.mergeItemSet(mapping.itemSet) }))
+                steps.append((String(localized: "Item set"), { try await actions.mergeItemSet(mapping.itemSet) }))
             }
             var failures: [String] = []
             for (stepLabel, step) in steps {
@@ -60,7 +64,7 @@ extension ChampSelectCoordinator {
     ) {
         guard let championId else { return }
         guard let actions else {
-            actionState = .failed("Keine Verbindung zum League-Client.")
+            actionState = .failed(String(localized: "No connection to the League client."))
             return
         }
         let mapping = BuildMapping(
@@ -69,14 +73,14 @@ extension ChampSelectCoordinator {
             championName: championName ?? "Champion",
             itemSetMapId: mode.itemSetMapId ?? GameMode.Map.summonersRift
         )
-        actionState = .running("\(label) wird übernommen …")
+        actionState = .running(String(localized: "Importing \(label) …"))
         plannedBuild = build
         let previous = importChain
         importChain = Task {
             await previous?.value // never overlap: a reroll during an import waits for it
             do {
                 try await work(actions, mapping)
-                actionState = .done("\(label) übernommen.")
+                actionState = .done(String(localized: "\(label) imported."))
             } catch {
                 actionState = .failed(ActionErrorText.describe(error))
                 logger.error("\(label, privacy: .public) failed: \(String(describing: error), privacy: .public)")

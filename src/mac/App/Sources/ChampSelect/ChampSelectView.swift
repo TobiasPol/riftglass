@@ -65,7 +65,7 @@ struct ChampSelectView: View {
     @ViewBuilder
     private var builds: some View {
         if coordinator.championId == nil {
-            placeholder("Wähle oder hovere einen Champion, um Build-Optionen zu sehen.")
+            placeholder(String(localized: "Pick or hover a champion to see build options."))
         } else if coordinator.isLoadingBuilds {
             ProgressView().controlSize(.small).frame(maxWidth: .infinity)
         } else if coordinator.builds.isEmpty {
@@ -83,11 +83,13 @@ struct ChampSelectView: View {
     static func emptyText(for mode: GameMode) -> String {
         switch mode {
         case .arena, .brawl, .swarm, .nexusBlitz, .unknown:
-            "Für \(mode.displayName) hat Riftglass keine Build-Daten (OP.GG liefert nur Ranked, Flex und ARAM)."
+            String(localized: """
+            Riftglass has no build data for \(mode.displayName) (OP.GG only covers Ranked, Flex and ARAM).
+            """)
         case .leagueClassic:
-            "League Classic nutzt alte Runen, Meisterschaften und Items – Riftglass importiert hier nichts."
+            String(localized: "League Classic uses old runes, masteries and items – Riftglass imports nothing here.")
         default:
-            "Keine Builds verfügbar – OP.GG ist nicht erreichbar und der Client liefert keine Empfehlung."
+            String(localized: "No builds available – OP.GG is unreachable and the client has no recommendation.")
         }
     }
 

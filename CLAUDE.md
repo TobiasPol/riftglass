@@ -18,6 +18,7 @@ client: `docs/SPIKE.md` – trust SPIKE.md over community docs.
 - `scripts/build.sh` — generate Xcode project + build app (signed; add `CODE_SIGNING_ALLOWED=NO` unsigned)
 - `scripts/test.sh` — `swift test` for all packages
 - `scripts/lint.sh` — SwiftFormat check + SwiftLint strict (`--fix` to format)
+- `scripts/check-l10n.sh` — after a build: every extracted UI string has a German translation
 - `scripts/release.sh <version>` — Developer ID build, notarize, DMG, appcast (see docs/RELEASING.md)
 - `scripts/spike/*.sh` — need a running League client; never print tokens
 
@@ -39,3 +40,5 @@ None. Release script uses `NOTARY_PROFILE` (default `riftglass`, a notarytool ke
 - OP.GG MCP answers in a class notation, not JSON – parse with `OPGGNotation`.
 - Forbidden features (docs/COMPLIANCE.md): enemy ult/spell timers, memory reading, injection, input automation.
 - Fixtures must be anonymized (`scripts/spike/lib.sh: anonymize`).
+- UI strings are English literals (`Text("…")`, `String(localized:)`), German goes into
+  `App/Sources/Localizable.xcstrings`; never build UI text with `+` (concatenated strings aren't localized).
