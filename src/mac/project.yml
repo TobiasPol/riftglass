@@ -60,7 +60,7 @@ targets:
         INFOPLIST_FILE: App/Info.plist
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_CFBundleDisplayName: Riftglass
-        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.games
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_NSHumanReadableCopyright: >-
           Riftglass isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games
           or anyone officially involved in producing or managing Riot Games properties.
