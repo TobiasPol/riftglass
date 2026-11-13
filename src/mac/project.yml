@@ -50,7 +50,7 @@ targets:
       base:
         PRODUCT_NAME: Riftglass
         PRODUCT_BUNDLE_IDENTIFIER: de.polleydigital.riftglass
-        MARKETING_VERSION: "0.5.0"
+        MARKETING_VERSION: "0.5.1"
         CURRENT_PROJECT_VERSION: "1"
         # Signed from Phase 0 on so Input Monitoring survives rebuilds (PLAN §2).
         # CI overrides with CODE_SIGNING_ALLOWED=NO.

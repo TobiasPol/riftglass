@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1
+- Riftglass no longer registers as a game. macOS showed a rocket in the menu bar in place of the
+  Riftglass ◇ icon; the app category is now Utilities.
+
 ## 0.5.0
 - Riftglass is now in **English and German** and follows your macOS language (per app: System Settings →
   General → Language & Region → Applications). Champion, item, rune and augment names follow it too.
