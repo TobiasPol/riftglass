@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0
 - **ARAM: Mayhem augments were wrong and nearly the same for every champion – fixed.** OP.GG's API only
   hands out the three weakest tiers of its augment list, and Riftglass ranked that remainder by a
   "performance" score that favours the same generic augments everywhere (Hand of Baron, Stats!, Omni

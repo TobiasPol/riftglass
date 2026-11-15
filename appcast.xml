@@ -3,6 +3,19 @@
     <channel>
         <title>Riftglass</title>
         <item>
+            <title>0.6.0</title>
+            <pubDate>Sun, 15 Nov 2026 12:08:56 +0100</pubDate>
+            <sparkle:version>31</sparkle:version>
+            <sparkle:shortVersionString>0.6.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.6.0/Riftglass-0.6.0.dmg" length="3078689" type="application/octet-stream" sparkle:edSignature="hZOSftjz74nw17jYZu1EmuT9O67Ai6NZ1twTAZ/S/0Y+i+422W3WbUoMxmx1cX3XoQdAjE+OH544h1tvlCMiBw=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.6.0/Riftglass31-27.delta" sparkle:deltaFrom="27" length="160938" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="4N13aaPYLh3VIPChFVxb5tbY1vh/JeTzOC7zI9rHhFQGD87MRqtTgDqPIuHvAGj8pnH4kWUsuXllozZzdvEeAQ=="/>
+                <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.6.0/Riftglass31-25.delta" sparkle:deltaFrom="25" length="161782" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="hFeuxNTE0p5+ZkfvsTgwHfDlXbure1GxnSkpdFOFBR9GDY1dTGEiVA5/kyULW++0cfDhHPuygmYrsyj2AYioAg=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>0.5.1</title>
             <pubDate>Fri, 13 Nov 2026 09:09:59 +0100</pubDate>
             <sparkle:version>27</sparkle:version>
@@ -26,18 +39,6 @@
             <sparkle:deltas>
                 <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.5.0/Riftglass25-20.delta" sparkle:deltaFrom="20" length="177054" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="PHVsHUU4UHg3wOgMAieFI1WqJpKZ5v/3+8kXeCCbaK5FO/w+P32iIZ+hYvh61lMOv5mg64gKw4zqTff1ASWiCA=="/>
                 <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.5.0/Riftglass25-16.delta" sparkle:deltaFrom="16" length="222918" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="/2fqbjS0tNCzt7A7D8hxcGEZomxJJVxmr3aoqIfGi+mU9Qum8zR0zjDM8HNMAeUcnZuxFkgkyq16RXatXHJRBA=="/>
-            </sparkle:deltas>
-        </item>
-        <item>
-            <title>0.4.0</title>
-            <pubDate>Wed, 04 Nov 2026 20:57:37 +0100</pubDate>
-            <sparkle:version>20</sparkle:version>
-            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.4.0/Riftglass-0.4.0.dmg" length="3038678" type="application/octet-stream" sparkle:edSignature="tF7AJkpkNnsQYuJ7mV5TaaAr5R3OhmWuYu8DnYKlcefpnpcSZKGv7Dxq2VsPZtFGg84NuZxu6oilmg++BBzvBQ=="/>
-            <sparkle:deltas>
-                <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.4.0/Riftglass20-16.delta" sparkle:deltaFrom="16" length="161310" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="N+K4H2LBVAPs/2ojzQuDl3vm/1laNrUV3LCqM2B4bDMPw0lL3Z9begn/xaGW/Mqpzfrc1Z3z5zOyjjAGOfTpDw=="/>
             </sparkle:deltas>
         </item>
     </channel>
