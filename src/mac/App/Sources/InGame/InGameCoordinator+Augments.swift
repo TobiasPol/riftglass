@@ -123,7 +123,8 @@ extension InGameCoordinator {
         prompt.map { "pick \($0.pick)/\($0.total) available=\($0.available)" } ?? "none"
     }
 
-    /// OP.GG's page is ~1 MB: after this many failed loads the game goes on without the list.
+    /// After this many failed loads the game goes on without the list. Only a load that got no answer
+    /// (offline) leads to another request – `OPGGAugmentProvider` does not repeat answered failures.
     static let maxAugmentLoadFailures = 3
 
     /// Once per game. Needs Data Dragon for the numeric champion ID; retried on the next snapshot

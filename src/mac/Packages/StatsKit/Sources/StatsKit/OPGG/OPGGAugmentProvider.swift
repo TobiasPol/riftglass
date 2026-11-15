@@ -56,22 +56,34 @@ public struct AugmentStat: Codable, Equatable, Identifiable, Sendable {
 ///
 /// The MCP tool `lol_list_aram_augments` is not usable for this: it only returns tiers 3–5, i.e. it
 /// leaves out exactly the augments OP.GG rates best for the champion (docs/SPIKE.md). The page has
-/// all tiers. One request per champion per cache lifetime; when op.gg is unreachable or its page
-/// format changed, the last known list is used however old it is – tier lists move slowly, and a
-/// wrong parse must never replace them.
+/// all tiers.
+///
+/// Request budget (docs/COMPLIANCE.md): op.gg answers at most one request per champion per cache
+/// lifetime – also when the answer was an error or a page that no longer parses; that failure is
+/// remembered on disk for the same time. Callers asking for the same champion at once share one
+/// request. Only a request that got no answer at all (no network) is tried again, a minute later.
+/// Whenever no fresh list can be had, the last known one is used however old it is – tier lists
+/// move slowly, and a wrong parse must never replace them.
 public struct OPGGAugmentProvider: Sendable {
+    /// Seconds before a request that got no answer is tried again.
+    static let unansweredRetryInterval: TimeInterval = 60
+
     private let getter: any HTTPGetting
     private let cache: ResponseCache
     private let userAgent: String
+    private let now: @Sendable () -> Date
+    private let gate = AugmentRequestGate()
 
     public init(
         getter: any HTTPGetting = URLSessionGetter(),
         cache: ResponseCache = ResponseCache(name: "opgg-augments"),
-        userAgent: String = "Riftglass"
+        userAgent: String = "Riftglass",
+        now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.getter = getter
         self.cache = cache
         self.userAgent = userAgent
+        self.now = now
     }
 
     public static let pagesURL = URL(string: "https://op.gg/lol/modes/aram-mayhem/")!
@@ -83,28 +95,117 @@ public struct OPGGAugmentProvider: Sendable {
 
     /// Every augment OP.GG lists for the champion, in OP.GG's order (`AugmentStat.tierListOrder`).
     public func augments(championId: Int) async throws -> [AugmentStat] {
-        // v3: parsed page entries as JSON; v1/v2 held the MCP answer without the top tiers.
-        let cacheKey = "aram-mayhem-augments-v3-\(championId)"
-        if let cached = await cache.value(for: cacheKey).flatMap(Self.decode) {
+        if let cached = await freshList(championId) {
             return cached
         }
-        do {
-            let html = try await getter.get(
-                Self.pageURL(championId: championId),
-                headers: ["User-Agent": userAgent, "Accept": "text/html"]
-            )
-            let stats = try OPGGAugmentPage.augments(fromHTML: html)
-            if let encoded = try? JSONEncoder().encode(stats), let text = String(data: encoded, encoding: .utf8) {
-                await cache.store(text, for: cacheKey)
-            }
-            return stats
-        } catch {
-            guard let stale = await cache.staleValue(for: cacheKey).flatMap(Self.decode) else { throw error }
-            return stale
+        return try await gate.run(championId) { try await refresh(championId) }
+    }
+
+    /// Runs once per champion at a time (`gate`).
+    private func refresh(_ championId: Int) async throws -> [AugmentStat] {
+        // The request this call waited behind may just have filled the cache.
+        if let cached = await freshList(championId) {
+            return cached
         }
+        let failure: any Error
+        if let remembered = await rememberedFailure(championId) {
+            failure = remembered
+        } else {
+            do {
+                return try await fetch(championId)
+            } catch {
+                await remember(error, championId: championId)
+                failure = error
+            }
+        }
+        guard let stale = await cache.staleValue(for: Self.listKey(championId)).flatMap(Self.decode) else {
+            throw failure
+        }
+        return stale
+    }
+
+    private func fetch(_ championId: Int) async throws -> [AugmentStat] {
+        let html = try await getter.get(
+            Self.pageURL(championId: championId),
+            headers: ["User-Agent": userAgent, "Accept": "text/html"]
+        )
+        let stats = try OPGGAugmentPage.augments(fromHTML: html)
+        if let encoded = try? JSONEncoder().encode(stats), let text = String(data: encoded, encoding: .utf8) {
+            await cache.store(text, for: Self.listKey(championId))
+        }
+        return stats
+    }
+
+    private func freshList(_ championId: Int) async -> [AugmentStat]? {
+        await cache.value(for: Self.listKey(championId)).flatMap(Self.decode)
+    }
+
+    /// An `OPGGError` means op.gg answered (HTTP status, changed page): no further request for a
+    /// cache lifetime, across app restarts. Anything else is a transport error without an answer.
+    private func remember(_ error: any Error, championId: Int) async {
+        if let answered = error as? OPGGError {
+            let code = if case let .http(status) = answered {
+                "http:\(status)"
+            } else {
+                "page"
+            }
+            await cache.store(code, for: Self.failureKey(championId))
+        } else {
+            let retryAt = now().addingTimeInterval(Self.unansweredRetryInterval)
+            await gate.remember(error, for: championId, until: retryAt)
+        }
+    }
+
+    private func rememberedFailure(_ championId: Int) async -> (any Error)? {
+        if let code = await cache.value(for: Self.failureKey(championId)) {
+            return code.hasPrefix("http:") ? OPGGError.http(Int(code.dropFirst(5)) ?? 0) : OPGGError.unexpectedPage
+        }
+        return await gate.failure(for: championId, at: now())
+    }
+
+    /// v3: parsed page entries as JSON; v1/v2 held the MCP answer without the top tiers.
+    private static func listKey(_ championId: Int) -> String {
+        "aram-mayhem-augments-v3-\(championId)"
+    }
+
+    private static func failureKey(_ championId: Int) -> String {
+        "aram-mayhem-augments-failure-\(championId)"
     }
 
     private static func decode(_ text: String) -> [AugmentStat]? {
         try? JSONDecoder().decode([AugmentStat].self, from: Data(text.utf8))
+    }
+}
+
+/// Lets concurrent callers for one champion share a single page request and keeps unanswered
+/// attempts in memory until they may be repeated.
+actor AugmentRequestGate {
+    private var inFlight: [Int: Task<[AugmentStat], any Error>] = [:]
+    private var unanswered: [Int: (error: any Error, retryAt: Date)] = [:]
+
+    func run(
+        _ championId: Int,
+        _ work: @escaping @Sendable () async throws -> [AugmentStat]
+    ) async throws -> [AugmentStat] {
+        if let running = inFlight[championId] {
+            return try await running.value
+        }
+        let task = Task { try await work() }
+        inFlight[championId] = task
+        defer { inFlight[championId] = nil }
+        return try await task.value
+    }
+
+    func remember(_ error: any Error, for championId: Int, until retryAt: Date) {
+        unanswered[championId] = (error, retryAt)
+    }
+
+    func failure(for championId: Int, at date: Date) -> (any Error)? {
+        guard let entry = unanswered[championId] else { return nil }
+        if date >= entry.retryAt {
+            unanswered[championId] = nil
+            return nil
+        }
+        return entry.error
     }
 }

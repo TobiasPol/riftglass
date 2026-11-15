@@ -14,7 +14,7 @@ log (`os.Logger`) and never contain client tokens.
 | Recipient | When | Data |
 |---|---|---|
 | OP.GG (`mcp-api.op.gg`) | champ select | champion name and role |
-| OP.GG (`op.gg`, public champion page) | ARAM: Mayhem champ select or game, at most once per champion in 6 hours | champion ID |
+| OP.GG (`op.gg`, public champion page) | ARAM: Mayhem champ select or game, at most one answered request per champion in 6 hours (without any answer, e.g. offline, retried after a minute at the earliest) | champion ID |
 | OP.GG (`mcp-api.op.gg`) | champ select, if "Matchup-Briefing" is on | your champion, the enemy lane champion and the role (no names or IDs of players) |
 | OP.GG (`mcp-api.op.gg`) | game start, if "Ränge über OP.GG laden" is on | Riot IDs (name#tag) of the players in your game, region |
 | Riot Data Dragon (`ddragon.leagueoflegends.com`) | first champ select per patch | nothing personal (static files) |

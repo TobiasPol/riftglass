@@ -2,16 +2,18 @@ import Foundation
 @testable import StatsKit
 import Testing
 
-/// Returns a canned page (or fails) and counts requests.
+/// Returns a canned page (or fails) and counts requests; `delay` keeps a request open.
 actor FakeGetter: HTTPGetting {
     private(set) var requests: [(url: URL, headers: [String: String])] = []
-    private var response: Result<Data, OPGGError>
+    private var response: Result<Data, any Error>
+    private let delay: Duration
 
-    init(response: Data) {
+    init(response: Data, delay: Duration = .zero) {
         self.response = .success(response)
+        self.delay = delay
     }
 
-    func fail(with error: OPGGError) {
+    func fail(with error: any Error) {
         response = .failure(error)
     }
 
@@ -21,6 +23,8 @@ actor FakeGetter: HTTPGetting {
 
     func get(_ url: URL, headers: [String: String]) async throws -> Data {
         requests.append((url, headers))
+        let response = response
+        try await Task.sleep(for: delay)
         return try response.get()
     }
 }
@@ -96,16 +100,73 @@ struct OPGGAugmentTests {
         let clock = TestClock()
         let getter = try FakeGetter(response: Fixture.data(Self.page))
         let cache = ResponseCache(name: "t", timeToLive: 60, directory: cacheDirectory(), now: { clock.date })
-        let provider = OPGGAugmentProvider(getter: getter, cache: cache)
+        let provider = OPGGAugmentProvider(getter: getter, cache: cache, now: { clock.date })
         let fresh = try await provider.augments(championId: 86)
         clock.date = clock.date.addingTimeInterval(61)
-        await getter.fail(with: .http(503))
+        await getter.fail(with: OPGGError.http(503))
         #expect(try await provider.augments(championId: 86) == fresh)
+        clock.date = clock.date.addingTimeInterval(61)
         await getter.respond(with: Data("<html>redesigned</html>".utf8))
         #expect(try await provider.augments(championId: 86) == fresh)
         #expect(await getter.requests.count == 3)
-        // Without any earlier list the failure is reported.
-        await #expect(throws: OPGGError.unexpectedPage) { try await provider.augments(championId: 1) }
+    }
+
+    /// The request budget: once op.gg has answered – even with an error or an unusable page – it is
+    /// not asked again for the champion until the cache lifetime is over.
+    @Test func answeredFailureIsNotRepeatedWithinTheCacheLifetime() async throws {
+        let clock = TestClock()
+        let getter = FakeGetter(response: Data("<html>redesigned</html>".utf8))
+        let directory = cacheDirectory()
+        let cache = ResponseCache(name: "t", timeToLive: 60, directory: directory, now: { clock.date })
+        let provider = OPGGAugmentProvider(getter: getter, cache: cache, now: { clock.date })
+        for _ in 0 ..< 3 {
+            await #expect(throws: OPGGError.unexpectedPage) { try await provider.augments(championId: 1) }
+        }
+        #expect(await getter.requests.count == 1)
+        await getter.fail(with: OPGGError.http(503))
+        // Remembered on disk: a new provider (app restart) does not ask either.
+        let restarted = OPGGAugmentProvider(
+            getter: getter,
+            cache: ResponseCache(name: "t", timeToLive: 60, directory: directory, now: { clock.date }),
+            now: { clock.date }
+        )
+        await #expect(throws: OPGGError.unexpectedPage) { try await restarted.augments(championId: 1) }
+        #expect(await getter.requests.count == 1)
+        clock.date = clock.date.addingTimeInterval(61)
+        await #expect(throws: OPGGError.http(503)) { try await restarted.augments(championId: 1) }
+        await #expect(throws: OPGGError.http(503)) { try await restarted.augments(championId: 1) }
+        #expect(await getter.requests.count == 2)
+        // Another champion has its own budget.
+        await #expect(throws: OPGGError.http(503)) { try await restarted.augments(championId: 2) }
+        #expect(await getter.requests.count == 3)
+    }
+
+    /// No answer at all (offline) is not held against op.gg's budget, but still not hammered.
+    @Test func unansweredRequestIsRetriedAfterAMinute() async throws {
+        let clock = TestClock()
+        let getter = try FakeGetter(response: Fixture.data(Self.page))
+        await getter.fail(with: URLError(.notConnectedToInternet))
+        let cache = ResponseCache(name: "t", directory: cacheDirectory(), now: { clock.date })
+        let provider = OPGGAugmentProvider(getter: getter, cache: cache, now: { clock.date })
+        await #expect(throws: URLError.self) { try await provider.augments(championId: 86) }
+        await #expect(throws: URLError.self) { try await provider.augments(championId: 86) }
+        #expect(await getter.requests.count == 1)
+        clock.date = clock.date.addingTimeInterval(OPGGAugmentProvider.unansweredRetryInterval + 1)
+        try await getter.respond(with: Fixture.data(Self.page))
+        #expect(try await provider.augments(championId: 86).count == 26)
+        #expect(await getter.requests.count == 2)
+    }
+
+    /// Champ select and the in-game overlay can ask for the same champion at the same moment.
+    @Test func concurrentCallersShareOneRequest() async throws {
+        let getter = try FakeGetter(response: Fixture.data(Self.page), delay: .milliseconds(100))
+        let provider = OPGGAugmentProvider(getter: getter, cache: ResponseCache(name: "t", directory: cacheDirectory()))
+        async let first = provider.augments(championId: 86)
+        async let second = provider.augments(championId: 86)
+        async let third = provider.augments(championId: 86)
+        let lists = try await [first, second, third]
+        #expect(lists.allSatisfy { $0.count == 26 })
+        #expect(await getter.requests.count == 1)
     }
 }
 

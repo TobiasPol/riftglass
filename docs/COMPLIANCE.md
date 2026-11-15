@@ -13,8 +13,11 @@ Diese Datei ist verbindlich; Features, die hier als verboten stehen, werden nich
 - **OP.GG-Webseite, nur die Mayhem-Augment-Seite** (`op.gg/lol/modes/aram-mayhem/<championId>/augments`):
   einzige Ausnahme vom Scraping-Verbot, entschieden am 2026-11-15, weil das MCP-Tool
   `lol_list_aram_augments` nur die Tiers 3–5 liefert und damit die besten Augments des Champions fehlen
-  (SPIKE.md). Öffentliche Seite, ehrlicher User-Agent `Riftglass`, höchstens ein Abruf pro Champion in 6 h
-  (Disk-Cache), kein Login, keine weiteren Seiten. Entfällt, sobald das MCP-Tool alle Tiers liefert.
+  (SPIKE.md). Öffentliche Seite, ehrlicher User-Agent `Riftglass`, kein Login, keine weiteren Seiten.
+  Abruf-Budget (`OPGGAugmentProvider`, per Test abgesichert): höchstens ein von op.gg beantworteter Abruf
+  pro Champion in 6 h – auch eine Fehlerantwort oder eine nicht mehr lesbare Seite zählt und wird so lange
+  auf der Platte gemerkt; gleichzeitige Anfragen teilen sich einen Abruf; blieb die Antwort ganz aus (kein
+  Netz), frühestens nach 60 s erneut. Entfällt, sobald das MCP-Tool alle Tiers liefert.
 - **Keine Riot-Empfehlungen** aus dem Client (`recommended-pages`, `recommended-champion-positions`) –
   Builds, Rollen und Augments kommen ausschließlich von OP.GG.
 

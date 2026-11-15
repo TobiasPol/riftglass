@@ -206,7 +206,9 @@ final class ChampSelectCoordinator {
         updateBriefing() // the matchup needs the resolved role
         builds = loaded
         isLoadingBuilds = false
-        if plannedBuild?.championKey != key || plannedBuild?.queue != loaded.first?.queue {
+        // The remembered build follows champion, queue and lane (a swap keeps the first two).
+        if plannedBuild?.championKey != key || plannedBuild?.queue != loaded.first?.queue
+            || plannedBuild?.role != loaded.first?.role {
             plannedBuild = loaded.first
         }
         prefetchIcons(for: loaded)

@@ -59,7 +59,7 @@ Requirements: macOS 14 or later, Apple Silicon.
 | In-game stats | Live Client Data API (`127.0.0.1:2999`) | no |
 | Builds, win rates | [OP.GG](https://op.gg) public MCP API | champion + role only |
 | Matchups, counters, lane shares | OP.GG public MCP API | your champion, the enemy champion and the role |
-| ARAM: Mayhem augment tiers | OP.GG champion page (`op.gg`, one request per champion in 6 h) | champion only |
+| ARAM: Mayhem augment tiers | OP.GG champion page (`op.gg`, at most one answered request per champion in 6 h) | champion only |
 | Ranks | OP.GG public MCP API | Riot IDs of the players in your game (can be turned off) |
 | Icons, item data | Riot Data Dragon CDN | no personal data |
 
