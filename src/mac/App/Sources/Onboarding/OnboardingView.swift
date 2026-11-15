@@ -21,8 +21,7 @@ struct OnboardingView: View {
             GroupBox("Data sources") {
                 Text("""
                 Builds, win rates and ranks come from OP.GG (public interface, no account). For ranks, the Riot \
-                IDs of the players in your game are sent to OP.GG – you can turn this off in Settings. Riot's \
-                recommendations come straight from your client.
+                IDs of the players in your game are sent to OP.GG – you can turn this off in Settings.
                 """)
                 .font(.callout)
                 .fixedSize(horizontal: false, vertical: true)

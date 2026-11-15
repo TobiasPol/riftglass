@@ -5,7 +5,7 @@ import SwiftUI
 
 /// Shown left of League's selection cards while an augment choice is likely open
 /// (`AugmentPickTracker`) or pinned with ⌥A – one narrow column, rarities stacked, so it fits beside
-/// the cards also on 16:10. Static OP.GG statistics only – the offered cards are not read; several
+/// the cards also on 16:10. Static OP.GG tier list only – the offered cards are not read; several
 /// options per rarity, no win rates (Riot policy, docs/COMPLIANCE.md).
 struct AugmentOverlayView: View {
     let board: AugmentBoard
@@ -22,7 +22,7 @@ struct AugmentOverlayView: View {
                     AugmentRow(entry: entry, icons: icons, iconSize: 20)
                 }
             }
-            Text("OP.GG statistics · ⌥A hides")
+            Text("OP.GG tier list · ⌥A hides")
                 .font(.system(size: 9)).foregroundStyle(Palette.tertiaryText)
                 .padding(.top, 2)
         }
@@ -49,7 +49,7 @@ struct AugmentOverlayView: View {
     }
 }
 
-/// Icon, grade, name and pick share of one augment.
+/// Icon, OP.GG tier and name of one augment.
 struct AugmentRow: View {
     let entry: AugmentBoard.Entry
     let icons: IconCache
@@ -60,13 +60,9 @@ struct AugmentRow: View {
             if let url = entry.iconURL {
                 IconView(url: url, icons: icons, size: iconSize)
             }
-            GradeBadge(grade: entry.ranked.grade)
+            TierBadge(stat: entry.stat)
             Text(entry.name).font(.system(size: 11)).lineLimit(1)
-            Spacer(minLength: 2)
-            Text(entry.ranked.stat.pickRate.formatted(.percent.precision(.fractionLength(0))))
-                .font(.system(size: 10).monospacedDigit())
-                .foregroundStyle(Palette.tertiaryText)
-                .help(String(localized: "Pick share"))
+            Spacer(minLength: 0)
         }
     }
 }
@@ -94,7 +90,7 @@ struct AugmentColumnsView: View {
 }
 
 struct RarityLabel: View {
-    let rarity: AugmentRarity?
+    let rarity: AugmentRarity
 
     var body: some View {
         Text(title.uppercased())
@@ -108,7 +104,6 @@ struct RarityLabel: View {
         case .prismatic: String(localized: "Prismatic")
         case .gold: String(localized: "Gold")
         case .silver: String(localized: "Silver")
-        case nil: String(localized: "All rarities")
         }
     }
 
@@ -117,29 +112,30 @@ struct RarityLabel: View {
         case .prismatic: Color(red: 0.86, green: 0.62, blue: 0.98)
         case .gold: Color(red: 0.95, green: 0.78, blue: 0.38)
         case .silver: Color(red: 0.78, green: 0.82, blue: 0.86)
-        case nil: Palette.secondaryText
         }
     }
 }
 
-/// Relative grade within the champion's augments of one rarity.
-struct GradeBadge: View {
-    let grade: RankedAugment.Grade
+/// OP.GG's tier of the augment on this champion: S, then 1 (strong) to 5 (weak).
+struct TierBadge: View {
+    let stat: AugmentStat
 
     var body: some View {
-        Text(grade.rawValue)
+        Text(stat.tierLabel)
             .font(.system(size: 10, weight: .heavy, design: .rounded))
             .frame(width: 16, height: 16)
             .background(color.opacity(0.9), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
             .foregroundStyle(Color.black)
+            .help(String(localized: "OP.GG tier"))
     }
 
     private var color: Color {
-        switch grade {
-        case .top: Palette.accent
-        case .strong: Palette.positive
-        case .solid: Color.white.opacity(0.55)
-        case .niche: Color.white.opacity(0.3)
+        switch stat.tier {
+        case ...0: Palette.accent
+        case 1: Palette.positive
+        case 2: Color.white.opacity(0.7)
+        case 3: Color.white.opacity(0.5)
+        default: Color.white.opacity(0.3)
         }
     }
 }
@@ -163,7 +159,7 @@ struct AugmentsCard: View {
                         if let url = entry.iconURL {
                             IconView(url: url, icons: icons, size: 16)
                         }
-                        GradeBadge(grade: entry.ranked.grade)
+                        TierBadge(stat: entry.stat)
                         Text(entry.name).font(.system(size: 11)).lineLimit(1)
                     }
                 }

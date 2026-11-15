@@ -32,6 +32,8 @@ public enum OPGGError: Error, Equatable {
     case rpc(String)
     case toolError(String)
     case emptyResponse
+    /// An OP.GG web page no longer contains the data in the expected shape.
+    case unexpectedPage
 }
 
 /// Minimal client for OP.GG's official public MCP server (`https://mcp-api.op.gg/mcp`).

@@ -68,11 +68,13 @@ struct ChampSelectView: View {
             placeholder(String(localized: "Pick or hover a champion to see build options."))
         } else if coordinator.isLoadingBuilds {
             ProgressView().controlSize(.small).frame(maxWidth: .infinity)
-        } else if coordinator.builds.isEmpty {
-            placeholder(Self.emptyText(for: coordinator.mode))
         } else {
+            // Augments come from another OP.GG source than builds; either may be missing.
             if let board = coordinator.augmentBoard, !board.isEmpty {
                 AugmentsCard(board: board, icons: coordinator.icons)
+            }
+            if coordinator.builds.isEmpty {
+                placeholder(Self.emptyText(for: coordinator.mode))
             }
             ForEach(coordinator.builds) { build in
                 BuildOptionCard(build: build, coordinator: coordinator)
@@ -89,7 +91,7 @@ struct ChampSelectView: View {
         case .leagueClassic:
             String(localized: "League Classic uses old runes, masteries and items – Riftglass imports nothing here.")
         default:
-            String(localized: "No builds available – OP.GG is unreachable and the client has no recommendation.")
+            String(localized: "No builds available – OP.GG is unreachable or has no data for this champion.")
         }
     }
 

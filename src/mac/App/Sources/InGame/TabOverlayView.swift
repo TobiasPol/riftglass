@@ -90,8 +90,8 @@ private struct MyGameRow: View {
     let snapshot: LiveGameSnapshot
     let coordinator: InGameCoordinator
 
-    private var plannedItems: [Int] {
-        coordinator.champSelect.plannedBuild?.allItemIds ?? []
+    private var plan: ItemPlan? {
+        coordinator.itemPlan(for: me)
     }
 
     var body: some View {
@@ -105,8 +105,8 @@ private struct MyGameRow: View {
                     good: InGameAnalysis.csBenchmark(for: me).map { cs >= $0 }
                 )
             }
-            if !plannedItems.isEmpty {
-                let progress = InGameAnalysis.buildProgress(owned: me.items, planned: plannedItems)
+            if let plan {
+                let progress = InGameAnalysis.buildProgress(owned: me.items, plan: plan)
                 metric("Build", value: "\(progress.done)/\(progress.total)", detail: nextItemName, good: nil)
             }
             if coordinator.settings.goldEstimateEnabled, let prices = coordinator.champSelect.staticData?.itemPrices,
@@ -123,7 +123,7 @@ private struct MyGameRow: View {
     }
 
     private var nextItemName: String? {
-        InGameAnalysis.nextItem(owned: me.items, planned: plannedItems)
+        plan.flatMap { InGameAnalysis.nextItem(owned: me.items, plan: $0) }
             .flatMap { coordinator.champSelect.staticData?.itemsById[$0]?.name }
             .map { String(localized: "Next: \($0)") }
     }

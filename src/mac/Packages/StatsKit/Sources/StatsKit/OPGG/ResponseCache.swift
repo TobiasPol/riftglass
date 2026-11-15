@@ -29,6 +29,11 @@ public actor ResponseCache {
         return try? String(contentsOf: url, encoding: .utf8)
     }
 
+    /// The stored value regardless of its age – a fallback for when the source cannot be reached.
+    public func staleValue(for key: String) -> String? {
+        try? String(contentsOf: fileURL(for: key), encoding: .utf8)
+    }
+
     public func store(_ value: String, for key: String) {
         let url = fileURL(for: key)
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

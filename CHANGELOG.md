@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+- **ARAM: Mayhem augments were wrong and nearly the same for every champion – fixed.** OP.GG's API only
+  hands out the three weakest tiers of its augment list, and Riftglass ranked that remainder by a
+  "performance" score that favours the same generic augments everywhere (Hand of Baron, Stats!, Omni
+  Soul). The list now comes from OP.GG's champion page with all tiers and shows OP.GG's own tier (S, 1–5)
+  per rarity: Garen gets Spin To Win, Kog'Maw his on-hit augments. The pick share is gone – that number
+  never was one.
+- **Builds come from OP.GG only.** Riot's recommendations from the client are no longer shown or used as a
+  fallback; without an assigned lane (blind pick, custom) OP.GG's most played lane for the champion decides.
+- Swapping lanes in champ select now loads the build, matchup and counters for the new lane.
+- Build progress in the Tab overlay counts core items and boots plus one of the "Then" options. Starter
+  items and all three alternatives used to count, so a finished build read 5/8 with a sold Doran's item as
+  "next". A build left over from another champion is no longer shown.
+- The skill-point hint recovers when OP.GG is briefly unreachable at game start (it used to stay off for
+  the whole game) and uses the champion's usual lane when the game reports none.
+- An error text from OP.GG is no longer cached for six hours as if it were data.
+- No lane guess for an enemy who is never played in the remaining lane; lane shares refresh every 6 hours.
+- The win rate on the build card is labelled as what it is: the core item path's.
+
 ## 0.5.1
 - Riftglass no longer registers as a game. macOS showed a rocket in the menu bar in place of the
   Riftglass ◇ icon; the app category is now Utilities.

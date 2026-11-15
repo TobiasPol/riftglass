@@ -38,7 +38,7 @@
 | Signierung | **ab Phase 0** mit „Apple Development“-Zertifikat | sonst verfällt die Eingabeüberwachung bei jedem Build |
 | Abhängigkeiten App | keine in Phase 1–2 (URLSession-WebSocket statt Starscream) | weniger Angriffsfläche |
 | Updates | Sparkle 2 (Phase 4) | Standard außerhalb des App Store |
-| Build-Daten | OP.GG MCP (offiziell, ohne Key) + Riot-Empfehlungen per LCU | kein eigenes Backend, kein Riot-API-Key |
+| Build-Daten | OP.GG MCP (offiziell, ohne Key); Mayhem-Augments von der OP.GG-Seite; keine Riot-Empfehlungen (seit 0.6) | kein eigenes Backend, kein Riot-API-Key |
 | Lint/Format | SwiftLint + SwiftFormat via pre-commit | |
 | CI | GitHub Actions (`macos-15`): lint + test + unsigned build; Release lokal (Zertifikate) | |
 
@@ -330,13 +330,13 @@ Roadmap-Punkt 3 aus §11.5, **ohne** Bildschirmaufnahme. Fakten: docs/SPIKE.md (
   Respawn). Endet so ein Fenster nach mindestens 5 s, gilt die Wahl als getroffen. App mitten im Spiel gestartet → frühere Wahlen
   gelten als erledigt. Mehrere offene Wahlen werden angezeigt („+1 weitere offen“).
 - **Was:** pro Seltenheit (Prismatisch, Gold, Silber – ein Angebot hat nur eine) die besten 5 des Champions
-  mit Icon, lokalisiertem Namen, Einstufung S/A/B/C und Pick-Anteil. Links neben den Auswahlkarten (oben mittig
+  mit Icon, lokalisiertem Namen und OP.GG-Tier (S, 1–5). Links neben den Auswahlkarten (oben mittig
   verdeckte es live die mittlere Karte), klick-durchlässig, nur mit League im Vordergrund; der Skill-Hinweis
   weicht solange aus. ⌥A blendet sie bis zur nächsten Wahl aus bzw. jederzeit ein. Im Tab-Overlay die besten
   3 je Seltenheit.
-- **Ranking** (`AugmentRanking`, StatsKit): OP.GG `performance`, zum pick-gewichteten Mittel der Seltenheit
-  geschrumpft (`w = pick / (pick + 0,05)`), < 1 % Picks verworfen; Einstufung nach Rangperzentil
-  (15/25/35/25 %). Relativ, weil OP.GGs Skala undokumentiert ist.
+- **Ranking:** OP.GGs eigene Tierliste von der Champion-Seite (`OPGGAugmentPage`): Tier 0 = S … 5, darin
+  nach Beliebtheit. Das frühere `AugmentRanking` über `performance` aus dem MCP-Tool ist entfernt – das Tool
+  liefert nur Tier 3–5, das Ergebnis war für jeden Champion dasselbe (SPIKE.md).
 - **Runen:** in Mayhem deaktiviert → `GameMode.aramMayhem.usesRunePages = false` (kein Runen-Import mehr).
 - **Nicht in v7:** angebotene Karten erkennen (OCR/ScreenCaptureKit – Policy-Frage, COMPLIANCE.md);
   gewählte Augments nach dem Spiel (LCU-EOG-Daten, Spike nötig); aktiver Headliner (26.21) und Augment-

@@ -42,19 +42,19 @@ public struct OPGGMatchupProvider: Sendable {
     public func matchup(my champion: ChampionRef, against opponent: ChampionRef, role: Role) async throws
         -> MatchupBrief {
         let cacheKey = "\(champion.key)-\(opponent.key)-\(role.opggPosition)-\(language)"
-        let text: String
-        if let cached = await cache.value(for: cacheKey) {
-            text = cached
-        } else {
-            text = try await client.callTool("lol_get_lane_matchup_guide", arguments: [
-                "position": .string(role.opggPosition),
-                "my_champion": .string(champion.key.uppercased()),
-                "opponent_champion": .string(opponent.key.uppercased()),
-                "lang": .string(language)
-            ])
-            await cache.store(text, for: cacheKey)
+        if let cached = await cache.value(for: cacheKey),
+           let brief = try? Self.brief(from: Data(cached.utf8), opponentId: opponent.id) {
+            return brief
         }
-        return try Self.brief(from: Data(text.utf8), opponentId: opponent.id)
+        let text = try await client.callTool("lol_get_lane_matchup_guide", arguments: [
+            "position": .string(role.opggPosition),
+            "my_champion": .string(champion.key.uppercased()),
+            "opponent_champion": .string(opponent.key.uppercased()),
+            "lang": .string(language)
+        ])
+        let brief = try Self.brief(from: Data(text.utf8), opponentId: opponent.id) // cached only when it parses
+        await cache.store(text, for: cacheKey)
+        return brief
     }
 
     static func brief(from json: Data, opponentId: Int) throws -> MatchupBrief {
@@ -64,6 +64,7 @@ public struct OPGGMatchupProvider: Sendable {
         let data = guide.data
         let headToHead = data?.counters?.first { $0.championId == opponentId }
         let games = headToHead?.play ?? 0
+        let wins = headToHead?.win
         func side(_ name: String?) -> MatchupBrief.Side? {
             guard let name else { return nil }
             if name == guide.myChampion {
@@ -76,7 +77,7 @@ public struct OPGGMatchupProvider: Sendable {
         }
         return MatchupBrief(
             opponentId: opponentId,
-            winRate: games >= minimumGames ? headToHead.map { Double($0.win) / Double(games) } : nil,
+            winRate: games >= minimumGames ? wins.map { Double($0) / Double(games) } : nil,
             games: games,
             laneAdvantage: side(data?.laneAdvantageChampion),
             soloKillAdvantage: side(data?.laneSoloKillAdvantageChampion),
@@ -95,10 +96,11 @@ private struct Guide: Decodable {
         let counters: [Counter]?
     }
 
+    /// All optional: one incomplete entry must not discard the whole guide.
     struct Counter: Decodable {
-        let championId: Int
-        let play: Int
-        let win: Int
+        let championId: Int?
+        let play: Int?
+        let win: Int?
     }
 
     let myChampion: String?

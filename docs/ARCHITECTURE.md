@@ -27,13 +27,15 @@ NSWorkspace.runningApplications (KVO)
                                           └─ GameSummary → Menüleiste
 ```
 
-Build-Quellen im Champ Select (`BuildLoader`): `OPGGBuildProvider` (OP.GG MCP, Klassen-Notation →
-`OPGGNotation`, 6-h-Disk-Cache) + `recommended-pages` der LCU (Riot), Duplikate nach Runen entfernt.
+Build-Quelle im Champ Select (`BuildLoader`): nur `OPGGBuildProvider` (OP.GG MCP, Klassen-Notation →
+`OPGGNotation`, 6-h-Disk-Cache; gecacht wird erst, was sich parsen lässt). Riots Empfehlungen aus dem Client
+werden nicht genutzt; ohne zugewiesene Position entscheidet OP.GGs Lane-Anteil (`RoleRates.mainRole`).
 Welche Statistik (`BuildQueue`: ranked/flex/aram) und welche Importe gelten, entscheidet der erkannte
 `GameMode`; nach dem Lock-in importiert `ChampSelectCoordinator+AutoImport` das Item-Set (Map des Modus).
-In ARAM: Mayhem zusätzlich `AugmentBoardLoader` (App): `OPGGAugmentProvider` + `AugmentCatalog` (DataKit,
-CommunityDragon: Seltenheit, lokalisierter Name, Icon) → `AugmentRanking` (StatsKit, pur, pro Seltenheit) →
-`AugmentBoard`. Im Spiel zeigt `InGameCoordinator+Augments` das Board, solange `AugmentPickTracker`
+In ARAM: Mayhem zusätzlich `AugmentBoardLoader` (App): `OPGGAugmentProvider` (liest OP.GGs Tierliste aus
+der öffentlichen Champion-Seite, `OPGGAugmentPage`; das MCP-Tool liefert nur Tier 3–5) + `AugmentCatalog`
+(DataKit, CommunityDragon: lokalisierter Name, Icon) → `AugmentBoard`: OP.GGs Reihenfolge (Tier, dann
+Beliebtheit), pro Seltenheit. Im Spiel zeigt `InGameCoordinator+Augments` das Board, solange `AugmentPickTracker`
 (LeagueKit, pur: Stufe 3/7/11/15 + tot/Brunnen) eine Wahl vermutet; mit Tab jederzeit.
 
 Matchup-Briefing (`ChampSelectCoordinator+Briefing`, unabhängig von den Builds): sichtbare Gegner aus

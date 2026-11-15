@@ -1,5 +1,24 @@
 import Foundation
 
+/// The items build progress is measured against. Starter items are not part of it – they are sold
+/// during the game, so "owned" says nothing about them.
+public struct ItemPlan: Equatable, Sendable {
+    /// Items a finished build contains (core, boots), in buy order, without duplicates.
+    public let required: [Int]
+    /// Options for one further slot; owning any of them fills it. Never overlaps `required`.
+    public let alternatives: [Int]
+
+    public init(required: [Int], alternatives: [Int] = []) {
+        var seen = Set<Int>()
+        self.required = required.filter { seen.insert($0).inserted }
+        self.alternatives = alternatives.filter { seen.insert($0).inserted }
+    }
+
+    public var isEmpty: Bool {
+        required.isEmpty && alternatives.isEmpty
+    }
+}
+
 /// Pure evaluations for the Tab overlay. Uses only information visible to the player in game.
 public enum InGameAnalysis {
     /// Rough CS/min guide values per position (not statistics; shown as "Richtwert").
@@ -22,21 +41,25 @@ public enum InGameAnalysis {
         Double(player.scores.kills + player.scores.assists) / Double(max(player.scores.deaths, 1))
     }
 
-    /// How many of the planned build items the player already owns.
-    public static func buildProgress(owned items: [LivePlayer.Item], planned: [Int]) -> (done: Int, total: Int) {
+    /// How much of the plan the player owns: every required item counts, the alternatives together
+    /// count as one slot.
+    public static func buildProgress(owned items: [LivePlayer.Item], plan: ItemPlan) -> (done: Int, total: Int) {
         let owned = Set(items.map(\.itemID))
-        let unique = planned.reduce(into: [Int]()) { result, id in
-            if !result.contains(id) {
-                result.append(id)
-            }
-        }
-        return (unique.filter(owned.contains).count, unique.count)
+        let hasAlternative = plan.alternatives.contains(where: owned.contains)
+        return (
+            plan.required.filter(owned.contains).count + (hasAlternative ? 1 : 0),
+            plan.required.count + (plan.alternatives.isEmpty ? 0 : 1)
+        )
     }
 
-    /// Next planned item the player does not own yet.
-    public static func nextItem(owned items: [LivePlayer.Item], planned: [Int]) -> Int? {
+    /// Next item to buy: the first missing required one, then the first alternative unless one of
+    /// them is already owned. Nil when the plan is complete.
+    public static func nextItem(owned items: [LivePlayer.Item], plan: ItemPlan) -> Int? {
         let owned = Set(items.map(\.itemID))
-        return planned.first { !owned.contains($0) }
+        if let missing = plan.required.first(where: { !owned.contains($0) }) {
+            return missing
+        }
+        return plan.alternatives.contains(where: owned.contains) ? nil : plan.alternatives.first
     }
 
     /// Value of the items a player shows in the scoreboard (visible to everyone in game).
