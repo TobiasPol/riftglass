@@ -36,7 +36,8 @@ extension ChampSelectCoordinator {
               session.localPlayer?.championId == championId, // locked in, not just hovered
               let first = builds.first
         else { return nil }
-        let key = "\(session.gameId ?? 0)-\(championId)"
+        // Per lane: after a swap the other lane's build is imported as well.
+        let key = "\(session.gameId ?? 0)-\(championId)-\(first.role.rawValue)"
         guard autoImportedKey != key else { return nil }
         let itemBuild = builds.first { !$0.itemBlocks.isEmpty }
         let items = settings.autoImportItemSet && mode.itemSetMapId != nil && itemBuild != nil

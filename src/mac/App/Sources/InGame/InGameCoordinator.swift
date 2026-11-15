@@ -45,6 +45,8 @@ final class InGameCoordinator {
     @ObservationIgnored var augmentOverride = AugmentOverride.auto
     @ObservationIgnored var augmentPanel: OverlayPanel?
     @ObservationIgnored var augmentTask: Task<Void, Never>?
+    /// Failed OP.GG loads this game; bounds the retries (`loadAugmentBoardIfNeeded`).
+    @ObservationIgnored var augmentLoadFailures = 0
     /// Hides the skill pill the moment another app comes to the front (snapshots may pause).
     @ObservationIgnored var activationObserver: (any NSObjectProtocol)?
     @ObservationIgnored private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "InGame")
@@ -82,8 +84,7 @@ final class InGameCoordinator {
 
     func stop() {
         guard pollTask != nil else { return }
-        let planned = champSelect.plannedBuild?.allItemIds ?? []
-        if let snapshot, let summary = GameSummary(snapshot: snapshot, plannedItems: planned) {
+        if let snapshot, let summary = GameSummary(snapshot: snapshot, plan: snapshot.me.flatMap(itemPlan(for:))) {
             lastGame = summary
         }
         pollTask?.cancel()

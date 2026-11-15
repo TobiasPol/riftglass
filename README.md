@@ -13,9 +13,8 @@ reading. It lives in your menu bar and uses close to 0 % CPU while League is clo
 **Champ select**: a panel docks next to the League client as soon as you hover a champion:
 - An **OP.GG build** for your champion and role: runes, summoner spells, starter/core/boots, next items,
   skill order, win rate and sample size.
-- **Riot's own recommendations** from the client, which also work offline.
 - **Game mode detection** (Ranked, Flex, ARAM, ARAM: Mayhem, Arena, URF, …): builds and item sets match
-  the mode; in ARAM: Mayhem the champion's most picked augments.
+  the mode; in ARAM: Mayhem the champion's best augments from OP.GG's tier list.
 - **Automatic import after lock-in**: the item set by default, runes and spells if you opt in.
 - A **matchup briefing**: your likely lane opponent with your head-to-head win rate, lane advantage and
   a tip; both teams' physical/magic damage split and frontline; during your pick turn, counter options
@@ -60,6 +59,7 @@ Requirements: macOS 14 or later, Apple Silicon.
 | In-game stats | Live Client Data API (`127.0.0.1:2999`) | no |
 | Builds, win rates | [OP.GG](https://op.gg) public MCP API | champion + role only |
 | Matchups, counters, lane shares | OP.GG public MCP API | your champion, the enemy champion and the role |
+| ARAM: Mayhem augment tiers | OP.GG champion page (`op.gg`, one request per champion in 6 h) | champion only |
 | Ranks | OP.GG public MCP API | Riot IDs of the players in your game (can be turned off) |
 | Icons, item data | Riot Data Dragon CDN | no personal data |
 

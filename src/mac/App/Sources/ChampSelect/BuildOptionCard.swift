@@ -16,7 +16,7 @@ struct BuildOptionCard: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(build.title).font(.system(size: 13, weight: .semibold))
                 Spacer()
-                Text(build.source.attribution)
+                Text("Data: OP.GG")
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(Palette.secondaryText)
             }
@@ -71,7 +71,8 @@ struct BuildOptionCard: View {
     static func statsLine(_ stats: BuildOption.Stats) -> String {
         let winRate = stats.winRate.formatted(.percent.precision(.fractionLength(1)))
         let games = stats.games.formatted(.number.notation(.compactName))
-        let line = String(localized: "\(winRate) win rate · \(games) games")
+        // OP.GG's numbers describe the core item path, not the champion as a whole.
+        let line = String(localized: "Core items: \(winRate) win rate · \(games) games")
         guard let pickRate = stats.pickRate else { return line }
         return line + String(localized: " · Pick \(pickRate.formatted(.percent.precision(.fractionLength(0))))")
     }

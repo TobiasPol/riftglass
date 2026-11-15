@@ -38,15 +38,10 @@ public struct BuildOption: Codable, Equatable, Identifiable, Sendable {
         }
     }
 
+    /// OP.GG is the only source. A build persisted from Riot's client recommendations (`riot`, up to
+    /// v0.5.1) no longer decodes and is dropped.
     public enum Source: String, Codable, Sendable {
-        case opgg, riot
-
-        public var attribution: String {
-            switch self {
-            case .opgg: "Daten: OP.GG"
-            case .riot: "Riot-Empfehlung"
-            }
-        }
+        case opgg
     }
 
     public let id: String
@@ -86,6 +81,22 @@ public struct BuildOption: Codable, Equatable, Identifiable, Sendable {
         self.itemBlocks = itemBlocks
         self.skillOrder = skillOrder
         self.stats = stats
+    }
+
+    /// Core items and boots – what a finished build contains. Starters are sold again.
+    public var requiredItemIds: [Int] {
+        items(inBlocks: ["Core", "Boots"])
+    }
+
+    /// The options for the slot after the core ("Then"): alternatives, not a sequence.
+    public var alternativeItemIds: [Int] {
+        let required = Set(requiredItemIds)
+        return items(inBlocks: ["Then"]).filter { !required.contains($0) }
+    }
+
+    private func items(inBlocks titles: [String]) -> [Int] {
+        var seen = Set<Int>()
+        return itemBlocks.filter { titles.contains($0.title) }.flatMap(\.itemIds).filter { seen.insert($0).inserted }
     }
 
     /// All item IDs in block order, without duplicates (e.g. two potions).

@@ -1,66 +1,110 @@
 import Foundation
 
-/// An ARAM: Mayhem augment with OP.GG's statistics for one champion.
+/// An ARAM: Mayhem augment as OP.GG rates it for one champion.
 public struct AugmentStat: Codable, Equatable, Identifiable, Sendable {
-    public let id: Int
-    public let name: String
-    /// Share of games in which the augment was picked (OP.GG `popular`, 0…1).
-    public let pickRate: Double
-    /// OP.GG `performance`: "performance score for the augment on the selected champion" – higher is
-    /// better, roughly 60…140; values with a tiny pick rate are noise (see `AugmentRanking`).
-    public let performance: Double?
+    public enum Rarity: String, Codable, Sendable {
+        case silver, gold, prismatic
 
-    public init(id: Int, name: String, pickRate: Double, performance: Double? = nil) {
+        /// OP.GG's `rarity` codes on the augment page.
+        init?(opgg code: Int) {
+            switch code {
+            case 1: self = .silver
+            case 4: self = .gold
+            case 8: self = .prismatic
+            default: return nil
+            }
+        }
+    }
+
+    public let id: Int
+    /// OP.GG's English name; the UI prefers the localized one from CommunityDragon.
+    public let name: String
+    /// OP.GG's tier for this augment on this champion: 0 = S (best), then 1…5.
+    public let tier: Int
+    /// OP.GG `popular`: a relative popularity score (0 … ~3.5, 1 ≈ average) – **not** a pick share.
+    public let popularity: Double
+    public let rarity: Rarity?
+    public let iconURL: URL?
+
+    public init(id: Int, name: String, tier: Int, popularity: Double, rarity: Rarity? = nil, iconURL: URL? = nil) {
         self.id = id
         self.name = name
-        self.pickRate = pickRate
-        self.performance = performance
+        self.tier = tier
+        self.popularity = popularity
+        self.rarity = rarity
+        self.iconURL = iconURL
+    }
+
+    /// OP.GG's badge: `S` for tier 0, else the number.
+    public var tierLabel: String {
+        tier <= 0 ? "S" : String(tier)
+    }
+
+    /// The order of OP.GG's own list: best tier first, within a tier the more popular augment first.
+    public static func tierListOrder(_ lhs: AugmentStat, _ rhs: AugmentStat) -> Bool {
+        if lhs.tier != rhs.tier {
+            return lhs.tier < rhs.tier
+        }
+        if lhs.popularity != rhs.popularity {
+            return lhs.popularity > rhs.popularity
+        }
+        return lhs.id < rhs.id
     }
 }
 
-/// ARAM: Mayhem augment statistics per champion from OP.GG's `lol_list_aram_augments`.
+/// OP.GG's ARAM: Mayhem augment tier list per champion, read from the public champion page.
 ///
-/// OP.GG's `tier` field is not used: it only buckets the pick rate (3 = most picked … 5 = rare).
+/// The MCP tool `lol_list_aram_augments` is not usable for this: it only returns tiers 3–5, i.e. it
+/// leaves out exactly the augments OP.GG rates best for the champion (docs/SPIKE.md). The page has
+/// all tiers. One request per champion per cache lifetime; when op.gg is unreachable or its page
+/// format changed, the last known list is used however old it is – tier lists move slowly, and a
+/// wrong parse must never replace them.
 public struct OPGGAugmentProvider: Sendable {
-    private let client: OPGGClient
+    private let getter: any HTTPGetting
     private let cache: ResponseCache
+    private let userAgent: String
 
-    public init(client: OPGGClient = OPGGClient(), cache: ResponseCache = ResponseCache(name: "opgg-augments")) {
-        self.client = client
+    public init(
+        getter: any HTTPGetting = URLSessionGetter(),
+        cache: ResponseCache = ResponseCache(name: "opgg-augments"),
+        userAgent: String = "Riftglass"
+    ) {
+        self.getter = getter
         self.cache = cache
+        self.userAgent = userAgent
     }
 
-    /// All augments OP.GG lists for the champion, most picked first.
-    public func augments(championId: Int, limit: Int? = nil) async throws -> [AugmentStat] {
-        // v2: the cached text includes `performance`; v1 entries lack it.
-        let cacheKey = "aram-augments-v2-\(championId)"
-        let text: String
-        if let cached = await cache.value(for: cacheKey) {
-            text = cached
-        } else {
-            text = try await client.callTool("lol_list_aram_augments", arguments: [
-                "champion_id": .int(championId),
-                "desired_output_fields": .strings(["data.augments[].{id,name,performance,popular}"])
-            ])
-            await cache.store(text, for: cacheKey)
+    public static let pagesURL = URL(string: "https://op.gg/lol/modes/aram-mayhem/")!
+
+    /// OP.GG accepts the numeric champion ID in place of its name slug (62 ≙ `monkeyking`).
+    public static func pageURL(championId: Int) -> URL {
+        pagesURL.appending(path: "\(championId)/augments")
+    }
+
+    /// Every augment OP.GG lists for the champion, in OP.GG's order (`AugmentStat.tierListOrder`).
+    public func augments(championId: Int) async throws -> [AugmentStat] {
+        // v3: parsed page entries as JSON; v1/v2 held the MCP answer without the top tiers.
+        let cacheKey = "aram-mayhem-augments-v3-\(championId)"
+        if let cached = await cache.value(for: cacheKey).flatMap(Self.decode) {
+            return cached
         }
-        let all = try Self.augments(from: OPGGNotation.parse(text))
-        return limit.map { Array(all.prefix($0)) } ?? all
-    }
-
-    /// Sorted by pick share, most popular first. Entries without a name (OP.GG sends `null` for some
-    /// rarely picked augments) are dropped.
-    static func augments(from value: NotationValue) -> [AugmentStat] {
-        let entries = value["data"]?["augments"]?.list ?? []
-        return entries.compactMap { entry -> AugmentStat? in
-            guard let id = entry["id"]?.int, let name = entry["name"]?.string, !name.isEmpty else { return nil }
-            return AugmentStat(
-                id: id,
-                name: name,
-                pickRate: entry["popular"]?.double ?? 0,
-                performance: entry["performance"]?.double
+        do {
+            let html = try await getter.get(
+                Self.pageURL(championId: championId),
+                headers: ["User-Agent": userAgent, "Accept": "text/html"]
             )
+            let stats = try OPGGAugmentPage.augments(fromHTML: html)
+            if let encoded = try? JSONEncoder().encode(stats), let text = String(data: encoded, encoding: .utf8) {
+                await cache.store(text, for: cacheKey)
+            }
+            return stats
+        } catch {
+            guard let stale = await cache.staleValue(for: cacheKey).flatMap(Self.decode) else { throw error }
+            return stale
         }
-        .sorted { ($0.pickRate, $1.id) > ($1.pickRate, $0.id) }
+    }
+
+    private static func decode(_ text: String) -> [AugmentStat]? {
+        try? JSONDecoder().decode([AugmentStat].self, from: Data(text.utf8))
     }
 }

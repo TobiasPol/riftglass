@@ -22,8 +22,10 @@ final class ChampSelectCoordinator {
     private(set) var queue: GameQueue?
     private(set) var championId: Int?
     private(set) var role: Role?
+    /// Lane the client assigned when the current builds were requested (nil in blind pick).
+    @ObservationIgnored private var assignedRole: Role?
     private(set) var builds: [BuildOption] = []
-    /// ARAM: Mayhem only – the champion's augments per rarity, ranked by OP.GG performance.
+    /// ARAM: Mayhem only – the champion's augments per rarity, in OP.GG's tier order.
     private(set) var augmentBoard: AugmentBoard?
     private(set) var isLoadingBuilds = false
     private(set) var staticData: StaticData?
@@ -44,6 +46,8 @@ final class ChampSelectCoordinator {
     @ObservationIgnored let briefingSources = BriefingSources()
     /// OP.GG lane shares, loaded once per app run (the disk cache keeps them for 6 h).
     @ObservationIgnored var roleRates: RoleRates?
+    /// When `roleRates` were loaded – the app runs for days, lane shares change with every patch.
+    @ObservationIgnored var roleRatesLoadedAt: Date?
     /// Pending lane-share request, shared so concurrent updates send it only once.
     @ObservationIgnored var roleRatesTask: Task<RoleRates?, Never>?
     @ObservationIgnored let settings: AppSettings
@@ -132,6 +136,7 @@ final class ChampSelectCoordinator {
         session = nil
         championId = nil
         role = nil
+        assignedRole = nil
         builds = []
         augmentBoard = nil
         briefing = ChampSelectBriefing()
@@ -150,14 +155,19 @@ final class ChampSelectCoordinator {
                 queue = GameQueue(queueId: queueId)
             }
         }
-        guard newChampion != championId else {
+        // A lane swap with a teammate keeps the champion but needs the other lane's build.
+        let newRole = Role(lcuPosition: session?.localPosition)
+        guard newChampion != championId || newRole != assignedRole else {
             autoImportIfNeeded() // lock-in of the hovered champion
             return
         }
+        if newChampion != championId {
+            augmentBoard = nil
+        }
         championId = newChampion
+        assignedRole = newRole
         actionState = .idle
         builds = []
-        augmentBoard = nil
         Task { await loadBuilds(for: newChampion, session: session) }
     }
 
@@ -165,23 +175,33 @@ final class ChampSelectCoordinator {
         guard let championId else { return }
         isLoadingBuilds = true
         await staticDataTask?.value
-        guard let key = staticData?.champion(championId)?.id else {
+        guard let champion = staticData?.champion(championId) else {
             logger.error("Unknown champion \(championId)")
             isLoadingBuilds = false
             return
         }
+        let key = champion.id
         let queue = effectiveQueue
-        let role = await loader.resolveRole(session: session, championId: championId, mode: queue.mode, lcu: lcu)
         loadAugments(championId: championId, queue: queue)
+        // Without an assigned position (blind pick, custom) OP.GG's lane shares decide the role.
+        let assigned = session?.localPosition
+        let needsRates = queue.mode.hasLanes && Role(lcuPosition: assigned) == nil
+        let role = await BuildLoader.resolveRole(
+            assigned: assigned,
+            championName: champion.name,
+            mode: queue.mode,
+            rates: needsRates ? loadRoleRates() : nil
+        )
         let loaded = await loader.load(
             champion: ChampionRef(id: championId, key: key),
             role: role,
             queue: queue,
-            patch: staticData?.version,
-            lcu: lcu
+            patch: staticData?.version
         )
-        // Champion or queue (incl. Solo vs. Flex) changed meanwhile; the newer load owns the flag.
-        guard championId == self.championId, Self.buildKey(queue) == Self.buildKey(effectiveQueue) else { return }
+        // Champion, lane or queue (incl. Solo vs. Flex) changed meanwhile; the newer load owns the flag.
+        guard championId == self.championId, Role(lcuPosition: assigned) == assignedRole,
+              Self.buildKey(queue) == Self.buildKey(effectiveQueue)
+        else { return }
         self.role = role
         updateBriefing() // the matchup needs the resolved role
         builds = loaded

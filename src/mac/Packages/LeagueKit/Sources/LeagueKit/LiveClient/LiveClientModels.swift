@@ -109,11 +109,17 @@ public struct LiveGameSnapshot: Equatable, Sendable {
         self.players = players
     }
 
+    /// The active player's scoreboard entry. The full Riot ID decides; game name and summoner name
+    /// (not unique – two players can share a name with different tags) are only fallbacks.
     public var me: LivePlayer? {
         guard let activePlayer else { return nil }
-        let ids = [activePlayer.riotId, activePlayer.riotIdGameName, activePlayer.summonerName].compactMap(\.self)
+        let ids = [activePlayer.riotId, activePlayer.riotIdGameName, activePlayer.summonerName]
+            .compactMap(\.self).filter { !$0.isEmpty }
+        if let player = players.first(where: { player in ids.contains { $0 == player.riotId } }) {
+            return player
+        }
         return players.first { player in
-            ids.contains { $0 == player.riotId || $0 == player.riotIdGameName || $0 == player.summonerName }
+            ids.contains { $0 == player.riotIdGameName || $0 == player.summonerName }
         }
     }
 

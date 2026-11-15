@@ -82,15 +82,45 @@ extension InGameCoordinator {
             skillOrder = planned.skillOrder
             return planned.skillOrder
         }
-        guard skillOrderTask == nil, let queue else { return nil }
-        let numericId = champSelect.staticData?.champion(key: me.championKey).flatMap { Int($0.key) }
-        let champion = ChampionRef(id: numericId ?? 0, key: me.championKey)
-        let role = Role(lcuPosition: me.position)
-        skillOrderTask = Task { [weak self] in
-            let order = await BuildLoader().skillOrder(champion: champion, role: role, queue: queue)
-            guard !Task.isCancelled else { return }
-            self?.skillOrder = order
+        if skillOrderTask == nil, let queue {
+            loadSkillOrder(for: me, queue: queue)
         }
         return nil
+    }
+
+    /// One request per game – unless OP.GG cannot be reached: then it is repeated every 30 s instead of
+    /// leaving the game without hints. Without a lane from the Live Client (`NONE` in blind pick and
+    /// custom games) the champion's main lane on OP.GG decides, as in champ select.
+    private func loadSkillOrder(for me: LivePlayer, queue: GameQueue) {
+        let data = champSelect.staticData?.champion(key: me.championKey)
+        let champion = ChampionRef(id: data.flatMap { Int($0.key) } ?? 0, key: me.championKey)
+        let name = data?.name ?? me.championName
+        let needsRates = queue.mode.hasLanes && Role(lcuPosition: me.position) == nil
+        skillOrderTask = Task { [weak self, champSelect] in
+            let role = await BuildLoader.resolveRole(
+                assigned: me.position,
+                championName: name,
+                mode: queue.mode,
+                rates: needsRates ? champSelect.loadRoleRates() : nil
+            )
+            let order = await BuildLoader().skillOrder(champion: champion, role: role, queue: queue)
+            if order == nil {
+                try? await Task.sleep(for: .seconds(30))
+            }
+            guard !Task.isCancelled, let self else { return }
+            if let order {
+                skillOrder = order
+            } else {
+                skillOrderTask = nil
+            }
+        }
+    }
+
+    /// Item plan of the build from champ select – nil when that build is for another champion (the
+    /// persisted build of an earlier game, when the app was started mid-game).
+    func itemPlan(for player: LivePlayer) -> ItemPlan? {
+        guard let build = champSelect.plannedBuild, build.championKey == player.championKey else { return nil }
+        let plan = ItemPlan(required: build.requiredItemIds, alternatives: build.alternativeItemIds)
+        return plan.isEmpty ? nil : plan
     }
 }

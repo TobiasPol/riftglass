@@ -33,19 +33,20 @@ public struct OPGGBuildProvider: BuildProvider {
     ) async throws -> [BuildOption] {
         let position = queue.usesRoles ? role.opggPosition : Role.middle.opggPosition
         let cacheKey = "\(champion.key)-\(queue.rawValue)-\(position)-\(patch ?? "latest")"
-        let text: String
-        if let cached = await cache.value(for: cacheKey) {
-            text = cached
+        let parsed: NotationValue
+        if let cached = await cache.value(for: cacheKey), let value = try? OPGGNotation.parse(cached) {
+            parsed = value
         } else {
-            text = try await client.callTool("lol_get_champion_analysis", arguments: [
+            let text = try await client.callTool("lol_get_champion_analysis", arguments: [
                 "game_mode": .string(queue.opggGameMode),
                 "champion": .string(champion.key.uppercased()),
                 "position": .string(position),
                 "desired_output_fields": .strings(Self.fields)
             ])
+            // Only an answer that parses is cached – an error text would otherwise stick for hours.
+            parsed = try OPGGNotation.parse(text)
             await cache.store(text, for: cacheKey)
         }
-        let parsed = try OPGGNotation.parse(text)
         let option = Self.buildOption(from: parsed, champion: champion, role: role, queue: queue)
         if option == nil {
             logger.info("OP.GG has no build for \(champion.key, privacy: .public) \(role.rawValue, privacy: .public)")

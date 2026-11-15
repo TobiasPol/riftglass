@@ -126,15 +126,6 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// Map ID for Riot's `recommended-pages` endpoint, nil when the client has no recommendations.
-    public var recommendationMapId: Int? {
-        switch self {
-        case .summonersRift, .urf, .oneForAll, .ultimateSpellbook: Map.summonersRift
-        case .aram, .aramMayhem: Map.howlingAbyss
-        default: nil
-        }
-    }
-
     /// The mode has augments (ARAM: Mayhem augment stats come from OP.GG; see `AugmentPickTracker`).
     public var hasAugments: Bool {
         self == .aramMayhem || self == .arena

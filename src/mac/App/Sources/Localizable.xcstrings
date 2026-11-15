@@ -61,16 +61,6 @@
         }
       }
     },
-    "%@ win rate · %@ games": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ Winrate · %2$@ Spiele"
-          }
-        }
-      }
-    },
     "%@ · %@ games": {
       "localizations": {
         "de": {
@@ -187,16 +177,6 @@
         }
       }
     },
-    "All rarities": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alle Seltenheiten"
-          }
-        }
-      }
-    },
     "Appears next to the selection cards at game start and after levels 7, 11 and 15, once you are dead or in the fountain: your champion's strong augments per rarity (OP.GG). Riftglass does not read the offered cards. ⌥A hides the list until the next choice and shows it again (needs Input Monitoring); holding Tab shows it any time.": {
       "localizations": {
         "de": {
@@ -269,12 +249,12 @@
         }
       }
     },
-    "Builds, win rates and ranks come from OP.GG (public interface, no account). For ranks, the Riot IDs of the players in your game are sent to OP.GG – you can turn this off in Settings. Riot's recommendations come straight from your client.": {
+    "Builds, win rates and ranks come from OP.GG (public interface, no account). For ranks, the Riot IDs of the players in your game are sent to OP.GG – you can turn this off in Settings.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Builds, Winrates und Ränge kommen von OP.GG (öffentliche Schnittstelle, ohne Konto). Für Ränge werden die Riot-IDs der Spieler deines Spiels an OP.GG gesendet – abschaltbar in den Einstellungen. Riot-Empfehlungen kommen direkt aus deinem Client."
+            "value": "Builds, Winrates und Ränge kommen von OP.GG (öffentliche Schnittstelle, ohne Konto). Für Ränge werden die Riot-IDs der Spieler deines Spiels an OP.GG gesendet – abschaltbar in den Einstellungen."
           }
         }
       }
@@ -360,6 +340,16 @@
       },
       "extractionState": "manual",
       "comment": "Item set block title from StatsKit, looked up at runtime (BuildText.blockTitle)."
+    },
+    "Core items: %@ win rate · %@ games": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Core-Items: %1$@ Winrate · %2$@ Spiele"
+          }
+        }
+      }
     },
     "Counter options vs. %@": {
       "localizations": {
@@ -731,12 +721,12 @@
         }
       }
     },
-    "No builds available – OP.GG is unreachable and the client has no recommendation.": {
+    "No builds available – OP.GG is unreachable or has no data for this champion.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keine Builds verfügbar – OP.GG ist nicht erreichbar und der Client liefert keine Empfehlung."
+            "value": "Keine Builds verfügbar – OP.GG ist nicht erreichbar oder hat keine Daten für diesen Champion."
           }
         }
       }
@@ -774,12 +764,22 @@
     "OP.GG": {
       "shouldTranslate": false
     },
-    "OP.GG statistics · ⌥A hides": {
+    "OP.GG tier": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "OP.GG-Statistik · ⌥A blendet aus"
+            "value": "OP.GG-Tier"
+          }
+        }
+      }
+    },
+    "OP.GG tier list · ⌥A hides": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OP.GG-Tierliste · ⌥A blendet aus"
           }
         }
       }
@@ -834,16 +834,6 @@
         }
       }
     },
-    "Pick share": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pick-Anteil"
-          }
-        }
-      }
-    },
     "Play style: %@": {
       "localizations": {
         "de": {
@@ -870,16 +860,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Beenden"
-          }
-        }
-      }
-    },
-    "Recommendation": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Empfehlung"
           }
         }
       }

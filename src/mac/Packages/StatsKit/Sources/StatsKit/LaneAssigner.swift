@@ -17,6 +17,17 @@ public struct RoleRates: Equatable, Sendable {
         rates[Self.normalized(name)]?.values.contains { $0 > 0 } ?? false
     }
 
+    /// The lane the champion is played most in; nil when OP.GG has no lane share for it.
+    public func mainRole(of name: String) -> Role? {
+        let shares = rates[Self.normalized(name)] ?? [:]
+        var best: (role: Role, share: Double)?
+        for role in Role.allCases {
+            guard let share = shares[role], share > best?.share ?? 0 else { continue }
+            best = (role, share)
+        }
+        return best?.role
+    }
+
     /// Letters and digits only, lowercased: "Kog'Maw", "Nunu & Willump" and "Dr. Mundo" match the
     /// spelling of every source.
     public static func normalized(_ name: String) -> String {
@@ -49,6 +60,9 @@ public enum LaneAssigner {
         public let isRevealed: Bool
     }
 
+    /// Lane share below which a champion is not shown in that lane.
+    public static let minimumShare = 0.05
+
     public static func assign(_ picks: [Pick], rates: RoleRates) -> [Role: Assignment] {
         var result: [Role: Assignment] = [:]
         var open: [Pick] = []
@@ -62,7 +76,9 @@ public enum LaneAssigner {
         let freeRoles = Role.allCases.filter { result[$0] == nil }
         let best = bestRoles(for: open, roles: freeRoles, rates: rates)
         for (pick, role) in zip(open, best.roles) {
+            // Two bot laners force one into a lane it is never played in – no guess is better than that.
             let confidence = rates.rate(of: pick.name, in: role)
+            guard confidence >= minimumShare else { continue }
             result[role] = Assignment(championId: pick.championId, confidence: confidence, isRevealed: false)
         }
         return result

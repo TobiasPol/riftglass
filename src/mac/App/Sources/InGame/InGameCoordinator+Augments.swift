@@ -13,7 +13,7 @@ enum AugmentOverride: String, Equatable {
     case pinned
 }
 
-/// ARAM: Mayhem augment overlay: the champion's strong augments per rarity, shown left of League's
+/// ARAM: Mayhem augment overlay: the champion's best augments per rarity (OP.GG tier list), shown left of League's
 /// selection cards while an augment choice is likely open. The offered cards are never read (no screen capture);
 /// timing comes from the player's own level and death state (`AugmentPickTracker`). ⌥A toggles it.
 extension InGameCoordinator {
@@ -32,6 +32,7 @@ extension InGameCoordinator {
         augmentTask?.cancel()
         augmentTask = nil
         augmentBoard = nil
+        augmentLoadFailures = 0
         augmentTracker = AugmentPickTracker()
         augmentPrompt = nil
         augmentOverride = .auto
@@ -122,10 +123,13 @@ extension InGameCoordinator {
         prompt.map { "pick \($0.pick)/\($0.total) available=\($0.available)" } ?? "none"
     }
 
+    /// OP.GG's page is ~1 MB: after this many failed loads the game goes on without the list.
+    static let maxAugmentLoadFailures = 3
+
     /// Once per game. Needs Data Dragon for the numeric champion ID; retried on the next snapshot
     /// until static data is there.
     private func loadAugmentBoardIfNeeded(championKey: String) {
-        guard augmentBoard == nil, augmentTask == nil,
+        guard augmentBoard == nil, augmentTask == nil, augmentLoadFailures < Self.maxAugmentLoadFailures,
               let championId = champSelect.staticData?.champion(key: championKey).flatMap({ Int($0.key) })
         else { return }
         if let board = champSelect.augmentBoard, board.championId == championId {
@@ -133,6 +137,7 @@ extension InGameCoordinator {
             augmentBoard = board
             return
         }
+        let retryDelay = Duration.seconds(30 * (augmentLoadFailures + 1))
         augmentTask = Task { [weak self, loader = champSelect.augmentLoader] in
             let board: AugmentBoard?
             do {
@@ -145,7 +150,7 @@ extension InGameCoordinator {
                 Self.augmentLog
                     .notice("Board loaded for \(championId): \(board.columns.map(\.entries.count), privacy: .public)")
             } else {
-                try? await Task.sleep(for: .seconds(30)) // OP.GG failed: retry later, not every second
+                try? await Task.sleep(for: retryDelay) // OP.GG failed: retry later, not every second
             }
             guard !Task.isCancelled, let self else { return }
             augmentBoard = board
@@ -153,6 +158,7 @@ extension InGameCoordinator {
                 champSelect.icons.prefetch(board.iconURLs)
                 refreshAugmentOverlay()
             } else {
+                augmentLoadFailures += 1
                 augmentTask = nil
             }
         }

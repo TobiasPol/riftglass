@@ -10,7 +10,8 @@ client: `docs/SPIKE.md` – trust SPIKE.md over community docs.
 - UI: SwiftUI for content, AppKit `NSPanel` for windows
 - Project: XcodeGen (`src/mac/project.yml`) + four local Swift packages
 - Tests: Swift Testing (`import Testing`), fixtures in `tests/fixtures`
-- Build data: OP.GG public MCP API + Riot recommendations via LCU (no backend, no Riot API key)
+- Build data: OP.GG only – public MCP API; Mayhem augment tiers from the public op.gg champion page
+  (no backend, no Riot API key, no Riot/LCU recommendations)
 - Updates: Sparkle 2 (EdDSA, appcast.xml in repo); distribution: notarized DMG via scripts/release.sh
 - Database: none
 
@@ -38,6 +39,11 @@ None. Release script uses `NOTARY_PROFILE` (default `riftglass`, a notarytool ke
 - The LCU is closed during games on macOS – in-game data only from the Live Client API (2999).
 - In-game overlays must use `CGShieldingWindowLevel() + 1` (`.screenSaver` is below the game).
 - OP.GG MCP answers in a class notation, not JSON – parse with `OPGGNotation`.
+- OP.GG is the only source of builds, roles and augments; never add Riot's client recommendations
+  (`recommended-pages`, `recommended-champion-positions`) back, not even as a fallback.
+- Mayhem augments come from the op.gg page (`OPGGAugmentPage`), not from `lol_list_aram_augments` – the
+  MCP tool only returns tiers 3–5 and omits the champion's best augments. Rank by OP.GG's `tier` (0 = S),
+  never by `performance`; `popular` is a score, not a pick share. This page is the only one Riftglass reads.
 - Forbidden features (docs/COMPLIANCE.md): enemy ult/spell timers, memory reading, injection, input automation.
 - Fixtures must be anonymized (`scripts/spike/lib.sh: anonymize`).
 - UI strings are English literals (`Text("…")`, `String(localized:)`), German goes into

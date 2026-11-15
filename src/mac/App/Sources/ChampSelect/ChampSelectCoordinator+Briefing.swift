@@ -1,4 +1,5 @@
 import DataKit
+import Foundation
 import LeagueKit
 import StatsKit
 
@@ -32,9 +33,10 @@ struct BriefingSources {
 }
 
 extension ChampSelectCoordinator {
-    /// Own role: resolved with the builds, else what the client assigned.
+    /// Own role: what the client assigns right now (it changes with a lane swap), else the one
+    /// resolved with the builds (blind pick).
     var briefingRole: Role? {
-        role ?? Role(lcuPosition: session?.localPosition)
+        Role(lcuPosition: session?.localPosition) ?? role
     }
 
     /// Recomputes the briefing when the visible champions, their revealed positions, the own role,
@@ -94,8 +96,8 @@ extension ChampSelectCoordinator {
 
     /// Without OP.GG only positions the client revealed are known. Concurrent callers share one
     /// request; a failure clears it, so the next update retries.
-    private func loadRoleRates() async -> RoleRates {
-        if let roleRates {
+    func loadRoleRates() async -> RoleRates {
+        if let roleRates, let loadedAt = roleRatesLoadedAt, Date().timeIntervalSince(loadedAt) < 6 * 3600 {
             return roleRates
         }
         let task = roleRatesTask ?? Task { [briefingSources, logger] () -> RoleRates? in
@@ -111,8 +113,12 @@ extension ChampSelectCoordinator {
         if roleRatesTask == task {
             roleRatesTask = nil
         }
-        roleRates = roleRates ?? rates
-        return rates ?? RoleRates(rates: [:])
+        if let rates {
+            roleRates = rates
+            roleRatesLoadedAt = Date()
+        }
+        // A failed refresh keeps the older shares.
+        return rates ?? roleRates ?? RoleRates(rates: [:])
     }
 
     private func championRef(_ id: Int?) -> ChampionRef? {

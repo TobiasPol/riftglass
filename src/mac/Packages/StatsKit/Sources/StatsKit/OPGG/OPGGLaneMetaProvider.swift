@@ -15,17 +15,19 @@ public struct OPGGLaneMetaProvider: Sendable {
 
     public func roleRates() async throws -> RoleRates {
         let cacheKey = "lane-meta"
-        let text: String
-        if let cached = await cache.value(for: cacheKey) {
-            text = cached
-        } else {
-            text = try await client.callTool("lol_list_lane_meta_champions", arguments: [
-                "position": .string("all"),
-                "desired_output_fields": .strings(Self.fields)
-            ])
+        if let cached = await cache.value(for: cacheKey), let value = try? OPGGNotation.parse(cached) {
+            return Self.roleRates(from: value)
+        }
+        let text = try await client.callTool("lol_list_lane_meta_champions", arguments: [
+            "position": .string("all"),
+            "desired_output_fields": .strings(Self.fields)
+        ])
+        // Cached only when it parses and has lanes – this one answer feeds every lane guess for hours.
+        let rates = try Self.roleRates(from: OPGGNotation.parse(text))
+        if !rates.rates.isEmpty {
             await cache.store(text, for: cacheKey)
         }
-        return try Self.roleRates(from: OPGGNotation.parse(text))
+        return rates
     }
 
     static func roleRates(from value: NotationValue) -> RoleRates {

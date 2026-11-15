@@ -33,19 +33,18 @@ public struct OPGGCounterProvider: Sendable {
 
     public func counters(against champion: ChampionRef, role: Role, queue: BuildQueue) async throws -> [CounterPick] {
         let cacheKey = "\(champion.key)-\(queue.rawValue)-\(role.opggPosition)"
-        let text: String
-        if let cached = await cache.value(for: cacheKey) {
-            text = cached
-        } else {
-            text = try await client.callTool("lol_get_champion_analysis", arguments: [
-                "game_mode": .string(queue.opggGameMode),
-                "champion": .string(champion.key.uppercased()),
-                "position": .string(role.opggPosition),
-                "desired_output_fields": .strings(Self.fields)
-            ])
-            await cache.store(text, for: cacheKey)
+        if let cached = await cache.value(for: cacheKey), let value = try? OPGGNotation.parse(cached) {
+            return Self.counters(from: value)
         }
-        return try Self.counters(from: OPGGNotation.parse(text))
+        let text = try await client.callTool("lol_get_champion_analysis", arguments: [
+            "game_mode": .string(queue.opggGameMode),
+            "champion": .string(champion.key.uppercased()),
+            "position": .string(role.opggPosition),
+            "desired_output_fields": .strings(Self.fields)
+        ])
+        let value = try OPGGNotation.parse(text) // cached only when it parses
+        await cache.store(text, for: cacheKey)
+        return Self.counters(from: value)
     }
 
     /// Best counter first.
