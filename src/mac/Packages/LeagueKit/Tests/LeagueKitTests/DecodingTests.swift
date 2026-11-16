@@ -27,6 +27,17 @@ struct DecodingTests {
         #expect(session.enemyPicks.allSatisfy { $0.position == nil })
         #expect(session.isLocalPickInProgress)
         #expect(session.completedActionCount == 14) // 10 bans, 4 locked picks
+        #expect(!session.isLocalBanPending)
+        #expect(session.isLocalPickPending)
+        // Teammates' bans only (cells 0, 1, 3, 4): not the local player's (2), not the enemy's.
+        #expect(session.teammateBanIds == [99, 100, 102, 103])
+        #expect(session.allies.map(\.cellId) == [0, 1, 3, 4])
+    }
+
+    @Test func localChampionMasteryToleratesOddEntries() async throws {
+        let json = #"[{"championId":103,"championPoints":180000},{"championId":238},{"championPoints":5}]"#
+        let lcu = FakeLCU(responses: ["/lol-champion-mastery/v1/local-player/champion-mastery": Data(json.utf8)])
+        #expect(try await lcu.localChampionMastery() == [103: 180_000])
     }
 
     @Test func runePagesAndInventory() throws {

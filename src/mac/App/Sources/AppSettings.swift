@@ -21,6 +21,7 @@ final class AppSettings {
         static let autoRunes = "autoImportRunes"
         static let lastQueue = "lastQueue"
         static let briefing = "champSelectBriefingEnabled"
+        static let draftOptions = "champSelectDraftOptionsEnabled"
         static let augmentOverlay = "augmentOverlayEnabled"
     }
 
@@ -77,6 +78,11 @@ final class AppSettings {
         didSet { defaults.set(briefingEnabled, forKey: Key.briefing) }
     }
 
+    /// Champ select: pick and ban options (OP.GG tier list, counters, synergies, own mastery).
+    var draftOptionsEnabled: Bool {
+        didSet { defaults.set(draftOptionsEnabled, forKey: Key.draftOptions) }
+    }
+
     /// Queue of the last lobby, kept because the LCU is closed in game.
     var lastQueue: GameQueue? {
         didSet { defaults.set(try? JSONEncoder().encode(lastQueue), forKey: Key.lastQueue) }
@@ -91,7 +97,7 @@ final class AppSettings {
         defaults.register(defaults: [
             Key.tabOverlay: true, Key.ranks: true, Key.goldEstimate: false,
             Key.skillOverlay: true, Key.autoItemSet: true, Key.autoRunes: false,
-            Key.briefing: true, Key.augmentOverlay: true
+            Key.briefing: true, Key.draftOptions: true, Key.augmentOverlay: true
         ])
         tabOverlayEnabled = defaults.bool(forKey: Key.tabOverlay)
         ranksEnabled = defaults.bool(forKey: Key.ranks)
@@ -102,6 +108,7 @@ final class AppSettings {
         autoImportItemSet = defaults.bool(forKey: Key.autoItemSet)
         autoImportRunes = defaults.bool(forKey: Key.autoRunes)
         briefingEnabled = defaults.bool(forKey: Key.briefing)
+        draftOptionsEnabled = defaults.bool(forKey: Key.draftOptions)
         augmentOverlayEnabled = defaults.bool(forKey: Key.augmentOverlay)
         lastQueue = defaults.data(forKey: Key.lastQueue).flatMap { try? JSONDecoder().decode(GameQueue.self, from: $0) }
         plannedBuild = defaults.data(forKey: Key.plannedBuild)

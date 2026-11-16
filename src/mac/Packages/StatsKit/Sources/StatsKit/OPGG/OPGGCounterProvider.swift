@@ -17,9 +17,30 @@ public struct CounterPick: Equatable, Identifiable, Sendable {
     }
 }
 
-/// Counter picks against a champion from OP.GG's `lol_get_champion_analysis` (`weak_counters`).
+/// OP.GG's strongest lane matchups of one champion, three in each direction.
+public struct LaneCounters: Equatable, Sendable {
+    /// Champions that beat it (OP.GG `weak_counters`); `winRate` is theirs. Best counter first.
+    public let beatenBy: [CounterPick]
+    /// Champions it beats (`strong_counters`); `winRate` is still the other champion's, so low.
+    public let beats: [CounterPick]
+
+    public init(beatenBy: [CounterPick], beats: [CounterPick]) {
+        self.beatenBy = beatenBy
+        self.beats = beats
+    }
+
+    /// The other champion's win rate against this one, if OP.GG lists the pair.
+    public func winRate(of championId: Int) -> CounterPick? {
+        (beatenBy + beats).first { $0.id == championId }
+    }
+}
+
+/// Counter picks against a champion from OP.GG's `lol_get_champion_analysis`.
 public struct OPGGCounterProvider: Sendable {
-    static let fields = ["data.weak_counters[].{champion_id,champion_name,my_win_rate,counter_win_rate,play}"]
+    static let fields = [
+        "data.weak_counters[].{champion_id,champion_name,my_win_rate,counter_win_rate,play}",
+        "data.strong_counters[].{champion_id,champion_name,my_win_rate,counter_win_rate,play}"
+    ]
     /// OP.GG lists counters from a few hundred games; smaller samples are hidden.
     static let minimumGames = 200
 
@@ -32,9 +53,14 @@ public struct OPGGCounterProvider: Sendable {
     }
 
     public func counters(against champion: ChampionRef, role: Role, queue: BuildQueue) async throws -> [CounterPick] {
-        let cacheKey = "\(champion.key)-\(queue.rawValue)-\(role.opggPosition)"
+        try await laneCounters(of: champion, role: role, queue: queue).beatenBy
+    }
+
+    public func laneCounters(of champion: ChampionRef, role: Role, queue: BuildQueue) async throws -> LaneCounters {
+        // v2: both directions; older cached answers only have `weak_counters`.
+        let cacheKey = "\(champion.key)-\(queue.rawValue)-\(role.opggPosition)-v2"
         if let cached = await cache.value(for: cacheKey), let value = try? OPGGNotation.parse(cached) {
-            return Self.counters(from: value)
+            return Self.laneCounters(from: value)
         }
         let text = try await client.callTool("lol_get_champion_analysis", arguments: [
             "game_mode": .string(queue.opggGameMode),
@@ -44,13 +70,23 @@ public struct OPGGCounterProvider: Sendable {
         ])
         let value = try OPGGNotation.parse(text) // cached only when it parses
         await cache.store(text, for: cacheKey)
-        return Self.counters(from: value)
+        return Self.laneCounters(from: value)
+    }
+
+    static func laneCounters(from value: NotationValue) -> LaneCounters {
+        LaneCounters(
+            beatenBy: counters(value["data"]?["weak_counters"]),
+            beats: counters(value["data"]?["strong_counters"])
+        )
     }
 
     /// Best counter first.
     static func counters(from value: NotationValue) -> [CounterPick] {
-        let entries = value["data"]?["weak_counters"]?.list ?? []
-        return entries.compactMap { entry -> CounterPick? in
+        counters(value["data"]?["weak_counters"])
+    }
+
+    private static func counters(_ list: NotationValue?) -> [CounterPick] {
+        (list?.list ?? []).compactMap { entry -> CounterPick? in
             guard let id = entry["champion_id"]?.int, let name = entry["champion_name"]?.string,
                   let winRate = entry["counter_win_rate"]?.double, let games = entry["play"]?.int,
                   games >= minimumGames

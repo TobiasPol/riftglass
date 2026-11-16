@@ -29,3 +29,5 @@ opt_in_rules:
 disabled_rules:
   - todo
   - trailing_comma
+inclusive_language:
+  override_allowed_terms: [mastery] # League's term for champion experience ("Champion Mastery")

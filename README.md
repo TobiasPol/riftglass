@@ -16,9 +16,13 @@ reading. It lives in your menu bar and uses close to 0 % CPU while League is clo
 - **Game mode detection** (Ranked, Flex, ARAM, ARAM: Mayhem, Arena, URF, …): builds and item sets match
   the mode; in ARAM: Mayhem the champion's best augments from OP.GG's tier list.
 - **Automatic import after lock-in**: the item set by default, runes and spells if you opt in.
+- **Ban options** while your ban is open: strong champions the enemy is likely to pick (OP.GG win, pick
+  and ban rate), your own lane weighted higher, and the champions that beat your declared pick.
+- **Pick options** until you lock in, each with its reasons: lane strength, head-to-head against your
+  (likely) lane opponent, duo synergy with your teammates, what your team lacks (magic/physical damage,
+  frontline) and your own champion mastery. After the lock-in: your champion's duo win rate with each ally.
 - A **matchup briefing**: your likely lane opponent with your head-to-head win rate, lane advantage and
-  a tip; both teams' physical/magic damage split and frontline; during your pick turn, counter options
-  against your lane opponent (with win rate and sample size).
+  a tip; both teams' physical/magic damage split and frontline.
 - One click imports runes, spells and an item set. Riftglass only replaces **its own** rune page
   ("Riftglass: …") and item sets. Your other pages and sets (OP.GG, U.GG, Blitz, …) are never touched.
 
@@ -58,7 +62,8 @@ Requirements: macOS 14 or later, Apple Silicon.
 | Champ select, rune pages, item sets | League client API (LCU, `127.0.0.1`) | no |
 | In-game stats | Live Client Data API (`127.0.0.1:2999`) | no |
 | Builds, win rates | [OP.GG](https://op.gg) public MCP API | champion + role only |
-| Matchups, counters, lane shares | OP.GG public MCP API | your champion, the enemy champion and the role |
+| Matchups, counters, synergies, tier list | OP.GG public MCP API | champion names and roles (yours, your teammates', the enemy's) |
+| Your champion mastery | League client API (LCU, `127.0.0.1`) | no |
 | ARAM: Mayhem augment tiers | OP.GG champion page (`op.gg`, at most one answered request per champion in 6 h) | champion only |
 | Ranks | OP.GG public MCP API | Riot IDs of the players in your game (can be turned off) |
 | Icons, item data | Riot Data Dragon CDN | no personal data |

@@ -37,10 +37,12 @@ struct SettingsView: View {
                 mode is imported; Riftglass only changes its own rune pages and item sets.
                 """)
                 .font(.caption).foregroundStyle(.secondary)
-                Toggle("Matchup briefing (lane opponent, teams, counter picks)", isOn: $settings.briefingEnabled)
+                Toggle("Matchup briefing (lane opponent, teams)", isOn: $settings.briefingEnabled)
+                Toggle("Pick & ban options (counters, synergies, your mastery)", isOn: $settings.draftOptionsEnabled)
                 Text("""
                 Only uses champions you can see in champ select. Enemy lanes are estimated from OP.GG \
-                statistics; counter picks only appear during your pick.
+                statistics. Pick and ban options are ranked from OP.GG statistics and your own mastery – \
+                several options, never chosen for you.
                 """)
                 .font(.caption).foregroundStyle(.secondary)
             }
