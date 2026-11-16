@@ -3,6 +3,19 @@
     <channel>
         <title>Riftglass</title>
         <item>
+            <title>0.7.0</title>
+            <pubDate>Mon, 16 Nov 2026 11:22:45 +0100</pubDate>
+            <sparkle:version>35</sparkle:version>
+            <sparkle:shortVersionString>0.7.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.7.0/Riftglass-0.7.0.dmg" length="3164800" type="application/octet-stream" sparkle:edSignature="UNHFlqz9vHTLSxg+zK4GNykWX7Rz7m5ewDFsU2rQzUruqLLACvcxzSwNepiXT6Oaymp6ebB/iQi/E6gwsh6NBg=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.7.0/Riftglass35-31.delta" sparkle:deltaFrom="31" length="207666" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="WqlsTr7VcjEzz+WuEKlEvrZgRL4HiQ+kCmpVuETRu+Iv1M3eg2HUoJJ6CjZGdVYmAddtYV9tNTeLQfbc7pjbAA=="/>
+                <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.7.0/Riftglass35-27.delta" sparkle:deltaFrom="27" length="254802" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="wmHsZrB5IJvNA2EBNLqcOB8fUGTOJT6zUy4SXdqew03DLwa7Jk+4sde/RLC1pQKksdrExYb6kJCj24EBaE8TCw=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>0.6.0</title>
             <pubDate>Sun, 15 Nov 2026 12:08:56 +0100</pubDate>
             <sparkle:version>31</sparkle:version>
@@ -26,19 +39,6 @@
             <sparkle:deltas>
                 <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.5.1/Riftglass27-25.delta" sparkle:deltaFrom="25" length="11842" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="/qj6Pkoy8jLVspQTnyGRBJzjqVnPM8B0oaA6tYyGoJkjSXyECoWbdWsYyTewN9MhemsgUi6jincloLtc9CAqAg=="/>
                 <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.5.1/Riftglass27-20.delta" sparkle:deltaFrom="20" length="176034" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="re+HC1oIsvsfQ1qxvTBwrIGj9s553CzZQEZzZjLrLpNKJbSHAJWH14rMGNiXmCeB9J7atRXzozSli9M+/j37BQ=="/>
-            </sparkle:deltas>
-        </item>
-        <item>
-            <title>0.5.0</title>
-            <pubDate>Sat, 07 Nov 2026 14:01:23 +0100</pubDate>
-            <sparkle:version>25</sparkle:version>
-            <sparkle:shortVersionString>0.5.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.5.0/Riftglass-0.5.0.dmg" length="3072953" type="application/octet-stream" sparkle:edSignature="sisujmSU/1yhEdePcEi3frP0MmRgtWZYp6WEzGbRbw/E6tiWcUQ6LhcqnLE0fcCOc8yEoSk7BvOFSc1MW5yCCw=="/>
-            <sparkle:deltas>
-                <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.5.0/Riftglass25-20.delta" sparkle:deltaFrom="20" length="177054" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="PHVsHUU4UHg3wOgMAieFI1WqJpKZ5v/3+8kXeCCbaK5FO/w+P32iIZ+hYvh61lMOv5mg64gKw4zqTff1ASWiCA=="/>
-                <enclosure url="https://github.com/TobiasPol/riftglass/releases/download/v0.5.0/Riftglass25-16.delta" sparkle:deltaFrom="16" length="222918" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="/2fqbjS0tNCzt7A7D8hxcGEZomxJJVxmr3aoqIfGi+mU9Qum8zR0zjDM8HNMAeUcnZuxFkgkyq16RXatXHJRBA=="/>
             </sparkle:deltas>
         </item>
     </channel>

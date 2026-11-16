@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.0
 - **Pick and ban options in champ select.** While your ban is open, five ban options: strong champions the
   enemy is likely to pick (OP.GG win, pick and ban rate), champions in your lane weighted higher, and the
   champions that beat your declared pick. Until you lock in, pick options for your lane, each with the
