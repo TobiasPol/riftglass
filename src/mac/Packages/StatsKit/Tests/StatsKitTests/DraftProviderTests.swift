@@ -49,6 +49,18 @@ struct DraftProviderTests {
         #expect(OPGGSynergyProvider.synergies(from: small).map(\.id) == [2])
     }
 
+    /// A burst of hover changes asks for the same ally synergies at once – OP.GG sees one request.
+    @Test func concurrentRequestsShareOneFetch() async throws {
+        let poster = try SlowPoster(response: Fixture.data("opgg/leesin-jungle-mid-synergies.json"))
+        let provider = OPGGSynergyProvider(client: OPGGClient(poster: poster), cache: cache())
+        async let first = provider.synergies(of: "Lee Sin", in: .jungle, with: .middle)
+        async let second = provider.synergies(of: "Lee Sin", in: .jungle, with: .middle)
+        async let third = provider.synergies(of: "Lee Sin", in: .jungle, with: .middle)
+        let results = try await [first, second, third]
+        #expect(results.allSatisfy { $0.count == 10 })
+        #expect(await poster.calls == 1)
+    }
+
     @Test func synergyArgumentsUseOPGGsSpelling() {
         let names = ["Lee Sin", "Dr. Mundo", "Kog'Maw", "Nunu & Willump", "Jarvan IV", "Wukong"]
         #expect(names.map(OPGGSynergyProvider.argument(forName:)) == [
@@ -85,5 +97,21 @@ struct DraftProviderTests {
         #expect(directory.id(forName: "Viego") == 234)
         // A short key must not swallow an unknown champion.
         #expect(directory.id(forName: "Vilemaw") == nil)
+    }
+}
+
+/// Answers after a short delay, so concurrent callers overlap; counts the requests.
+private actor SlowPoster: HTTPPosting {
+    private(set) var calls = 0
+    private let response: Data
+
+    init(response: Data) {
+        self.response = response
+    }
+
+    func post(_: URL, body _: Data, headers _: [String: String]) async throws -> Data {
+        calls += 1
+        try await Task.sleep(for: .milliseconds(100))
+        return response
     }
 }

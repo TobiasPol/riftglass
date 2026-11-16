@@ -62,15 +62,17 @@ public struct OPGGCounterProvider: Sendable {
         if let cached = await cache.value(for: cacheKey), let value = try? OPGGNotation.parse(cached) {
             return Self.laneCounters(from: value)
         }
-        let text = try await client.callTool("lol_get_champion_analysis", arguments: [
-            "game_mode": .string(queue.opggGameMode),
-            "champion": .string(champion.key.uppercased()),
-            "position": .string(role.opggPosition),
-            "desired_output_fields": .strings(Self.fields)
-        ])
-        let value = try OPGGNotation.parse(text) // cached only when it parses
-        await cache.store(text, for: cacheKey)
-        return Self.laneCounters(from: value)
+        let text = try await cache.fetchOnce(for: cacheKey) { [client] in
+            let text = try await client.callTool("lol_get_champion_analysis", arguments: [
+                "game_mode": .string(queue.opggGameMode),
+                "champion": .string(champion.key.uppercased()),
+                "position": .string(role.opggPosition),
+                "desired_output_fields": .strings(Self.fields)
+            ])
+            _ = try OPGGNotation.parse(text) // cached only when it parses
+            return text
+        }
+        return try Self.laneCounters(from: OPGGNotation.parse(text))
     }
 
     static func laneCounters(from value: NotationValue) -> LaneCounters {

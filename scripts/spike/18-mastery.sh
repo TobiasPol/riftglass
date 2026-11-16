@@ -14,7 +14,8 @@ if jq -e '.myTeam' >/dev/null 2>&1 <<<"$session"; then
     actions: ([.actions[][] | .type] | group_by(.) | map({(.[0]): length}) | add // {})}' <<<"$session"
   echo "ban actions (actor is me / teammate / enemy, championId > 0, completed, inProgress):"
   jq -c --argjson me "$me" '[.myTeam[].cellId] as $team | [.actions[][] | select(.type == "ban")
-    | {who: (if .actorCellId == $me then "me" elif ($team | index(.actorCellId)) then "team" else "enemy" end),
+    | .actorCellId as $actor
+    | {who: (if $actor == $me then "me" elif any($team[]; . == $actor) then "team" else "enemy" end),
        champion: (.championId > 0), completed, isInProgress}]' <<<"$session"
 else
   echo "Not in champ select – ban actions skipped."

@@ -67,7 +67,26 @@ extension ChampSelectCoordinator {
         let key = input.key
         guard key != draft.key else { return }
         draft.key = key
+        pruneDraft(for: input)
         Task { await loadDraft(input, key: key) }
+    }
+
+    /// Drops what the new state makes wrong right away, while the reload waits for OP.GG: cards of an
+    /// ended phase, another lane's picks, champions just taken or banned. The rest stays, so a lock
+    /// elsewhere in the lobby does not blank the cards.
+    private func pruneDraft(for input: DraftInput) {
+        if !input.isBanPending {
+            draft.bans = []
+        }
+        if !input.isPickPending || draft.role != input.role {
+            draft.picks = []
+        }
+        if input.isPickPending {
+            draft.teamSynergies = []
+        }
+        let taken = Set(input.allies.map(\.championId)).union(input.enemies.map(\.championId)).union(input.teammateBans)
+        draft.picks.removeAll { taken.contains($0.id) }
+        draft.bans.removeAll { taken.contains($0.id) || $0.id == input.ownChampionId }
     }
 
     private func draftInput() -> DraftInput? {

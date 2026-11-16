@@ -47,15 +47,17 @@ public struct OPGGSynergyProvider: Sendable {
         if let cached = await cache.value(for: cacheKey), let value = try? OPGGNotation.parse(cached) {
             return Self.synergies(from: value)
         }
-        let text = try await client.callTool("lol_get_champion_synergies", arguments: [
-            "champion": .string(champion),
-            "my_position": .string(role.opggPosition),
-            "synergy_position": .string(partnerRole.opggPosition),
-            "desired_output_fields": .strings(Self.fields)
-        ])
-        let value = try OPGGNotation.parse(text) // cached only when it parses
-        await cache.store(text, for: cacheKey)
-        return Self.synergies(from: value)
+        let text = try await cache.fetchOnce(for: cacheKey) { [client] in
+            let text = try await client.callTool("lol_get_champion_synergies", arguments: [
+                "champion": .string(champion),
+                "my_position": .string(role.opggPosition),
+                "synergy_position": .string(partnerRole.opggPosition),
+                "desired_output_fields": .strings(Self.fields)
+            ])
+            _ = try OPGGNotation.parse(text) // cached only when it parses
+            return text
+        }
+        return try Self.synergies(from: OPGGNotation.parse(text))
     }
 
     /// "Lee Sin" → `LEE_SIN`, "Dr. Mundo" → `DR_MUNDO`, "Kog'Maw" → `KOGMAW`, "Nunu & Willump" →
