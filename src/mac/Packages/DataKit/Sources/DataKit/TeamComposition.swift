@@ -19,10 +19,10 @@ public struct TeamProfile: Equatable, Sendable {
         var weighted = 0.0
         var weights = 0.0
         for champion in champions {
-            guard let info = champion.info, info.attack + info.magic > 0 else { continue }
+            guard let share = Self.physicalShare(of: champion) else { continue }
             // Tanks and supports deal less of a team's damage.
             let weight = ["Tank", "Support"].contains(champion.tags?.first) ? 0.5 : 1
-            weighted += weight * Double(info.attack) / Double(info.attack + info.magic)
+            weighted += weight * share
             weights += weight
         }
         physicalShare = weights > 0 ? weighted / weights : nil
@@ -30,7 +30,13 @@ public struct TeamProfile: Equatable, Sendable {
         assassins = champions.count { $0.tags?.first == "Assassin" }
     }
 
-    static func isFrontline(_ champion: Champion) -> Bool {
+    /// Physical share of one champion's damage from Data Dragon's ratings; nil without ratings.
+    public static func physicalShare(of champion: Champion) -> Double? {
+        guard let info = champion.info, info.attack + info.magic > 0 else { return nil }
+        return Double(info.attack) / Double(info.attack + info.magic)
+    }
+
+    public static func isFrontline(_ champion: Champion) -> Bool {
         let tags = champion.tags ?? []
         return tags.contains("Tank") || (tags.first == "Fighter" && (champion.info?.defense ?? 0) >= 5)
     }

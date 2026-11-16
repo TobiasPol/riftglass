@@ -45,9 +45,16 @@ Diese Datei ist verbindlich; Features, die hier als verboten stehen, werden nich
   bleibt ausgeschlossen, bis Riot es bestätigt. Abschaltbar.
 - Matchup-Briefing im Champ Select: nur Champions, die der Spieler sieht (gelockte Gegner – keine
   Gegner-Hovers, keine Namen oder Ränge der Gegner). Gegner-Lanes werden aus OP.GG-Lane-Anteilen geschätzt
-  und als „vermutlich“ markiert. Counter-Picks nur während des eigenen Picks, als Liste mit Siegquote und
-  Stichprobe („Optionen, keine Empfehlung“), nie automatisch gewählt. Team-Hinweise sind neutrale
-  Beobachtungen („… ist eine Option“), abschaltbar.
+  und als „vermutlich“ markiert. Team-Hinweise sind neutrale Beobachtungen („… ist eine Option“), abschaltbar.
+- Pick- und Ban-Optionen (seit 0.7, abschaltbar): Riot erlaubt Werkzeuge, die „multiple choices“ zeigen,
+  verbietet aber „Apps that dictate player decisions“ und verlangt, dass Produkte die Vielfalt der
+  Entscheidungen erhöhen (developer.riotgames.com/docs/lol, Game Integrity). Deshalb immer **mehrere**
+  Optionen (Bans 5, Picks 3–5), jede mit sichtbaren Gründen (Lane-Stärke, Matchup, Synergie, Team-Passung,
+  Meisterschaft) und dem Hinweis „Optionen, keine Empfehlung“; nie gehovert, gebannt oder gelockt
+  (keine Eingabe-Automatisierung). Eingaben nur, was der Spieler sieht: eigene und verbündete Picks/Hovers/
+  Ban-Hovers, gelockte Gegner – keine Gegner-Hovers, keine gegnerischen Bans vor der Aufdeckung. Die
+  Meisterschaft ist eigene Daten aus der LCU und verlässt den Mac nicht. Die eigene Ban-Absicht bleibt in der
+  Liste; nur Bans der Mitspieler werden ausgeblendet.
 - Ränge aller 10 Spieler (wie Porofessor/Blitz): nur Spieler des eigenen Spiels, abschaltbar.
 - Nutzung der OP.GG-MCP-Schnittstelle in einer App: OP.GG vor dem Release informiert/anfragen. Dabei auch
   das Lesen der Augment-Seite ansprechen und den MCP-Fehler melden (`lol_list_aram_augments` ohne Tier 0–2).

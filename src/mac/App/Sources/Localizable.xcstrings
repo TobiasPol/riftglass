@@ -61,6 +61,36 @@
         }
       }
     },
+    "%@ together · %@ games": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ zusammen · %2$@ Spiele"
+          }
+        }
+      }
+    },
+    "%@ vs. %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ gegen %2$@"
+          }
+        }
+      }
+    },
+    "%@ with %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ mit %2$@"
+          }
+        }
+      }
+    },
     "%@ · %@ games": {
       "localizations": {
         "de": {
@@ -167,12 +197,62 @@
         }
       }
     },
+    "Adds frontline": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bringt Frontline"
+          }
+        }
+      }
+    },
+    "Adds magic damage": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bringt magischen Schaden"
+          }
+        }
+      }
+    },
+    "Adds physical damage": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bringt physischen Schaden"
+          }
+        }
+      }
+    },
     "After the game": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Nach dem Spiel"
+          }
+        }
+      }
+    },
+    "Against %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gegen %@"
+          }
+        }
+      }
+    },
+    "Against %@ (likely)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gegen %@ (vermutlich)"
           }
         }
       }
@@ -207,6 +287,26 @@
         }
       }
     },
+    "Ban options": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban-Optionen"
+          }
+        }
+      }
+    },
+    "Beats your %@ (%@)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlägt deinen %1$@ (%2$@)"
+          }
+        }
+      }
+    },
     "Blue": {
       "localizations": {
         "de": {
@@ -228,6 +328,16 @@
       },
       "extractionState": "manual",
       "comment": "Item set block title from StatsKit, looked up at runtime (BuildText.blockTitle)."
+    },
+    "Bot": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bot"
+          }
+        }
+      }
     },
     "Build": {
       "localizations": {
@@ -347,16 +457,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Core-Items: %1$@ Winrate · %2$@ Spiele"
-          }
-        }
-      }
-    },
-    "Counter options vs. %@": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Counter-Optionen gegen %@"
           }
         }
       }
@@ -611,6 +711,16 @@
         }
       }
     },
+    "Jungle": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jungle"
+          }
+        }
+      }
+    },
     "Lane advantage: %@": {
       "localizations": {
         "de": {
@@ -627,6 +737,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lane-Gegner"
+          }
+        }
+      }
+    },
+    "Lane opponent not picked yet – safe options rank by strength and team.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lane-Gegner noch nicht gewählt – sichere Optionen nach Stärke und Team sortiert."
+          }
+        }
+      }
+    },
+    "Lane statistics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lane-Statistik"
           }
         }
       }
@@ -681,12 +811,32 @@
         }
       }
     },
+    "Likely enemy picks that are strong – options, not a recommendation.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wahrscheinliche, starke Gegner-Picks – Optionen, keine Empfehlung."
+          }
+        }
+      }
+    },
     "Little frontline on your team – a sturdy pick or build is an option.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Kaum Frontline im eigenen Team – ein robuster Pick oder Build ist eine Option."
+          }
+        }
+      }
+    },
+    "Little mastery": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenig Meisterschaft"
           }
         }
       }
@@ -701,12 +851,22 @@
         }
       }
     },
-    "Matchup briefing (lane opponent, teams, counter picks)": {
+    "Matchup briefing (lane opponent, teams)": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Matchup-Briefing (Lane-Gegner, Teams, Counter-Picks)"
+            "value": "Matchup-Briefing (Lane-Gegner, Teams)"
+          }
+        }
+      }
+    },
+    "Mid": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mid"
           }
         }
       }
@@ -804,12 +964,12 @@
         }
       }
     },
-    "Only uses champions you can see in champ select. Enemy lanes are estimated from OP.GG statistics; counter picks only appear during your pick.": {
+    "Only uses champions you can see in champ select. Enemy lanes are estimated from OP.GG statistics. Pick and ban options are ranked from OP.GG statistics and your own mastery – several options, never chosen for you.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nutzt nur Champions, die du im Champ Select siehst. Gegner-Lanes werden aus OP.GG-Statistiken geschätzt, Counter-Picks erscheinen nur während deines Picks."
+            "value": "Nutzt nur Champions, die du im Champ Select siehst. Gegner-Lanes werden aus OP.GG-Statistiken geschätzt. Pick- und Ban-Optionen werden aus OP.GG-Statistiken und deiner eigenen Meisterschaft sortiert – mehrere Optionen, nie für dich gewählt."
           }
         }
       }
@@ -824,12 +984,52 @@
         }
       }
     },
+    "Pick & ban options (counters, synergies, your mastery)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick- & Ban-Optionen (Counter, Synergien, deine Meisterschaft)"
+          }
+        }
+      }
+    },
+    "Pick options": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick-Optionen"
+          }
+        }
+      }
+    },
+    "Pick options · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick-Optionen · %@"
+          }
+        }
+      }
+    },
     "Pick or hover a champion to see build options.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Wähle oder hovere einen Champion, um Build-Optionen zu sehen."
+          }
+        }
+      }
+    },
+    "Picked %@ · banned %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepickt %1$@ · gebannt %2$@"
           }
         }
       }
@@ -860,6 +1060,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Beenden"
+          }
+        }
+      }
+    },
+    "Ranked by lane strength, matchup, synergy, team fit and your mastery – options, not a recommendation.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sortiert nach Lane-Stärke, Matchup, Synergie, Team-Passung und deiner Meisterschaft – Optionen, keine Empfehlung."
           }
         }
       }
@@ -1096,6 +1306,26 @@
         }
       }
     },
+    "Support": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support"
+          }
+        }
+      }
+    },
+    "Synergy with your team": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synergie mit deinem Team"
+          }
+        }
+      }
+    },
     "Tab overlay (ranks, CS/min, build progress)": {
       "localizations": {
         "de": {
@@ -1158,6 +1388,26 @@
         }
       }
     },
+    "Tier %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tier %lld"
+          }
+        }
+      }
+    },
+    "Top": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top"
+          }
+        }
+      }
+    },
     "Version": {
       "localizations": {
         "de": {
@@ -1178,12 +1428,22 @@
         }
       }
     },
-    "Win rate of the counter in this lane – options, not a recommendation.": {
+    "Your champion (%@ mastery)": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Siegquote des Counters in dieser Lane – Optionen, keine Empfehlung."
+            "value": "Dein Champion (%@ Meisterschaft)"
+          }
+        }
+      }
+    },
+    "Your lane": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Lane"
           }
         }
       }
@@ -1224,6 +1484,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ausgeglichen"
+          }
+        }
+      }
+    },
+    "hovered": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gehovert"
           }
         }
       }

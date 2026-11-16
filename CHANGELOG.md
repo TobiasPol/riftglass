@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+- **Pick and ban options in champ select.** While your ban is open, five ban options: strong champions the
+  enemy is likely to pick (OP.GG win, pick and ban rate), champions in your lane weighted higher, and the
+  champions that beat your declared pick. Until you lock in, pick options for your lane, each with the
+  reasons behind it: lane strength, head-to-head against your (likely) lane opponent, duo synergy with your
+  teammates, what your team lacks (magic or physical damage, frontline) and your own champion mastery –
+  champions you have barely played rank lower, because players below ~12k mastery win ~44 % instead of
+  ~51 %. Matchup and synergy are measured against both champions' usual win rates, so a strong champion
+  is not mistaken for a counter. After the lock-in: your champion's duo win rate with each ally.
+  Options only – Riftglass never hovers, bans or locks anything. Can be turned off in the settings.
+- The counter list during your pick is now part of the pick options.
+
 ## 0.6.0
 - **ARAM: Mayhem augments were wrong and nearly the same for every champion – fixed.** OP.GG's API only
   hands out the three weakest tiers of its augment list, and Riftglass ranked that remainder by a

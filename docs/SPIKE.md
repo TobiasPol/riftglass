@@ -208,6 +208,35 @@ Skripte: `13-liveclient.sh`, `14-game-session.sh`, `15-recommendations.sh`, `08-
 - Champ-Select-Fixture `champ-select-session-draft.json` ist **synthetisch** (Normal Draft, 3 Gegner
   gelockt), bis `17-draft.sh` eine echte Aufnahme liefert.
 
+## Spike 5 – Pick- und Ban-Optionen (2026-11-16, OP.GG MCP live, ohne Client)
+- `lol_list_lane_meta_champions(position: "all")` mit
+  `{champion,role_rate,tier,win_rate,pick_rate,ban_rate,play,is_rip}` je Lane: ~53 Champions pro Lane,
+  ~14 KB, eine Anfrage. `tier` 1 = OP … 5. Fixture: `lane-meta-full.json`.
+- `lol_get_champion_analysis` + `data.strong_counters[]` (gleiche Felder wie `weak_counters`): drei Champions,
+  die der Champion schlägt; `counter_win_rate` ist auch hier die Siegquote des **anderen** Champions.
+  `data.synergies.<lane>[]` liefert nur 3 Partner je Lane und keine `top`-/eigene Lane → nicht genutzt.
+  Fixture: `zed-mid-lane-counters.json`.
+- `lol_get_champion_synergies(champion, my_position, synergy_position)`: 10 Partner, nach Spielen sortiert,
+  `{synergy_champion_id, synergy_champion_name, play, win_rate, synergy_tier_data.tier}` (Tier 0 = OP … 4).
+  **Akzeptiert keine Data-Dragon-Keys** (`LEESIN`, `MONKEYKING` → „Invalid champion or position“), anders als
+  `lol_get_champion_analysis`: der englische Name in UPPER_SNAKE_CASE, Satzzeichen innerhalb eines Worts
+  entfernt (`LEE_SIN`, `WUKONG`, `DR_MUNDO`, `KOGMAW`, `NUNU_WILLUMP`, `JARVAN_IV`, `RENATA_GLASC`).
+  Fixture: `leesin-jungle-mid-synergies.json`.
+- `lol_get_lane_matchup_guide` enthält das Duell auch für beliebige Paare → Head-to-Head der Pick-Optionen.
+
+### Live bestätigt (2026-11-16, Client, `18-mastery.sh`, außerhalb des Champ Selects)
+- `GET /lol-champion-mastery/v1/local-player/champion-mastery` → HTTP 200, Array mit einem Eintrag pro
+  gespieltem Champion (145), Felder u. a. `championId`, `championPoints`, `championLevel`, `lastPlayTime`.
+  Ein Fehler gilt weiterhin als „unbekannt“ – Pick-Optionen dann ohne Meisterschaftsfaktor.
+
+- Champ Select einer Queue ohne Bans (Queue nicht notiert, `BAN_PICK`): `actions` enthält **keine** `ban`-Einträge
+  → `isLocalBanPending` falsch, die Ban-Karte bleibt aus (gewollt). Das Skript gibt seitdem `queueId` und die
+  Anzahl der Aktionen je Typ aus.
+
+### Offen (→ `scripts/spike/18-mastery.sh` im Draft-Champ-Select)
+- Ban-Phase in Ranked: `actions` mit `type "ban"` für den lokalen Spieler schon in `PLANNING`? Sieht man
+  `championId` der Ban-Hovers von Mitspielern (Annahme: ja, der Client zeigt sie an)?
+
 ### Offen (→ `scripts/spike/17-draft.sh` in Normal Draft / Ranked)
 - Liefert `theirTeam[].assignedPosition` in Draft etwas? Wann erscheint `championId` gegnerischer Picks
   (erst nach Lock-in)?

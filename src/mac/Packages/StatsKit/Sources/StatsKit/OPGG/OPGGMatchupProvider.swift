@@ -46,15 +46,17 @@ public struct OPGGMatchupProvider: Sendable {
            let brief = try? Self.brief(from: Data(cached.utf8), opponentId: opponent.id) {
             return brief
         }
-        let text = try await client.callTool("lol_get_lane_matchup_guide", arguments: [
-            "position": .string(role.opggPosition),
-            "my_champion": .string(champion.key.uppercased()),
-            "opponent_champion": .string(opponent.key.uppercased()),
-            "lang": .string(language)
-        ])
-        let brief = try Self.brief(from: Data(text.utf8), opponentId: opponent.id) // cached only when it parses
-        await cache.store(text, for: cacheKey)
-        return brief
+        let text = try await cache.fetchOnce(for: cacheKey) { [client, language] in
+            let text = try await client.callTool("lol_get_lane_matchup_guide", arguments: [
+                "position": .string(role.opggPosition),
+                "my_champion": .string(champion.key.uppercased()),
+                "opponent_champion": .string(opponent.key.uppercased()),
+                "lang": .string(language)
+            ])
+            _ = try Self.brief(from: Data(text.utf8), opponentId: opponent.id) // cached only when it parses
+            return text
+        }
+        return try Self.brief(from: Data(text.utf8), opponentId: opponent.id)
     }
 
     static func brief(from json: Data, opponentId: Int) throws -> MatchupBrief {

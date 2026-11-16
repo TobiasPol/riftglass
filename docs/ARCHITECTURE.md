@@ -47,6 +47,17 @@ eigenen Picks, `OPGGCounterProvider` (`weak_counters`) + `pickable-champion-ids`
 Schlüssel im `ChampSelectBriefing` verhindern Arbeit bei identischen WAMP-Sessions und verwerfen späte
 Antworten für einen alten Pick.
 
+Pick- und Ban-Optionen (`ChampSelectCoordinator+Draft`, nur Summoner's Rift mit bekannter eigener Lane):
+`DraftInput` (Session → Lane, eigener Champion, offener Ban/Pick, Mitspieler mit Lane, sichtbare Gegner,
+Bans der Mitspieler) → `DraftSources` (parallel, jede Quelle optional): OP.GG-Tierliste (`LaneMeta`, dieselbe
+Anfrage wie die Lane-Anteile), `LaneCounters` des Lane-Gegners bzw. des eigenen Picks (`weak_`/`strong_counters`),
+`OPGGSynergyProvider` je Mitspieler (dessen Top-10-Partner auf der eigenen Lane), `pickable-champion-ids`
+und die eigene Meisterschaft (LCU) → `PickAdvisor`/`BanAdvisor` (StatsKit, pur). Alle Faktoren sind
+Prozentpunkte Siegquote, damit sie sich addieren und jeder Grund seinen Anteil zeigt: Matchup und Synergie
+werden gegen die Basis-Siegquoten beider Champions normalisiert und nach Stichprobe geschrumpft
+(`n/(n+1000)`). Danach liefert der Lane-Matchup-Guide das echte Duell für die fünf besten Optionen.
+`ChampionDirectory` ordnet OP.GGs englische Namen den LCU-IDs zu (Data-Dragon-Namen sind lokalisiert).
+
 ## Module
 
 | Modul | Verantwortung | Nebenläufigkeit |

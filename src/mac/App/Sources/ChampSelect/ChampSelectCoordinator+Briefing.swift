@@ -14,15 +14,9 @@ struct ChampSelectBriefing {
     /// Enemy in the local player's lane.
     var opponent: LaneAssigner.Assignment?
     var matchup: MatchupBrief?
-    var counterPicks: [CounterPick] = []
-    /// Nil when the client did not answer; then no counter is dimmed.
-    var pickableIds: Set<Int>?
 
     var teamsKey: String?
     var matchupKey: String?
-    var countersKey: String?
-    /// Counter key plus the lock count: pickability changes with every pick or ban.
-    var pickableKey: String?
 }
 
 /// OP.GG sources of the briefing.
@@ -30,6 +24,7 @@ struct BriefingSources {
     let laneMeta = OPGGLaneMetaProvider()
     let matchups = OPGGMatchupProvider(language: GameDataLocale.dataDragon)
     let counters = OPGGCounterProvider()
+    let synergies = OPGGSynergyProvider()
 }
 
 extension ChampSelectCoordinator {
@@ -43,6 +38,7 @@ extension ChampSelectCoordinator {
     /// the pick turn or the lock state change. Turning the briefing off drops everything, so pending
     /// answers are discarded and turning it on again starts fresh.
     func updateBriefing() {
+        updateDraft()
         guard settings.briefingEnabled else {
             if briefing.teamsKey != nil {
                 briefing = ChampSelectBriefing()
@@ -54,74 +50,74 @@ extension ChampSelectCoordinator {
         let key = [
             "\(session.allyChampionIds)",
             enemies.map { "\($0.championId):\($0.position ?? "-")" }.joined(separator: ","),
-            "\(championId ?? 0)", briefingRole?.rawValue ?? "-", "\(session.isLocalPickInProgress)",
-            "\(session.completedActionCount)", mode.rawValue
+            "\(championId ?? 0)", briefingRole?.rawValue ?? "-", mode.rawValue
         ].joined(separator: "|")
         guard key != briefing.teamsKey else { return }
         briefing.teamsKey = key
         briefing.ally = TeamProfile(champions: session.allyChampionIds.compactMap { data.champion($0) })
         briefing.enemy = TeamProfile(champions: enemies.compactMap { data.champion($0.championId) })
         briefing.hints = CompHint.hints(ally: briefing.ally, enemy: briefing.enemy)
-        let locks = session.completedActionCount
-        // Lanes, matchups and counters only exist on Summoner's Rift with OP.GG lane statistics.
+        // Lanes and matchups only exist on Summoner's Rift with OP.GG lane statistics.
         guard mode == .summonersRift, !enemies.isEmpty else {
             briefing.lanes = [:]
             briefing.opponent = nil
             loadMatchup()
-            loadCounters(isPicking: false, locks: locks)
             return
         }
-        let isPicking = session.isLocalPickInProgress
-        Task { await assignLanes(enemies, key: key, isPicking: isPicking, locks: locks) }
+        Task { await assignLanes(enemies, key: key) }
     }
 
-    private func assignLanes(
-        _ enemies: [ChampSelectSession.EnemyPick],
-        key: String,
-        isPicking: Bool,
-        locks: Int
-    ) async {
+    private func assignLanes(_ enemies: [ChampSelectSession.EnemyPick], key: String) async {
         let rates = await loadRoleRates()
         // Opted out while waiting (the key was reset) or a newer session took over.
-        guard settings.briefingEnabled, key == briefing.teamsKey, let data = staticData else { return }
+        guard settings.briefingEnabled, key == briefing.teamsKey else { return }
+        briefing.lanes = enemyLanes(enemies, rates: rates)
+        briefing.opponent = briefingRole.flatMap { briefing.lanes[$0] }
+        loadMatchup()
+    }
+
+    /// Revealed positions as they are, the rest guessed from OP.GG lane shares.
+    func enemyLanes(_ enemies: [ChampSelectSession.EnemyPick], rates: RoleRates) -> [Role: LaneAssigner.Assignment] {
+        guard let data = staticData else { return [:] }
         let picks = enemies.compactMap { pick -> LaneAssigner.Pick? in
             guard let champion = data.champion(pick.championId) else { return nil }
             return .init(championId: pick.championId, name: champion.name, fixed: Role(lcuPosition: pick.position))
         }
-        briefing.lanes = LaneAssigner.assign(picks, rates: rates)
-        briefing.opponent = briefingRole.flatMap { briefing.lanes[$0] }
-        loadMatchup()
-        loadCounters(isPicking: isPicking, locks: locks)
+        return LaneAssigner.assign(picks, rates: rates)
     }
 
-    /// Without OP.GG only positions the client revealed are known. Concurrent callers share one
-    /// request; a failure clears it, so the next update retries.
+    /// Without OP.GG only positions the client revealed are known.
     func loadRoleRates() async -> RoleRates {
-        if let roleRates, let loadedAt = roleRatesLoadedAt, Date().timeIntervalSince(loadedAt) < 6 * 3600 {
-            return roleRates
+        await loadLaneMeta()?.roleRates ?? RoleRates(rates: [:])
+    }
+
+    /// OP.GG's tier list. Concurrent callers share one request; a failure clears it, so the next
+    /// update retries, and keeps an older list.
+    func loadLaneMeta() async -> LaneMeta? {
+        if let laneMeta, let loadedAt = laneMetaLoadedAt, Date().timeIntervalSince(loadedAt) < 6 * 3600 {
+            return laneMeta
         }
-        let task = roleRatesTask ?? Task { [briefingSources, logger] () -> RoleRates? in
+        let task = laneMetaTask ?? Task { [briefingSources, logger] () -> LaneMeta? in
             do {
-                return try await briefingSources.laneMeta.roleRates()
+                return try await briefingSources.laneMeta.laneMeta()
             } catch {
                 logger.notice("OP.GG lane meta unavailable: \(String(describing: error), privacy: .public)")
                 return nil
             }
         }
-        roleRatesTask = task
-        let rates = await task.value
-        if roleRatesTask == task {
-            roleRatesTask = nil
+        laneMetaTask = task
+        let meta = await task.value
+        if laneMetaTask == task {
+            laneMetaTask = nil
         }
-        if let rates {
-            roleRates = rates
-            roleRatesLoadedAt = Date()
+        if let meta, !meta.isEmpty {
+            laneMeta = meta
+            laneMetaLoadedAt = Date()
         }
-        // A failed refresh keeps the older shares.
-        return rates ?? roleRates ?? RoleRates(rates: [:])
+        return laneMeta
     }
 
-    private func championRef(_ id: Int?) -> ChampionRef? {
+    func championRef(_ id: Int?) -> ChampionRef? {
         guard let id, let champion = staticData?.champion(id) else { return nil }
         return ChampionRef(id: id, key: champion.id)
     }
@@ -147,49 +143,6 @@ extension ChampSelectCoordinator {
             } catch {
                 logger.notice("OP.GG matchup unavailable: \(String(describing: error), privacy: .public)")
             }
-        }
-    }
-
-    /// Counter picks against the lane opponent – only during the player's own pick turn. The OP.GG
-    /// statistics load once per opponent; pickability is re-read whenever someone locks or bans.
-    private func loadCounters(isPicking: Bool, locks: Int) {
-        guard isPicking, let role = briefingRole, let theirs = championRef(briefing.opponent?.championId),
-              let queue = BuildQueue(queue: effectiveQueue)
-        else {
-            briefing.counterPicks = []
-            briefing.countersKey = nil
-            briefing.pickableKey = nil
-            briefing.pickableIds = nil
-            return
-        }
-        let key = "\(theirs.id)-\(role.rawValue)-\(queue.rawValue)"
-        if key != briefing.countersKey {
-            briefing.countersKey = key
-            briefing.counterPicks = []
-            Task { [briefingSources] in
-                do {
-                    let counters = try await briefingSources.counters.counters(
-                        against: theirs,
-                        role: role,
-                        queue: queue
-                    )
-                    guard key == briefing.countersKey else { return }
-                    briefing.counterPicks = counters
-                } catch {
-                    logger.notice("OP.GG counters unavailable: \(String(describing: error), privacy: .public)")
-                }
-            }
-        }
-        refreshPickable(key: "\(key)-\(locks)")
-    }
-
-    private func refreshPickable(key: String) {
-        guard key != briefing.pickableKey else { return }
-        briefing.pickableKey = key
-        Task { [lcu] in
-            let ids = try? await lcu?.pickableChampionIds()
-            guard key == briefing.pickableKey else { return }
-            briefing.pickableIds = ids
         }
     }
 }

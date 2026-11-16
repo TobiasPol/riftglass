@@ -45,7 +45,7 @@ struct ChampSelectView: View {
     private var subtitle: String {
         var parts = ["Riftglass", coordinator.queue?.displayName ?? coordinator.mode.displayName]
         if let role = coordinator.role {
-            parts.append(role.rawValue.capitalized)
+            parts.append(role.displayName)
         }
         return parts.joined(separator: " · ")
     }

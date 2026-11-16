@@ -7,6 +7,8 @@ public actor ResponseCache {
     private let directory: URL
     private let timeToLive: TimeInterval
     private let now: @Sendable () -> Date
+    /// Fetches still running, so concurrent callers (a burst of hover changes) send one request.
+    private var inFlight: [String: Task<String, any Error>] = [:]
 
     public init(
         name: String,
@@ -39,6 +41,22 @@ public actor ResponseCache {
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try? Data(value.utf8).write(to: url, options: .atomic)
         try? FileManager.default.setAttributes([.modificationDate: now()], ofItemAtPath: url.path)
+    }
+
+    /// Runs `fetch` once for concurrent callers of the same key and stores its text. `fetch` throws
+    /// for text that must not be cached (it does not parse); then nothing is stored and the next call
+    /// fetches again.
+    public func fetchOnce(for key: String, _ fetch: @escaping @Sendable () async throws -> String) async throws
+        -> String {
+        if let running = inFlight[key] {
+            return try await running.value
+        }
+        let task = Task { try await fetch() }
+        inFlight[key] = task
+        defer { inFlight[key] = nil }
+        let text = try await task.value
+        store(text, for: key)
+        return text
     }
 
     private func fileURL(for key: String) -> URL {

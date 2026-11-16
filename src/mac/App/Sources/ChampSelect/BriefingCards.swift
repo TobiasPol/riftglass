@@ -2,50 +2,22 @@ import DataKit
 import StatsKit
 import SwiftUI
 
-/// Briefing above the build options: counter options (own pick turn), lane matchup, team comp.
+/// Briefing above the build options: ban and pick options, team synergy, lane matchup, team comp.
 struct BriefingSection: View {
     let coordinator: ChampSelectCoordinator
 
     var body: some View {
         let briefing = coordinator.briefing
+        if coordinator.settings.draftOptionsEnabled {
+            DraftSection(coordinator: coordinator)
+        }
         if coordinator.settings.briefingEnabled {
-            if !briefing.counterPicks.isEmpty, let opponent = briefing.opponent {
-                CounterPicksCard(coordinator: coordinator, opponentId: opponent.championId, briefing: briefing)
-            }
             if let opponent = briefing.opponent {
                 MatchupCard(coordinator: coordinator, opponent: opponent, matchup: briefing.matchup)
             }
             if !briefing.enemy.isEmpty {
                 TeamCompCard(briefing: briefing)
             }
-        }
-    }
-}
-
-private struct CounterPicksCard: View {
-    let coordinator: ChampSelectCoordinator
-    let opponentId: Int
-    let briefing: ChampSelectBriefing
-
-    var body: some View {
-        BriefingCard(title: "Counter options vs. \(coordinator.name(of: opponentId))", source: "Data: OP.GG") {
-            ForEach(briefing.counterPicks) { pick in
-                let available = briefing.pickableIds?.contains(pick.id) ?? true
-                HStack(spacing: 8) {
-                    ChampionIcon(key: coordinator.key(of: pick.id), champSelect: coordinator, size: 20)
-                    Text(pick.name).font(.system(size: 11)).lineLimit(1)
-                    if !available {
-                        Text("unavailable").font(.system(size: 10)).foregroundStyle(Palette.tertiaryText)
-                    }
-                    Spacer()
-                    Text("\(percent(pick.winRate)) · \(pick.games.formatted()) games")
-                        .font(.system(size: 11).monospacedDigit())
-                        .foregroundStyle(Palette.secondaryText)
-                }
-                .opacity(available ? 1 : 0.45)
-            }
-            Text("Win rate of the counter in this lane – options, not a recommendation.")
-                .font(.system(size: 10)).foregroundStyle(Palette.tertiaryText)
         }
     }
 }
@@ -169,7 +141,7 @@ private struct DamageBar: View {
     }
 }
 
-private struct BriefingCard<Content: View>: View {
+struct BriefingCard<Content: View>: View {
     let title: LocalizedStringKey
     let source: LocalizedStringKey
     @ViewBuilder let content: Content
@@ -189,7 +161,7 @@ private struct BriefingCard<Content: View>: View {
     }
 }
 
-private func percent(_ value: Double) -> String {
+func percent(_ value: Double) -> String {
     value.formatted(.percent.precision(.fractionLength(0)))
 }
 

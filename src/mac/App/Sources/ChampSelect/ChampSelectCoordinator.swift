@@ -44,12 +44,17 @@ final class ChampSelectCoordinator {
     /// Shared with the in-game overlay (one in-memory augment catalog).
     @ObservationIgnored let augmentLoader = AugmentBoardLoader()
     @ObservationIgnored let briefingSources = BriefingSources()
-    /// OP.GG lane shares, loaded once per app run (the disk cache keeps them for 6 h).
-    @ObservationIgnored var roleRates: RoleRates?
-    /// When `roleRates` were loaded – the app runs for days, lane shares change with every patch.
-    @ObservationIgnored var roleRatesLoadedAt: Date?
-    /// Pending lane-share request, shared so concurrent updates send it only once.
-    @ObservationIgnored var roleRatesTask: Task<RoleRates?, Never>?
+    /// OP.GG tier list with lane shares, loaded once per app run (the disk cache keeps it for 6 h).
+    @ObservationIgnored var laneMeta: LaneMeta?
+    /// When `laneMeta` was loaded – the app runs for days, the tier list changes with every patch.
+    @ObservationIgnored var laneMetaLoadedAt: Date?
+    /// Pending tier-list request, shared so concurrent updates send it only once.
+    @ObservationIgnored var laneMetaTask: Task<LaneMeta?, Never>?
+    /// Pick and ban options (`ChampSelectCoordinator+Draft`).
+    var draft = DraftAdvice()
+    /// The player's mastery points, read once per champ select; nil when the client did not answer.
+    @ObservationIgnored var mastery: [Int: Int]?
+    @ObservationIgnored var masteryTask: Task<[Int: Int]?, Never>?
     @ObservationIgnored let settings: AppSettings
     /// `gameId-championId` of the last automatic import, so it runs once per pick.
     @ObservationIgnored var autoImportedKey: String?
@@ -140,6 +145,9 @@ final class ChampSelectCoordinator {
         builds = []
         augmentBoard = nil
         briefing = ChampSelectBriefing()
+        draft = DraftAdvice()
+        mastery = nil
+        masteryTask = nil
         actionState = .idle
     }
 
@@ -228,20 +236,5 @@ final class ChampSelectCoordinator {
                 logger.notice("OP.GG augments unavailable: \(String(describing: error), privacy: .public)")
             }
         }
-    }
-
-    private func prefetchIcons(for builds: [BuildOption]) {
-        guard let data = staticData else { return }
-        var urls: [URL] = []
-        for build in builds {
-            urls += build.allItemIds.map { dataDragon.itemIconURL($0, version: data.version) }
-            urls += build.summonerSpells.compactMap { data.spellsById[$0] }
-                .map { dataDragon.spellIconURL($0, version: data.version) }
-            urls += build.runes.perkIds.compactMap { data.runesById[$0] }.map { dataDragon.runeIconURL($0.icon) }
-        }
-        if let championId, let champion = data.champion(championId) {
-            urls.append(dataDragon.championIconURL(champion, version: data.version))
-        }
-        icons.prefetch(urls)
     }
 }
