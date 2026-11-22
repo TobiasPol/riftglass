@@ -15,8 +15,10 @@ public final class HotkeyMonitor {
 
     /// Called with `true` on key down and `false` on key up (repeats are ignored).
     public var onTabChange: ((Bool) -> Void)?
-    /// Called on ⌥A key down (repeats are ignored).
+    /// Called on toggle shortcut key down (repeats are ignored).
     public var onToggle: (() -> Void)?
+    /// Key code used with Option to trigger `onToggle` (defaults to `kVK_ANSI_A`).
+    public var toggleKeyCode: Int64 = HotkeyMonitor.toggleKeyCode
     /// Events are only reported while this returns true (e.g. the game is frontmost).
     public var isActive: () -> Bool = { true }
 
@@ -90,7 +92,7 @@ public final class HotkeyMonitor {
         setDown(false)
     }
 
-    fileprivate func handle(_ type: CGEventType, keyCode: Int64, isRepeat: Bool, flags: CGEventFlags) {
+    func handle(_ type: CGEventType, keyCode: Int64, isRepeat: Bool, flags: CGEventFlags) {
         switch type {
         case .tapDisabledByTimeout, .tapDisabledByUserInput:
             if let tap {
@@ -101,7 +103,7 @@ public final class HotkeyMonitor {
             guard !isRepeat else { return }
             if keyCode == Self.tabKeyCode {
                 setDown(type == .keyDown && Self.isPlainTab(flags) && isActive())
-            } else if keyCode == Self.toggleKeyCode, type == .keyDown, Self.isToggleChord(flags), isActive() {
+            } else if keyCode == toggleKeyCode, type == .keyDown, Self.isToggleChord(flags), isActive() {
                 onToggle?()
             }
         default:

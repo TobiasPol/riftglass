@@ -26,6 +26,17 @@ struct TabOverlayView: View {
                     Divider().overlay(Palette.hairline)
                     MyGameRow(me: me, snapshot: snapshot, coordinator: coordinator)
                 }
+                let timers = coordinator.settings.objectiveTimersEnabled
+                    ? ObjectiveTimerTracker.activeTimers(
+                        from: snapshot.events,
+                        players: snapshot.players,
+                        at: snapshot.stats.gameTime
+                    )
+                    : []
+                if !timers.isEmpty {
+                    Divider().overlay(Palette.hairline)
+                    ObjectivesBar(timers: timers, gameTime: snapshot.stats.gameTime)
+                }
                 // ARAM: Mayhem – always reachable, also when the automatic list guessed the timing wrong.
                 if let board = coordinator.augmentBoard, !board.isEmpty {
                     Divider().overlay(Palette.hairline)
@@ -76,9 +87,13 @@ private struct PlayerRow: View {
 
     private var subtitle: String {
         if let rank {
+            if rank.isRanked, let winRate = rank.winRate, let games = rank.games {
+                let percent = winRate.formatted(.percent.precision(.fractionLength(0)))
+                return "\(rank.label) · \(percent) (\(games))"
+            }
             return rank.label
         }
-        if player.isBot == true || !coordinator.settings.ranksEnabled || coordinator.settings.region == nil {
+        if player.isBot == true || !coordinator.settings.ranksEnabled || coordinator.settings.effectiveRegion == nil {
             return player.championName
         }
         return "…"
@@ -142,9 +157,23 @@ private struct MyGameRow: View {
     }
 
     private var nextItemName: String? {
-        plan.flatMap { InGameAnalysis.nextItem(owned: me.items, plan: $0) }
-            .flatMap { coordinator.champSelect.staticData?.itemsById[$0]?.name }
-            .map { String(localized: "Next: \($0)") }
+        guard let itemID = plan.flatMap({ InGameAnalysis.nextItem(owned: me.items, plan: $0) }),
+              let data = coordinator.champSelect.staticData,
+              let name = data.itemsById[itemID]?.name
+        else { return nil }
+        if let active = snapshot.activePlayer,
+           let needed = InGameAnalysis.goldNeeded(
+               for: itemID,
+               currentGold: active.currentGold,
+               owned: me.items,
+               prices: data.itemPrices,
+               recipes: data.itemRecipes
+           ) {
+            return needed == 0
+                ? String(localized: "Next: \(name) (Ready)")
+                : String(localized: "Next: \(name) (\(needed)g)")
+        }
+        return String(localized: "Next: \(name)")
     }
 
     private func metric(_ title: LocalizedStringKey, value: String, detail: String?, good: Bool?) -> some View {
@@ -155,6 +184,38 @@ private struct MyGameRow: View {
             if let detail {
                 Text(detail).font(.system(size: 9)).foregroundStyle(Palette.tertiaryText)
             }
+        }
+    }
+}
+
+private struct ObjectivesBar: View {
+    let timers: [ObjectiveTimer]
+    let gameTime: Double
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text("Objectives").font(.system(size: 10)).foregroundStyle(Palette.secondaryText)
+            ForEach(timers) { timer in
+                HStack(spacing: 4) {
+                    Circle().fill(color(for: timer.kind)).frame(width: 6, height: 6)
+                    Text(timer.label).font(.system(size: 10))
+                    Text(timer.formattedRemaining(at: gameTime))
+                        .font(.system(size: 10, weight: .semibold).monospacedDigit())
+                }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func color(for kind: ObjectiveTimer.Kind) -> Color {
+        switch kind {
+        case .dragon: Palette.accent
+        case .elder: Palette.negative
+        case .baron: Color(red: 0.86, green: 0.62, blue: 0.98)
+        case .inhibitor: Palette.positive
         }
     }
 }

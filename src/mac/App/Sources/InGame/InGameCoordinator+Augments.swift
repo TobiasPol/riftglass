@@ -88,10 +88,19 @@ extension InGameCoordinator {
         guard settings.augmentOverlayEnabled, wanted, gameInFront, !isTabHeld,
               let board = augmentBoard, !board.isEmpty
         else { return hideAugments() }
-        let content = AugmentPanelContent(prompt: augmentPrompt, pinned: augmentOverride == .pinned)
+        let content = AugmentPanelContent(
+            prompt: augmentPrompt,
+            pinned: augmentOverride == .pinned,
+            shortcutLabel: settings.toggleShortcutLabel
+        )
         guard content != shownAugmentContent || augmentPanel?.isVisible != true else { return }
         shownAugmentContent = content
-        let view = AugmentOverlayView(board: board, prompt: content.prompt, icons: champSelect.icons)
+        let view = AugmentOverlayView(
+            board: board,
+            prompt: content.prompt,
+            icons: champSelect.icons,
+            shortcutLabel: content.shortcutLabel
+        )
         if let augmentPanel {
             augmentPanel.update(rootView: view)
         } else {
@@ -171,4 +180,5 @@ extension InGameCoordinator {
 struct AugmentPanelContent: Equatable {
     let prompt: AugmentPickPrompt?
     let pinned: Bool
+    let shortcutLabel: String
 }

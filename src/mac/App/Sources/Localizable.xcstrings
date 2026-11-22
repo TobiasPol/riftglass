@@ -144,8 +144,38 @@
         }
       }
     },
+    "%lld%%": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        }
+      }
+    },
     "%lld/%lld/%lld": {
       "shouldTranslate": false
+    },
+    "%lldW – %lldL": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lldS – %2$lldN"
+          }
+        }
+      }
+    },
+    "%lldm": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Min."
+          }
+        }
+      }
     },
     "+%lld pending": {
       "localizations": {
@@ -163,6 +193,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ARAM: Mayhem – Augment-Liste bei jeder Augment-Wahl"
+          }
+        }
+      }
+    },
+    "ARAM: Mayhem – augment overlay (%@)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ARAM: Mayhem – Augment-Overlay (%@)"
           }
         }
       }
@@ -193,6 +233,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aktion fehlgeschlagen: %@"
+          }
+        }
+      }
+    },
+    "Active region": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktive Region"
           }
         }
       }
@@ -257,6 +307,16 @@
         }
       }
     },
+    "Appears next to the selection cards at game start and after levels 7, 11 and 15, once you are dead or in the fountain: your champion's strong augments per rarity (OP.GG). Riftglass does not read the offered cards. %@ hides the list until the next choice and shows it again (needs Input Monitoring); holding Tab shows it any time.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erscheint neben den Auswahlkarten zu Spielbeginn und nach Stufe 7, 11 und 15, sobald du tot oder im Brunnen bist: starke Augments deines Champions pro Seltenheit (OP.GG). Die angebotenen Karten liest Riftglass nicht aus. %@ blendet die Liste bis zur nächsten Wahl aus und wieder ein (braucht Eingabeüberwachung), mit gehaltenem Tab ist sie jederzeit sichtbar."
+          }
+        }
+      }
+    },
     "Appears next to the selection cards at game start and after levels 7, 11 and 15, once you are dead or in the fountain: your champion's strong augments per rarity (OP.GG). Riftglass does not read the offered cards. ⌥A hides the list until the next choice and shows it again (needs Input Monitoring); holding Tab shows it any time.": {
       "localizations": {
         "de": {
@@ -273,6 +333,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Augment-Wahl %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "Augment overlay shortcut": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kürzel für Augment-Overlay"
+          }
+        }
+      }
+    },
+    "Automatic": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch"
           }
         }
       }
@@ -379,6 +459,16 @@
         }
       }
     },
+    "Cached data": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwischengespeicherte Daten"
+          }
+        }
+      }
+    },
     "Champ Select": {
       "localizations": {
         "de": {
@@ -415,6 +505,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Jetzt prüfen"
+          }
+        }
+      }
+    },
+    "Clear caches": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caches leeren"
+          }
+        }
+      }
+    },
+    "Connected": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden"
           }
         }
       }
@@ -461,6 +571,26 @@
         }
       }
     },
+    "DMG %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schaden %@"
+          }
+        }
+      }
+    },
+    "Data Dragon patch": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data-Dragon-Patch"
+          }
+        }
+      }
+    },
     "Data sources": {
       "localizations": {
         "de": {
@@ -477,6 +607,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Daten: OP.GG"
+          }
+        }
+      }
+    },
+    "Diagnostics & Cache": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnose & Cache"
           }
         }
       }
@@ -721,6 +861,26 @@
         }
       }
     },
+    "KP %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KP %@"
+          }
+        }
+      }
+    },
+    "L": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N"
+          }
+        }
+      }
+    },
     "Lane advantage: %@": {
       "localizations": {
         "de": {
@@ -791,6 +951,16 @@
         }
       }
     },
+    "League client": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "League-Client"
+          }
+        }
+      }
+    },
     "League is not running": {
       "localizations": {
         "de": {
@@ -851,6 +1021,16 @@
         }
       }
     },
+    "Loss": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niederlage"
+          }
+        }
+      }
+    },
     "Matchup briefing (lane opponent, teams)": {
       "localizations": {
         "de": {
@@ -877,6 +1057,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nächstes: %@"
+          }
+        }
+      }
+    },
+    "Next: %@ (%lldg)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächstes: %1$@ (%2$lldg)"
+          }
+        }
+      }
+    },
+    "Next: %@ (Ready)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächstes: %@ (Bereit)"
           }
         }
       }
@@ -921,6 +1121,26 @@
         }
       }
     },
+    "Not connected": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht verbunden"
+          }
+        }
+      }
+    },
+    "Not loaded yet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nicht geladen"
+          }
+        }
+      }
+    },
     "OP.GG": {
       "shouldTranslate": false
     },
@@ -934,12 +1154,32 @@
         }
       }
     },
+    "OP.GG tier list · %@ hides": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OP.GG-Tierliste · %@ blendet aus"
+          }
+        }
+      }
+    },
     "OP.GG tier list · ⌥A hides": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "OP.GG-Tierliste · ⌥A blendet aus"
+          }
+        }
+      }
+    },
+    "Objectives": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Objectives"
           }
         }
       }
@@ -1044,6 +1284,16 @@
         }
       }
     },
+    "Preview overlays (5 s)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overlays testen (5 s)"
+          }
+        }
+      }
+    },
     "Prismatic": {
       "localizations": {
         "de": {
@@ -1074,12 +1324,32 @@
         }
       }
     },
+    "Recent games": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte Spiele"
+          }
+        }
+      }
+    },
     "Red": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Rot"
+          }
+        }
+      }
+    },
+    "Region": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Region"
           }
         }
       }
@@ -1234,12 +1504,32 @@
         }
       }
     },
+    "Show objective respawn timers (Dragon, Baron, Inhib)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respawn-Timer für Objectives anzeigen (Drache, Baron, Inhib)"
+          }
+        }
+      }
+    },
     "Silver": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Silber"
+          }
+        }
+      }
+    },
+    "Skill hint height": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Höhe des Skill-Hinweises"
           }
         }
       }
@@ -1418,6 +1708,36 @@
         }
       }
     },
+    "Unknown": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannt"
+          }
+        }
+      }
+    },
+    "Unknown (open client once)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannt (Client einmal öffnen)"
+          }
+        }
+      }
+    },
+    "Updates": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates"
+          }
+        }
+      }
+    },
     "Version": {
       "localizations": {
         "de": {
@@ -1428,12 +1748,42 @@
         }
       }
     },
+    "Vision %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicht %lld"
+          }
+        }
+      }
+    },
+    "W": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S"
+          }
+        }
+      }
+    },
     "Welcome to Riftglass": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Willkommen bei Riftglass"
+          }
+        }
+      }
+    },
+    "Win": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sieg"
           }
         }
       }

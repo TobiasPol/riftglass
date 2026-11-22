@@ -58,24 +58,50 @@ public actor LiveClient {
 
     private func poll(_ continuation: AsyncStream<LiveGameSnapshot>.Continuation) async {
         var last: LiveGameSnapshot?
+        var eventsByID: [Int: LiveGameEvent] = [:]
+        var nextEventID = 0
+        var lastGameTime: Double = 0
         while !Task.isCancelled {
-            let snapshot = await fetchSnapshot()
+            let result = await fetchSnapshot(nextEventID: nextEventID)
             guard !Task.isCancelled else { break }
-            if let snapshot, snapshot != last {
-                last = snapshot
-                continuation.yield(snapshot)
+            if let result {
+                if result.snapshot.stats.gameTime < lastGameTime {
+                    eventsByID = [:]
+                    nextEventID = 0
+                }
+                lastGameTime = result.snapshot.stats.gameTime
+                for event in result.newEvents {
+                    eventsByID[event.eventID] = event
+                }
+                if let maxID = eventsByID.keys.max() {
+                    nextEventID = max(nextEventID, maxID + 1)
+                }
+                let events = eventsByID.values.sorted { $0.eventID < $1.eventID }
+                let full = LiveGameSnapshot(
+                    stats: result.snapshot.stats,
+                    activePlayer: result.snapshot.activePlayer,
+                    players: result.snapshot.players,
+                    events: events
+                )
+                if full != last {
+                    last = full
+                    continuation.yield(full)
+                }
             }
             try? await Task.sleep(for: interval, tolerance: .milliseconds(250))
         }
     }
 
     /// Nil while the game is still loading (the API answers 404/connection refused until then).
-    private func fetchSnapshot() async -> LiveGameSnapshot? {
+    private func fetchSnapshot(nextEventID: Int) async -> (snapshot: LiveGameSnapshot, newEvents: [LiveGameEvent])? {
         async let stats: LiveGameStats? = fetch("gamestats")
         async let active: LiveActivePlayer? = fetch("activeplayer")
         async let players: [LivePlayer]? = fetch("playerlist")
+        async let response: LiveEventsResponse? = fetch("eventdata?eventID=\(nextEventID)")
         guard let stats = await stats, let players = await players else { return nil }
-        return await LiveGameSnapshot(stats: stats, activePlayer: active, players: players)
+        let snapshot = await LiveGameSnapshot(stats: stats, activePlayer: active, players: players)
+        let newEvents = await response?.events ?? []
+        return (snapshot, newEvents)
     }
 
     private func fetch<T: Decodable & Sendable>(_ endpoint: String) async -> T? {

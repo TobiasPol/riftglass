@@ -25,9 +25,19 @@ struct BuildOptionCard: View {
                     .font(.system(size: 11).monospacedDigit())
                     .foregroundStyle(stats.winRate >= 0.5 ? Palette.positive : Palette.secondaryText)
             }
-            HStack(spacing: 4) {
-                ForEach(Array(build.runes.perkIds.prefix(6).enumerated()), id: \.offset) { index, perkId in
-                    runeIcon(perkId, size: index == 0 ? 28 : 20)
+            HStack(alignment: .top, spacing: 4) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 4) {
+                        ForEach(Array(build.runes.perkIds.prefix(6).enumerated()), id: \.offset) { index, perkId in
+                            runeIcon(perkId, size: index == 0 ? 28 : 20)
+                        }
+                    }
+                    let shards = Array(build.runes.perkIds.dropFirst(6).prefix(3))
+                    if !shards.isEmpty {
+                        HStack(spacing: 4) {
+                            ForEach(Array(shards.enumerated()), id: \.offset) { _, shardId in shardIcon(shardId) }
+                        }
+                    }
                 }
                 Spacer(minLength: 8)
                 ForEach(Array(build.summonerSpells.enumerated()), id: \.offset) { _, spellId in spellIcon(spellId) }
@@ -95,6 +105,22 @@ struct BuildOptionCard: View {
                 .help(rune.name)
         } else {
             IconView.missing(size: size)
+        }
+    }
+
+    @ViewBuilder
+    private func shardIcon(_ id: Int) -> some View {
+        if let shard = StatShard.shard(id) {
+            IconView(
+                url: coordinator.dataDragon.runeIconURL(shard.iconPath),
+                icons: coordinator.icons,
+                size: 16
+            )
+            .clipShape(Circle())
+            .help(shard.name)
+        } else {
+            IconView.missing(size: 16)
+                .clipShape(Circle())
         }
     }
 

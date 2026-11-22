@@ -11,8 +11,9 @@ final class Updater {
     @ObservationIgnored private let controller: SPUStandardUpdaterController
 
     init() {
+        let isTesting = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
         controller = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: policy, userDriverDelegate: nil
+            startingUpdater: !isTesting, updaterDelegate: policy, userDriverDelegate: nil
         )
     }
 

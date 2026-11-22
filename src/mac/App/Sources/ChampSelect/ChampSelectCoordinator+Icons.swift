@@ -1,3 +1,4 @@
+import DataKit
 import Foundation
 import StatsKit
 
@@ -11,6 +12,8 @@ extension ChampSelectCoordinator {
             urls += build.summonerSpells.compactMap { data.spellsById[$0] }
                 .map { dataDragon.spellIconURL($0, version: data.version) }
             urls += build.runes.perkIds.compactMap { data.runesById[$0] }.map { dataDragon.runeIconURL($0.icon) }
+            urls += build.runes.perkIds.dropFirst(6).compactMap { StatShard.shard($0) }
+                .map { dataDragon.runeIconURL($0.iconPath) }
         }
         if let championId, let champion = data.champion(championId) {
             urls.append(dataDragon.championIconURL(champion, version: data.version))

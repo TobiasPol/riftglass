@@ -16,6 +16,28 @@ public struct MatchupBrief: Equatable, Sendable {
     public let playStyle: String?
     /// Tip against the opponent (OP.GG answers in English even with `lang`).
     public let tip: String?
+    /// Matchup-specific build extracted from the guide (runes, spells, items, skills).
+    public let build: BuildOption?
+
+    public init(
+        opponentId: Int,
+        winRate: Double?,
+        games: Int,
+        laneAdvantage: Side?,
+        soloKillAdvantage: Side?,
+        playStyle: String?,
+        tip: String?,
+        build: BuildOption? = nil
+    ) {
+        self.opponentId = opponentId
+        self.winRate = winRate
+        self.games = games
+        self.laneAdvantage = laneAdvantage
+        self.soloKillAdvantage = soloKillAdvantage
+        self.playStyle = playStyle
+        self.tip = tip
+        self.build = build
+    }
 }
 
 /// Lane matchups from OP.GG's `lol_get_lane_matchup_guide`. Unlike the other tools it answers in
@@ -39,11 +61,21 @@ public struct OPGGMatchupProvider: Sendable {
         self.language = language
     }
 
-    public func matchup(my champion: ChampionRef, against opponent: ChampionRef, role: Role) async throws
-        -> MatchupBrief {
+    public func matchup(
+        my champion: ChampionRef,
+        against opponent: ChampionRef,
+        role: Role,
+        queue: BuildQueue = .ranked
+    ) async throws -> MatchupBrief {
         let cacheKey = "\(champion.key)-\(opponent.key)-\(role.opggPosition)-\(language)"
         if let cached = await cache.value(for: cacheKey),
-           let brief = try? Self.brief(from: Data(cached.utf8), opponentId: opponent.id) {
+           let brief = try? Self.brief(
+               from: Data(cached.utf8),
+               my: champion,
+               opponentId: opponent.id,
+               role: role,
+               queue: queue
+           ) {
             return brief
         }
         let text = try await cache.fetchOnce(for: cacheKey) { [client, language] in
@@ -53,13 +85,25 @@ public struct OPGGMatchupProvider: Sendable {
                 "opponent_champion": .string(opponent.key.uppercased()),
                 "lang": .string(language)
             ])
-            _ = try Self.brief(from: Data(text.utf8), opponentId: opponent.id) // cached only when it parses
+            _ = try Self.brief(
+                from: Data(text.utf8),
+                my: champion,
+                opponentId: opponent.id,
+                role: role,
+                queue: queue
+            ) // cached only when it parses
             return text
         }
-        return try Self.brief(from: Data(text.utf8), opponentId: opponent.id)
+        return try Self.brief(from: Data(text.utf8), my: champion, opponentId: opponent.id, role: role, queue: queue)
     }
 
-    static func brief(from json: Data, opponentId: Int) throws -> MatchupBrief {
+    static func brief(
+        from json: Data,
+        my champion: ChampionRef? = nil,
+        opponentId: Int,
+        role: Role? = nil,
+        queue: BuildQueue = .ranked
+    ) throws -> MatchupBrief {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let guide = try decoder.decode(Guide.self, from: json)
@@ -85,28 +129,8 @@ public struct OPGGMatchupProvider: Sendable {
             laneAdvantage: side(data?.laneAdvantageChampion),
             soloKillAdvantage: side(data?.laneSoloKillAdvantageChampion),
             playStyle: data?.recommendedPlayStyle,
-            tip: data?.opponentChampionTip.flatMap { $0.isEmpty ? nil : $0 }
+            tip: data?.opponentChampionTip.flatMap { $0.isEmpty ? nil : $0 },
+            build: guide.buildOption(champion: champion, opponentId: opponentId, role: role, queue: queue)
         )
     }
-}
-
-private struct Guide: Decodable {
-    struct Payload: Decodable {
-        let opponentChampionTip: String?
-        let laneAdvantageChampion: String?
-        let laneSoloKillAdvantageChampion: String?
-        let recommendedPlayStyle: String?
-        let counters: [Counter]?
-    }
-
-    /// All optional: one incomplete entry must not discard the whole guide.
-    struct Counter: Decodable {
-        let championId: Int?
-        let play: Int?
-        let win: Int?
-    }
-
-    let myChampion: String?
-    let opponentChampion: String?
-    let data: Payload?
 }

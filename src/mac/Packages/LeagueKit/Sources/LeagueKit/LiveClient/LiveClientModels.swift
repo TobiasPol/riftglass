@@ -105,11 +105,18 @@ public struct LiveGameSnapshot: Equatable, Sendable {
     public let stats: LiveGameStats
     public let activePlayer: LiveActivePlayer?
     public let players: [LivePlayer]
+    public let events: [LiveGameEvent]
 
-    public init(stats: LiveGameStats, activePlayer: LiveActivePlayer?, players: [LivePlayer]) {
+    public init(
+        stats: LiveGameStats,
+        activePlayer: LiveActivePlayer?,
+        players: [LivePlayer],
+        events: [LiveGameEvent] = []
+    ) {
         self.stats = stats
         self.activePlayer = activePlayer
         self.players = players
+        self.events = events
     }
 
     /// The active player's scoreboard entry. The full Riot ID decides; game name and summoner name

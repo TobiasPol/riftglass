@@ -9,9 +9,10 @@ import SwiftUI
 /// options per rarity, no win rates (Riot policy, docs/COMPLIANCE.md).
 struct AugmentOverlayView: View {
     let board: AugmentBoard
-    /// Nil when pinned with ⌥A without a pending choice.
+    /// Nil when pinned with the toggle shortcut without a pending choice.
     let prompt: AugmentPickPrompt?
     let icons: IconCache
+    var shortcutLabel: String = "⌥A"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -22,7 +23,7 @@ struct AugmentOverlayView: View {
                     AugmentRow(entry: entry, icons: icons, iconSize: 20)
                 }
             }
-            Text("OP.GG tier list · ⌥A hides")
+            Text("OP.GG tier list · \(shortcutLabel) hides")
                 .font(.system(size: 9)).foregroundStyle(Palette.tertiaryText)
                 .padding(.top, 2)
         }

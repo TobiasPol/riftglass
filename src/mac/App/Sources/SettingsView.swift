@@ -13,6 +13,7 @@ enum Disclaimer {
 }
 
 struct SettingsView: View {
+    let model: AppModel
     @Bindable var settings: AppSettings
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
@@ -46,25 +47,8 @@ struct SettingsView: View {
                 """)
                 .font(.caption).foregroundStyle(.secondary)
             }
-            Section("In game") {
-                Toggle("Skill point hint (which ability to level next)", isOn: $settings.skillOverlayEnabled)
-                Toggle("ARAM: Mayhem – augment list at every augment choice", isOn: $settings.augmentOverlayEnabled)
-                Text("""
-                Appears next to the selection cards at game start and after levels 7, 11 and 15, once you are \
-                dead or in the fountain: your champion's strong augments per rarity (OP.GG). Riftglass does not \
-                read the offered cards. ⌥A hides the list until the next choice and shows it again (needs Input \
-                Monitoring); holding Tab shows it any time.
-                """)
-                .font(.caption).foregroundStyle(.secondary)
-                Toggle("Tab overlay (ranks, CS/min, build progress)", isOn: $settings.tabOverlayEnabled)
-                InputMonitoringStep()
-                Toggle("Load ranks from OP.GG", isOn: $settings.ranksEnabled)
-                Text("Sends the Riot IDs of the players in your current game to OP.GG.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Toggle("Item gold estimate per lane (experimental)", isOn: $settings.goldEstimateEnabled)
-                Text("Only from visible items. Whether Riot allows this is unclear – so it is off by default.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
+            InGameSettingsSection(model: model, settings: settings)
+            DiagnosticsSettingsSection(model: model, settings: settings)
             Section("About Riftglass") {
                 LabeledContent("Version", value: version)
                 Text("""

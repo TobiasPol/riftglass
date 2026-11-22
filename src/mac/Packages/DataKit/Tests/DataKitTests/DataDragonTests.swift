@@ -94,4 +94,37 @@ struct DataDragonTests {
         let offline = DataDragon(fetcher: fetcher, cacheDirectory: cache)
         #expect(try await offline.latestVersion() == "15.22.1")
     }
+
+    @Test func statShardMapping() {
+        #expect(StatShard.shard(5008)?.name == "Adaptive Force")
+        #expect(StatShard.shard(5005)?.iconPath == "perk-images/StatMods/StatModsAttackSpeedIcon.png")
+        #expect(StatShard.shard(5001)?.name == "Health Scaling")
+        #expect(StatShard.shard(5013)?.name == "Tenacity & Slow Resist")
+        #expect(StatShard.shard(9999) == nil)
+    }
+
+    @Test func itemRecipesExtractsComponentIds() throws {
+        let json = """
+        {
+          "data": {
+            "3118": {
+              "name": "Malignance",
+              "image": {"full": "3118.png"},
+              "gold": {"total": 2700},
+              "from": ["3802", "3108"]
+            },
+            "1056": {"name": "Doran's Ring", "image": {"full": "1056.png"}, "gold": {"total": 400}}
+          }
+        }
+        """
+        let container = try JSONDecoder().decode(DataContainer<Item>.self, from: Data(json.utf8))
+        let staticData = StaticDataBuilder.build(
+            version: "15.22.1",
+            champions: [],
+            spells: [],
+            items: container.data,
+            styles: []
+        )
+        #expect(staticData.itemRecipes == [3118: [3802, 3108]])
+    }
 }

@@ -1,3 +1,4 @@
+import Foundation
 import LeagueKit
 import Observation
 import os
@@ -19,6 +20,9 @@ final class AppModel {
     @ObservationIgnored private var connection: LCUConnection?
     @ObservationIgnored private var watchTask: Task<Void, Never>?
     @ObservationIgnored private var regionTask: Task<Void, Never>?
+    @ObservationIgnored private var postGameTask: Task<Void, Never>?
+    @ObservationIgnored private var postGameTaskID = UUID()
+    @ObservationIgnored private var postGameEnriched = false
     @ObservationIgnored private var evaluator: LocalTrustEvaluator?
     @ObservationIgnored private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "AppModel")
 
@@ -66,6 +70,9 @@ final class AppModel {
     private func disconnect() {
         regionTask?.cancel()
         regionTask = nil
+        postGameTask?.cancel()
+        postGameTask = nil
+        postGameEnriched = false
         guard let connection else { return }
         connection.stop()
         self.connection = nil
@@ -82,7 +89,11 @@ final class AppModel {
             champSelect.prepare()
             rememberRegion(client)
         case let .phase(phase):
-            apply(.phaseChanged(phase))
+            let changed = apply(.phaseChanged(phase))
+            if !changed, mode == .postGame, !postGameEnriched,
+               phase == .preEndOfGame || phase == .endOfGame {
+                fetchPostGameStats()
+            }
         case let .queue(queue):
             if let queue, queue != settings.lastQueue {
                 logger.info("Queue \(queue.id ?? 0) → \(queue.mode.rawValue, privacy: .public)")
@@ -114,8 +125,9 @@ final class AppModel {
         }
     }
 
-    private func apply(_ input: GameflowStateMachine.Input) {
-        guard let newMode = machine.handle(input) else { return }
+    @discardableResult
+    private func apply(_ input: GameflowStateMachine.Input) -> Bool {
+        guard let newMode = machine.handle(input) else { return false }
         logger.info("Mode → \(String(describing: newMode), privacy: .public)")
         mode = newMode
         if newMode == .champSelect, let pid = machine.processes.clientUxPID {
@@ -128,6 +140,39 @@ final class AppModel {
             inGame.start(evaluator: evaluator, rememberedQueue: settings.lastQueue)
         } else {
             inGame.stop()
+        }
+        postGameEnriched = false
+        if newMode == .postGame {
+            fetchPostGameStats()
+        } else {
+            postGameTask?.cancel()
+            postGameTask = nil
+        }
+        return true
+    }
+
+    private func fetchPostGameStats() {
+        guard !postGameEnriched, postGameTask == nil else { return }
+        let taskID = UUID()
+        postGameTaskID = taskID
+        postGameTask = Task { [weak self] in
+            defer {
+                if self?.postGameTaskID == taskID {
+                    self?.postGameTask = nil
+                }
+            }
+            for attempt in 0 ..< 10 {
+                guard !Task.isCancelled, let self, !postGameEnriched, let lcu = champSelect.lcu else { return }
+                if let stats = try? await lcu.endOfGameStats(), stats.hasScoreboardData {
+                    guard !Task.isCancelled else { return }
+                    postGameEnriched = true
+                    inGame.applyEndOfGameStats(stats)
+                    return
+                }
+                if attempt < 9 {
+                    try? await Task.sleep(for: .seconds(2))
+                }
+            }
         }
     }
 }

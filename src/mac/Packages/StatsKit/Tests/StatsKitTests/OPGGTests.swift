@@ -147,8 +147,24 @@ struct RankTests {
         let rank = try OPGGRankProvider.soloRank(from: OPGGNotation.parse(text))
         #expect(rank.label == "Gold II · 45 LP")
         #expect(rank.winRate == 0.6)
+        #expect(rank.games == 50)
+        let flex = try OPGGRankProvider.rank(from: OPGGNotation.parse(text), preferredQueue: .flex)
+        #expect(flex.label == "Silver I · 0 LP")
+        #expect(flex.games == 2)
+        let soloOnly = try OPGGNotation.parse("""
+        class P: data
+        class D: summoner
+        class S: league_stats
+        class L: game_type,tier_info,win,lose
+        class T: tier,division,lp
+
+        P(D(S([L("FLEXRANKED",T("UNRANKED",0,0),0,0),L("SOLORANKED",T("PLATINUM",4,12),10,5)])))
+        """)
+        let fallback = OPGGRankProvider.rank(from: soloOnly, preferredQueue: .flex)
+        #expect(fallback.label == "Platinum IV · 12 LP")
         let apex = PlayerRank(tier: "MASTER", division: 1, leaguePoints: 120, wins: nil, losses: nil)
         #expect(apex.label == "Master · 120 LP")
+        #expect(apex.games == nil)
         let emptyTier = try OPGGNotation.parse("""
         class P: data
         class D: summoner

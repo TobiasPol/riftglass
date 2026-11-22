@@ -75,6 +75,12 @@ public struct SkillAdvice: Equatable, Sendable {
     /// The following steps of the order (for a short preview).
     public let then: [SkillSlot]
     public let unspentPoints: Int
+
+    public init(next: SkillSlot, then: [SkillSlot], unspentPoints: Int) {
+        self.next = next
+        self.then = then
+        self.unspentPoints = unspentPoints
+    }
 }
 
 /// Suggests which ability to level, following a recorded skill order (e.g. OP.GG's most common one).

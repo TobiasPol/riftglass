@@ -43,6 +43,7 @@ final class RankLookup {
     func lookUp(
         _ players: [LivePlayer],
         region: String,
+        preferredQueue: RankQueue = .solo,
         update: @escaping @MainActor (String, PlayerRank) -> Void
     ) {
         let requests = players.compactMap { player -> Request? in
@@ -70,7 +71,10 @@ final class RankLookup {
                         deliver(result, generation: currentGeneration, update: update)
                     }
                     group.addTask { [provider] in
-                        await (request.key, Self.fetch(request, region: region, provider: provider))
+                        await (
+                            request.key,
+                            Self.fetch(request, region: region, preferredQueue: preferredQueue, provider: provider)
+                        )
                     }
                 }
                 for await result in group {
@@ -84,10 +88,16 @@ final class RankLookup {
     private nonisolated static func fetch(
         _ request: Request,
         region: String,
+        preferredQueue: RankQueue,
         provider: OPGGRankProvider
     ) async -> PlayerRank? {
         do {
-            return try await provider.soloRank(gameName: request.gameName, tagLine: request.tagLine, region: region)
+            return try await provider.rank(
+                gameName: request.gameName,
+                tagLine: request.tagLine,
+                region: region,
+                preferredQueue: preferredQueue
+            )
         } catch {
             let kind = String(describing: type(of: error))
             Logger(subsystem: "de.polleydigital.riftglass", category: "Ranks")
