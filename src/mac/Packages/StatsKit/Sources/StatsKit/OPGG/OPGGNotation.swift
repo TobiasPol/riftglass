@@ -189,8 +189,9 @@ private struct NotationParser {
         if (0xD800 ... 0xDBFF).contains(high), peek() == "\\", index + 1 < chars.count, chars[index + 1] == "u" {
             index += 2
             let low = try readHex4()
-            let code = 0x10000 + ((high - 0xD800) << 10) + (low - 0xDC00)
-            guard (0xDC00 ... 0xDFFF).contains(low), let scalar = Unicode.Scalar(code) else {
+            guard (0xDC00 ... 0xDFFF).contains(low),
+                  let scalar = Unicode.Scalar(0x10000 + ((high - 0xD800) << 10) + (low - 0xDC00))
+            else {
                 throw NotationError.unexpectedCharacter("u", offset: index)
             }
             return Character(scalar)

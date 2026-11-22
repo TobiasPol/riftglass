@@ -68,6 +68,8 @@ struct OPGGNotationTests {
         #expect(value["x"]?.int == nil) // out-of-range Double does not trap
         let strTest = try OPGGNotation.parse("class S: t\r\nS(\"\\r\\uD83D\\uDE00\")")
         #expect(strTest["t"]?.string == "\r😀")
+        #expect(throws: NotationError.self) { try OPGGNotation.parse("class S: t\nS(\"\\uD800\\u0041\")") }
+        #expect(throws: NotationError.self) { try OPGGNotation.parse("class S: t\nS(\"\\uD800\")") }
     }
 }
 

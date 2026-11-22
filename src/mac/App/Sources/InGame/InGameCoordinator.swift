@@ -137,7 +137,8 @@ final class InGameCoordinator {
         // Game time stays 0 on the loading screen (98 s live) – the banner would expire unseen.
         if !bannerShown, settings.ranksEnabled, settings.region != nil,
            snapshot.players.count > 1, snapshot.players.contains(where: { $0.isBot != true }),
-           snapshot.stats.gameTime > 0 {
+           snapshot.stats.gameTime > 0,
+           NSWorkspace.shared.frontmostApplication?.bundleIdentifier == LeagueBundleID.game {
             bannerShown = true
             showBanner()
         }
