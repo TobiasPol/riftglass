@@ -124,18 +124,61 @@ extension InGameCoordinator {
     }
 
     func previewOverlays() {
+        guard !isRunning else {
+            preview.dismiss()
+            return
+        }
         preview.toggle(settings: settings, icons: champSelect.icons)
     }
 
     func updatePreviewOffset() {
+        guard !isRunning else { return }
         preview.updateSkillOffset(settings.skillOverlayOffset)
     }
 
+    func queryRanksIfNeeded(for snapshot: LiveGameSnapshot) {
+        let currentRegion = settings.effectiveRegion
+        if currentRegion != rankRegion {
+            rankRegion = currentRegion
+            ranks = [:]
+            rankLookup.reset()
+        }
+        guard isRunning, settings.ranksEnabled, let region = currentRegion else { return }
+        rankLookup.lookUp(
+            snapshot.players,
+            region: region,
+            preferredQueue: queue?.isFlex == true ? .flex : .solo
+        ) { [weak self] key, rank in
+            self?.ranks[key] = rank
+        }
+    }
+
+    func refreshRanksForCurrentRegion() {
+        guard settings.effectiveRegion != rankRegion else { return }
+        rankRegion = settings.effectiveRegion
+        ranks = [:]
+        rankLookup.reset()
+        if let snapshot {
+            queryRanksIfNeeded(for: snapshot)
+        }
+    }
+
     func applyEndOfGameStats(_ stats: EndOfGameStats) {
+        if let gameId = stats.gameId,
+           let existing = settings.recentGames.first(where: { $0.gameId == gameId }) {
+            guard existing.won == nil else { return }
+            let enriched = existing.enriched(with: stats)
+            if lastGame?.id == existing.id {
+                lastGame = enriched
+            }
+            settings.updateLatestGame(enriched)
+            return
+        }
         let championName = stats.championId.flatMap { champSelect.staticData?.champion($0)?.name }
             ?? lastGame?.championName
             ?? String(localized: "Unknown")
-        if let latest = lastGame, latest.won == nil, Date().timeIntervalSince(latest.playedAt) < 600 {
+        if let latest = lastGame, latest.gameId == nil, latest.won == nil,
+           Date().timeIntervalSince(latest.playedAt) < 600 {
             let enriched = latest.enriched(with: stats)
             lastGame = enriched
             settings.updateLatestGame(enriched)

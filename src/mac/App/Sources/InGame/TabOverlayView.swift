@@ -27,7 +27,11 @@ struct TabOverlayView: View {
                     MyGameRow(me: me, snapshot: snapshot, coordinator: coordinator)
                 }
                 let timers = coordinator.settings.objectiveTimersEnabled
-                    ? ObjectiveTimerTracker.activeTimers(from: snapshot.events, at: snapshot.stats.gameTime)
+                    ? ObjectiveTimerTracker.activeTimers(
+                        from: snapshot.events,
+                        players: snapshot.players,
+                        at: snapshot.stats.gameTime
+                    )
                     : []
                 if !timers.isEmpty {
                     Divider().overlay(Palette.hairline)

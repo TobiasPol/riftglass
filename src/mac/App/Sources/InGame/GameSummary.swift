@@ -4,6 +4,7 @@ import LeagueKit
 /// Compact post-game summary, shown in the menu bar popover and persisted in recent history.
 struct GameSummary: Codable, Equatable, Identifiable {
     let id: UUID
+    let gameId: Int64?
     let playedAt: Date
     let championName: String
     let kills: Int
@@ -20,6 +21,7 @@ struct GameSummary: Codable, Equatable, Identifiable {
 
     init(
         id: UUID = UUID(),
+        gameId: Int64? = nil,
         playedAt: Date = Date(),
         championName: String,
         kills: Int,
@@ -35,6 +37,7 @@ struct GameSummary: Codable, Equatable, Identifiable {
         visionScore: Int? = nil
     ) {
         self.id = id
+        self.gameId = gameId
         self.playedAt = playedAt
         self.championName = championName
         self.kills = kills
@@ -68,6 +71,7 @@ struct GameSummary: Codable, Equatable, Identifiable {
     init?(endOfGame stats: EndOfGameStats, championName: String) {
         guard let kills = stats.kills, let deaths = stats.deaths, let assists = stats.assists else { return nil }
         self.init(
+            gameId: stats.gameId,
             championName: championName,
             kills: kills,
             deaths: deaths,
@@ -86,6 +90,7 @@ struct GameSummary: Codable, Equatable, Identifiable {
     func enriched(with stats: EndOfGameStats) -> GameSummary {
         GameSummary(
             id: id,
+            gameId: stats.gameId ?? gameId,
             playedAt: playedAt,
             championName: championName,
             kills: stats.kills ?? kills,

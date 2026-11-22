@@ -49,7 +49,10 @@ extension ChampSelectCoordinator {
         let key = [
             "\(session.allyChampionIds)",
             enemies.map { "\($0.championId):\($0.position ?? "-")" }.joined(separator: ","),
-            "\(championId ?? 0)", briefingRole?.rawValue ?? "-", mode.rawValue
+            "\(championId ?? 0)",
+            briefingRole?.rawValue ?? "-",
+            mode.rawValue,
+            BuildQueue(queue: effectiveQueue)?.rawValue ?? "-"
         ].joined(separator: "|")
         guard key != briefing.teamsKey else { return }
         briefing.teamsKey = key

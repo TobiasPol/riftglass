@@ -4,17 +4,34 @@ import StatsKit
 
 extension ChampSelectCoordinator {
     var displayedBuilds: [BuildOption] {
-        guard let championId, let champion = staticData?.champion(championId),
-              let matchupBuild = briefing.matchup?.build,
-              matchupBuild.championKey == champion.id,
-              matchupBuild.role == (manualRole ?? role)
-        else { return builds }
-        let sameCore = builds.contains { existing in
-            existing.runes == matchupBuild.runes
-                && existing.itemBlocks == matchupBuild.itemBlocks
-                && existing.summonerSpells == matchupBuild.summonerSpells
+        Self.combineBuilds(
+            builds,
+            matchup: briefing.matchup?.build,
+            championKey: championId.flatMap { staticData?.champion($0)?.id },
+            role: manualRole ?? role,
+            queue: BuildQueue(queue: effectiveQueue)
+        )
+    }
+
+    static func combineBuilds(
+        _ general: [BuildOption],
+        matchup: BuildOption?,
+        championKey: String?,
+        role: Role?,
+        queue: BuildQueue?
+    ) -> [BuildOption] {
+        guard let matchup, let championKey,
+              matchup.championKey == championKey,
+              matchup.role == role,
+              matchup.queue == queue
+        else { return general }
+        let sameBuild = general.contains { existing in
+            existing.runes == matchup.runes
+                && existing.itemBlocks == matchup.itemBlocks
+                && existing.summonerSpells == matchup.summonerSpells
+                && existing.skillOrder == matchup.skillOrder
         }
-        return sameCore ? builds : builds + [matchupBuild]
+        return sameBuild ? general : general + [matchup]
     }
 
     func selectRole(_ newRole: Role) {

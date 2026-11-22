@@ -68,6 +68,10 @@ public struct EndOfGameStats: Decodable, Equatable, Sendable {
         return resolvedLocalStats?["WIN"].map { $0 > 0 }
     }
 
+    public var hasScoreboardData: Bool {
+        won != nil || kills != nil
+    }
+
     public var kills: Int? {
         resolvedLocalStats?["CHAMPIONS_KILLED"].map { Int($0.rounded()) }
     }

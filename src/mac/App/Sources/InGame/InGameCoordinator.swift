@@ -12,7 +12,7 @@ import SwiftUI
 @Observable
 final class InGameCoordinator {
     private(set) var snapshot: LiveGameSnapshot?
-    private(set) var ranks: [String: PlayerRank] = [:]
+    var ranks: [String: PlayerRank] = [:]
     private(set) var isTabHeld = false
     var lastGame: GameSummary?
     /// Detected mode of the running game (lobby queue if plausible, else Live Client).
@@ -21,7 +21,8 @@ final class InGameCoordinator {
     @ObservationIgnored let champSelect: ChampSelectCoordinator
     @ObservationIgnored let settings: AppSettings
     @ObservationIgnored let preview = OverlayPreviewController()
-    @ObservationIgnored private let rankLookup = RankLookup()
+    @ObservationIgnored let rankLookup = RankLookup()
+    @ObservationIgnored var rankRegion: String?
     @ObservationIgnored private var liveClient: LiveClient?
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     @ObservationIgnored var hotkey: HotkeyMonitor?
@@ -73,6 +74,7 @@ final class InGameCoordinator {
         resetSkills()
         resetAugments()
         ranks = [:]
+        rankRegion = nil
         rankLookup.reset()
         bannerShown = false
         let client = LiveClient(evaluator: evaluator)
@@ -100,6 +102,7 @@ final class InGameCoordinator {
         hotkey?.stop()
         hotkey = nil
         rankLookup.reset()
+        rankRegion = nil
         bannerDismissTask?.cancel()
         bannerDismissTask = nil
         tabPanel?.dismiss()
@@ -133,15 +136,7 @@ final class InGameCoordinator {
         logTick(snapshot)
         updateSkillOverlay(snapshot)
         updateAugmentOverlay(snapshot)
-        if settings.ranksEnabled, let region = settings.effectiveRegion {
-            rankLookup.lookUp(
-                snapshot.players,
-                region: region,
-                preferredQueue: queue?.isFlex == true ? .flex : .solo
-            ) { [weak self] key, rank in
-                self?.ranks[key] = rank
-            }
-        }
+        queryRanksIfNeeded(for: snapshot)
         // Game time stays 0 on the loading screen (98 s live) – the banner would expire unseen.
         if !bannerShown, settings.ranksEnabled, settings.effectiveRegion != nil,
            snapshot.players.count > 1, snapshot.players.contains(where: { $0.isBot != true }),

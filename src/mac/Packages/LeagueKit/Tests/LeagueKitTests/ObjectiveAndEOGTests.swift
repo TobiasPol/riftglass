@@ -33,6 +33,65 @@ struct ObjectiveAndEOGTests {
         #expect(elderTimers.first?.remainingSeconds(at: 1900) == 260)
     }
 
+    @Test func soulTakingElementalDrakeEmitsElderTimer() throws {
+        let players = try JSONDecoder().decode([LivePlayer].self, from: Data(Self.twoTeamPlayersJSON.utf8))
+        let splitEvents = [
+            LiveGameEvent(
+                eventID: 1,
+                eventName: "DragonKill",
+                eventTime: 300,
+                killerName: "Jungler",
+                dragonType: "Fire"
+            ),
+            LiveGameEvent(
+                eventID: 2,
+                eventName: "DragonKill",
+                eventTime: 650,
+                killerName: "EnemyJg",
+                dragonType: "Air"
+            ),
+            LiveGameEvent(
+                eventID: 3, eventName: "DragonKill", eventTime: 1000, killerName: "Jungler", dragonType: "Earth"
+            ),
+            LiveGameEvent(
+                eventID: 4, eventName: "DragonKill", eventTime: 1350, killerName: "Jungler#EUW", dragonType: "Water"
+            ),
+            LiveGameEvent(
+                eventID: 5, eventName: "DragonKill", eventTime: 1700, killerName: "Jungler", dragonType: "Water"
+            )
+        ]
+        // 3rd ORDER drake -> still Dragon (300s).
+        let afterThree = ObjectiveTimerTracker.activeTimers(
+            from: Array(splitEvents.prefix(4)), players: players, at: 1400
+        )
+        #expect(afterThree.first?.kind == .dragon && afterThree.first?.remainingSeconds(at: 1400) == 250)
+        // 4th ORDER drake claims Soul -> next spawn is Elder (360s).
+        let afterSoul = ObjectiveTimerTracker.activeTimers(from: splitEvents, players: players, at: 1750)
+        #expect(afterSoul.first?.kind == .elder && afterSoul.first?.label == "Elder")
+        #expect(afterSoul.first?.remainingSeconds(at: 1750) == 310)
+        // Fallback without players emits Elder on the 7th elemental drake.
+        let anonymous = (1 ... 7).map { idx in
+            LiveGameEvent(eventID: idx, eventName: "DragonKill", eventTime: Double(idx * 300), dragonType: "Fire")
+        }
+        let seventh = ObjectiveTimerTracker.activeTimers(from: anonymous, at: 2150)
+        #expect(seventh.first?.kind == .elder && seventh.first?.remainingSeconds(at: 2150) == 310)
+    }
+
+    private static let twoTeamPlayersJSON = """
+    [
+      {
+        "championName": "Lee Sin", "riotId": "Jungler#EUW", "riotIdGameName": "Jungler",
+        "team": "ORDER", "level": 11, "items": [],
+        "scores": {"kills": 0, "deaths": 0, "assists": 0, "creepScore": 0}
+      },
+      {
+        "championName": "Vi", "riotId": "EnemyJg#EUW", "riotIdGameName": "EnemyJg",
+        "team": "CHAOS", "level": 11, "items": [],
+        "scores": {"kills": 0, "deaths": 0, "assists": 0, "creepScore": 0}
+      }
+    ]
+    """
+
     @Test func goldNeededSubtractsNestedComponentsAndDuplicates() throws {
         // 3118 (2700) = 3802 (1200) + 3108 (900)
         // 3802 (1200) = 1052 (400) + 1027 (300) + 2022 (250)

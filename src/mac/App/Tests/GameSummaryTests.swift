@@ -1,6 +1,7 @@
 import Foundation
 import LeagueKit
 @testable import Riftglass
+import StatsKit
 import Testing
 
 struct GameSummaryTests {
@@ -82,5 +83,50 @@ struct GameSummaryTests {
         #expect(settings.recentGames.count == 10)
         #expect(settings.recentGames.first?.championName == "Champ12")
         #expect(settings.recentGames.last?.championName == "Champ3")
+    }
+
+    @MainActor
+    @Test func applyEndOfGameStatsDeduplicatesByGameIdAcrossRestarts() throws {
+        let suite = "de.polleydigital.riftglass.tests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let firstSettings = AppSettings(defaults: defaults)
+        let firstCoord = InGameCoordinator(
+            champSelect: ChampSelectCoordinator(settings: firstSettings),
+            settings: firstSettings
+        )
+        firstCoord.applyEndOfGameStats(sampleEOG())
+        #expect(firstSettings.recentGames.count == 1)
+        #expect(firstSettings.recentGames.first?.gameId == 99)
+
+        // Simulates app restart while client is still in EndOfGame.
+        let restartedSettings = AppSettings(defaults: defaults)
+        let restartedCoord = InGameCoordinator(
+            champSelect: ChampSelectCoordinator(settings: restartedSettings),
+            settings: restartedSettings
+        )
+        restartedCoord.applyEndOfGameStats(sampleEOG())
+        #expect(restartedSettings.recentGames.count == 1)
+    }
+
+    @MainActor
+    @Test func refreshRanksForCurrentRegionClearsCachedRanksOnChange() throws {
+        let suite = "de.polleydigital.riftglass.tests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let settings = AppSettings(defaults: defaults)
+        settings.region = "EUW"
+        let coordinator = InGameCoordinator(
+            champSelect: ChampSelectCoordinator(settings: settings),
+            settings: settings
+        )
+        coordinator.rankRegion = "EUW"
+        coordinator.ranks["Player0#EUW"] = PlayerRank(tier: "GOLD", division: 2, leaguePoints: 50, wins: 10, losses: 5)
+        settings.manualRegion = "NA"
+        coordinator.refreshRanksForCurrentRegion()
+        #expect(coordinator.ranks.isEmpty)
+        #expect(coordinator.rankRegion == "NA")
     }
 }

@@ -25,6 +25,7 @@ struct InGameSettingsSection: View {
             }
             .onChange(of: settings.skillOverlayOffset) { _, _ in model.inGame.updatePreviewOffset() }
             Button("Preview overlays (5 s)") { model.inGame.previewOverlays() }
+                .disabled(model.inGame.isRunning)
             Toggle("ARAM: Mayhem – augment list at every augment choice", isOn: $settings.augmentOverlayEnabled)
             Picker("Augment overlay shortcut", selection: $settings.augmentToggleKeyCode) {
                 ForEach(ToggleShortcut.allCases) { shortcut in
@@ -49,6 +50,7 @@ struct InGameSettingsSection: View {
                     Text(region).tag(region)
                 }
             }
+            .onChange(of: settings.manualRegion) { _, _ in model.inGame.refreshRanksForCurrentRegion() }
             Text("Sends the Riot IDs of the players in your current game to OP.GG.")
                 .font(.caption).foregroundStyle(.secondary)
             Toggle("Item gold estimate per lane (experimental)", isOn: $settings.goldEstimateEnabled)
