@@ -10,6 +10,9 @@ struct ChampSelectView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
+            if coordinator.mode.hasLanes {
+                RoleSwitcherBar(coordinator: coordinator)
+            }
             Divider().overlay(Palette.hairline)
             content
             Spacer(minLength: 0)
@@ -73,10 +76,10 @@ struct ChampSelectView: View {
             if let board = coordinator.augmentBoard, !board.isEmpty {
                 AugmentsCard(board: board, icons: coordinator.icons)
             }
-            if coordinator.builds.isEmpty {
+            if coordinator.displayedBuilds.isEmpty {
                 placeholder(Self.emptyText(for: coordinator.mode))
             }
-            ForEach(coordinator.builds) { build in
+            ForEach(coordinator.displayedBuilds) { build in
                 BuildOptionCard(build: build, coordinator: coordinator)
             }
         }
@@ -130,6 +133,37 @@ private struct ActionStatusView: View {
             Label(text, systemImage: "exclamationmark.triangle.fill")
                 .font(.system(size: 11)).foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+private struct RoleSwitcherBar: View {
+    let coordinator: ChampSelectCoordinator
+
+    var body: some View {
+        let activeRole = coordinator.manualRole ?? coordinator.role
+        HStack(spacing: 4) {
+            ForEach(Role.allCases, id: \.self) { role in
+                let selected = activeRole == role
+                Button {
+                    coordinator.selectRole(role)
+                } label: {
+                    Text(role.displayName)
+                        .font(.system(size: 10, weight: selected ? .semibold : .regular))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                        .background(
+                            selected ? Palette.accent.opacity(0.24) : Palette.card,
+                            in: RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .strokeBorder(selected ? Palette.accent : Palette.hairline, lineWidth: 1)
+                        )
+                        .foregroundStyle(selected ? Palette.text : Palette.secondaryText)
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 }

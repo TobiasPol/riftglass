@@ -79,4 +79,56 @@ public enum InGameAnalysis {
         guard let opponent = snapshot.laneOpponent(of: player) else { return nil }
         return visibleItemGold(player, prices: prices) - visibleItemGold(opponent, prices: prices)
     }
+
+    /// Remaining gold needed to buy `itemID`, subtracting owned recipe components and current gold.
+    public static func goldNeeded(
+        for itemID: Int,
+        currentGold: Double,
+        owned items: [LivePlayer.Item],
+        prices: [Int: Int],
+        recipes: [Int: [Int]]
+    ) -> Int? {
+        guard let totalPrice = prices[itemID] else { return nil }
+        var inventory: [Int: Int] = [:]
+        for item in items {
+            inventory[item.itemID, default: 0] += max(item.count ?? 1, 1)
+        }
+        if inventory[itemID, default: 0] > 0 {
+            return 0
+        }
+        let componentValue = (recipes[itemID] ?? []).reduce(0) { sum, componentID in
+            sum + consumeOwnedComponents(
+                for: componentID,
+                inventory: &inventory,
+                prices: prices,
+                recipes: recipes,
+                depth: 0
+            )
+        }
+        let missingItemGold = max(0, totalPrice - componentValue)
+        return max(0, missingItemGold - max(0, Int(currentGold)))
+    }
+
+    private static func consumeOwnedComponents(
+        for itemID: Int,
+        inventory: inout [Int: Int],
+        prices: [Int: Int],
+        recipes: [Int: [Int]],
+        depth: Int
+    ) -> Int {
+        if let count = inventory[itemID], count > 0 {
+            inventory[itemID] = count - 1
+            return prices[itemID] ?? 0
+        }
+        guard depth < 8, let components = recipes[itemID] else { return 0 }
+        return components.reduce(0) { sum, componentID in
+            sum + consumeOwnedComponents(
+                for: componentID,
+                inventory: &inventory,
+                prices: prices,
+                recipes: recipes,
+                depth: depth + 1
+            )
+        }
+    }
 }

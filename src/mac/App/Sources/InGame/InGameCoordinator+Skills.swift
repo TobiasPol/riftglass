@@ -63,7 +63,7 @@ extension InGameCoordinator {
         } else {
             skillPanel = OverlayPanel(rootView: view)
         }
-        skillPanel?.present(on: gameScreen(), anchor: .bottomFraction(0.2))
+        skillPanel?.present(on: gameScreen(), anchor: .bottomFraction(settings.skillOverlayOffset))
     }
 
     func hideSkills() {

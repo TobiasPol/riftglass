@@ -14,16 +14,17 @@ final class InGameCoordinator {
     private(set) var snapshot: LiveGameSnapshot?
     private(set) var ranks: [String: PlayerRank] = [:]
     private(set) var isTabHeld = false
-    private(set) var lastGame: GameSummary?
+    var lastGame: GameSummary?
     /// Detected mode of the running game (lobby queue if plausible, else Live Client).
     private(set) var queue: GameQueue?
 
     @ObservationIgnored let champSelect: ChampSelectCoordinator
     @ObservationIgnored let settings: AppSettings
+    @ObservationIgnored let preview = OverlayPreviewController()
     @ObservationIgnored private let rankLookup = RankLookup()
     @ObservationIgnored private var liveClient: LiveClient?
     @ObservationIgnored private var pollTask: Task<Void, Never>?
-    @ObservationIgnored private var hotkey: HotkeyMonitor?
+    @ObservationIgnored var hotkey: HotkeyMonitor?
     @ObservationIgnored private var tabPanel: OverlayPanel?
     @ObservationIgnored private var bannerPanel: OverlayPanel?
     @ObservationIgnored private var bannerDismissTask: Task<Void, Never>?
@@ -55,6 +56,7 @@ final class InGameCoordinator {
     init(champSelect: ChampSelectCoordinator, settings: AppSettings) {
         self.champSelect = champSelect
         self.settings = settings
+        lastGame = settings.recentGames.first
     }
 
     var isRunning: Bool {
@@ -64,6 +66,7 @@ final class InGameCoordinator {
     func start(evaluator: LocalTrustEvaluator, rememberedQueue: GameQueue?) {
         guard pollTask == nil else { return }
         logger.info("Game detected – starting Live Client polling")
+        preview.dismiss()
         snapshot = nil
         queue = nil
         self.rememberedQueue = rememberedQueue
@@ -87,6 +90,7 @@ final class InGameCoordinator {
         guard pollTask != nil else { return }
         if let snapshot, let summary = GameSummary(snapshot: snapshot, plan: snapshot.me.flatMap(itemPlan(for:))) {
             lastGame = summary
+            settings.recordGame(summary)
         }
         pollTask?.cancel()
         pollTask = nil
@@ -111,7 +115,7 @@ final class InGameCoordinator {
 
     private func handle(_ snapshot: LiveGameSnapshot) {
         if self.snapshot == nil {
-            let region = settings.region ?? "nil"
+            let region = settings.effectiveRegion ?? "nil"
             logger.notice("""
             First snapshot: \(snapshot.players.count) players, me=\(snapshot.me != nil), \
             region=\(region, privacy: .public), mode=\(snapshot.stats.gameMode ?? "nil", privacy: .public), \
@@ -129,13 +133,17 @@ final class InGameCoordinator {
         logTick(snapshot)
         updateSkillOverlay(snapshot)
         updateAugmentOverlay(snapshot)
-        if settings.ranksEnabled, let region = settings.region {
-            rankLookup.lookUp(snapshot.players, region: region) { [weak self] key, rank in
+        if settings.ranksEnabled, let region = settings.effectiveRegion {
+            rankLookup.lookUp(
+                snapshot.players,
+                region: region,
+                preferredQueue: queue?.isFlex == true ? .flex : .solo
+            ) { [weak self] key, rank in
                 self?.ranks[key] = rank
             }
         }
         // Game time stays 0 on the loading screen (98 s live) – the banner would expire unseen.
-        if !bannerShown, settings.ranksEnabled, settings.region != nil,
+        if !bannerShown, settings.ranksEnabled, settings.effectiveRegion != nil,
            snapshot.players.count > 1, snapshot.players.contains(where: { $0.isBot != true }),
            snapshot.stats.gameTime > 0,
            NSWorkspace.shared.frontmostApplication?.bundleIdentifier == LeagueBundleID.game {
@@ -167,6 +175,7 @@ final class InGameCoordinator {
             return
         }
         let monitor = HotkeyMonitor()
+        monitor.toggleKeyCode = settings.augmentToggleKeyCode
         monitor.isActive = { NSWorkspace.shared.frontmostApplication?.bundleIdentifier == LeagueBundleID.game }
         monitor.onTabChange = { [weak self] down in
             guard let self, settings.tabOverlayEnabled || !down else { return }
@@ -223,21 +232,5 @@ final class InGameCoordinator {
         bannerDismissTask?.cancel()
         bannerDismissTask = nil
         bannerPanel?.dismiss()
-    }
-
-    /// Screen of the game window (largest window of the game process), else the primary screen.
-    func gameScreen() -> NSScreen? {
-        let screens = NSScreen.screens
-        guard let game = NSRunningApplication.runningApplications(withBundleIdentifier: LeagueBundleID.game).first,
-              let primary = screens.first
-        else { return screens.first }
-        let raw = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
-        let windows = raw.compactMap(WindowInfo.init(dictionary:))
-        guard let window = DockGeometry.largestWindow(in: windows, pid: game.processIdentifier) else {
-            return primary
-        }
-        let rect = DockGeometry.appKitRect(fromCG: window.bounds, primaryScreenHeight: primary.frame.height)
-        let index = DockGeometry.bestScreenIndex(for: rect, in: screens.map(\.frame)) ?? 0
-        return screens[index]
     }
 }

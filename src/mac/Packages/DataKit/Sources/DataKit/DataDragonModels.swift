@@ -79,6 +79,7 @@ public struct Item: Decodable, Equatable, Sendable {
     public let name: String
     public let image: DDImage
     public let gold: Gold?
+    public let from: [String]?
 }
 
 /// `{ "data": { key: value } }` wrapper used by champion/summoner/item JSONs.
@@ -102,6 +103,14 @@ public struct StaticData: Equatable, Sendable {
     /// Total item prices for the gold estimate.
     public var itemPrices: [Int: Int] {
         itemsById.compactMapValues { $0.gold?.total }
+    }
+
+    /// Item ID → direct component item IDs (e.g. for subtracting owned components from item cost).
+    public var itemRecipes: [Int: [Int]] {
+        itemsById.compactMapValues { item in
+            let components = item.from?.compactMap(Int.init) ?? []
+            return components.isEmpty ? nil : components
+        }
     }
 
     /// Data Dragon key (e.g. "MonkeyKing") → champion (case-insensitive for e.g. `FiddleSticks`).

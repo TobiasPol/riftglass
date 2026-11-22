@@ -19,6 +19,7 @@ final class AppModel {
     @ObservationIgnored private var connection: LCUConnection?
     @ObservationIgnored private var watchTask: Task<Void, Never>?
     @ObservationIgnored private var regionTask: Task<Void, Never>?
+    @ObservationIgnored private var postGameTask: Task<Void, Never>?
     @ObservationIgnored private var evaluator: LocalTrustEvaluator?
     @ObservationIgnored private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "AppModel")
 
@@ -66,6 +67,8 @@ final class AppModel {
     private func disconnect() {
         regionTask?.cancel()
         regionTask = nil
+        postGameTask?.cancel()
+        postGameTask = nil
         guard let connection else { return }
         connection.stop()
         self.connection = nil
@@ -128,6 +131,29 @@ final class AppModel {
             inGame.start(evaluator: evaluator, rememberedQueue: settings.lastQueue)
         } else {
             inGame.stop()
+        }
+        if newMode == .postGame {
+            fetchPostGameStats()
+        } else {
+            postGameTask?.cancel()
+            postGameTask = nil
+        }
+    }
+
+    private func fetchPostGameStats() {
+        postGameTask?.cancel()
+        postGameTask = Task { [weak self] in
+            for attempt in 0 ..< 3 {
+                guard !Task.isCancelled, let self, let lcu = champSelect.lcu else { return }
+                if let stats = try? await lcu.endOfGameStats() {
+                    guard !Task.isCancelled else { return }
+                    inGame.applyEndOfGameStats(stats)
+                    return
+                }
+                if attempt < 2 {
+                    try? await Task.sleep(for: .seconds(2))
+                }
+            }
         }
     }
 }

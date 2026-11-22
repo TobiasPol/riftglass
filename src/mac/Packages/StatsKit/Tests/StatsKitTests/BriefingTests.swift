@@ -110,6 +110,52 @@ struct BriefingProviderTests {
         #expect(brief.laneAdvantage == .me && brief.tip == nil)
     }
 
+    @Test func extractsMatchupBuildOptionAndDeduplicatesThenItems() throws {
+        let brief = try OPGGMatchupProvider.brief(
+            from: Data(Self.matchupBuildJSON.utf8),
+            my: ChampionRef(id: 103, key: "Ahri"),
+            opponentId: 238,
+            role: .middle,
+            queue: .ranked
+        )
+        let build = try #require(brief.build)
+        #expect(build.title == "Matchup Build vs. Zed")
+        #expect(build.runes.perkIds == [8112, 8139, 8140, 8106, 8210, 8226, 5005, 5008, 5001])
+        #expect(build.summonerSpells == [4, 14])
+        #expect(build.skillOrder == ["W", "Q", "E"])
+        #expect(build.itemBlocks.map(\.title) == ["Starter", "Core", "Boots", "Then"])
+        // 3118 is filtered out because it is in Core; 3089 is deduplicated; 3165 is 4th unique so capped to 3.
+        #expect(build.itemBlocks.last?.itemIds == [3089, 3135, 3102])
+        #expect(abs((build.stats?.winRate ?? 0) - 0.55) < 0.001)
+    }
+
+    private static let matchupBuildJSON = """
+    {
+      "my_champion": "Ahri",
+      "opponent_champion": "Zed",
+      "data": {
+        "runes": [
+          {
+            "primary_page_id": 8100,
+            "primary_rune_ids": [8112, 8139, 8140, 8106],
+            "secondary_page_id": 8200,
+            "secondary_rune_ids": [8210, 8226],
+            "stat_mod_ids": [5005, 5008, 5001]
+          }
+        ],
+        "starter_items": [{"ids": [1056, 2003, 2003]}],
+        "core_items": [{"ids": [3118, 4645, 3157], "play": 200, "win": 110, "pick_rate": 0.25}],
+        "boots": [{"ids": [3020]}],
+        "last_items": [
+          {"ids": [3118]}, {"ids": [3089]}, {"ids": [3135]},
+          {"ids": [3089]}, {"ids": [3102]}, {"ids": [3165]}
+        ],
+        "summoner_spells": [{"ids": [4, 14]}],
+        "skills": [{"order": ["W", "Q", "E"]}]
+      }
+    }
+    """
+
     @Test func parsesRecordedCounters() async throws {
         let poster = try FakePoster(response: Fixture.data("opgg/zed-mid-counters.json"))
         let provider = OPGGCounterProvider(client: OPGGClient(poster: poster), cache: cache())

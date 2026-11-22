@@ -20,7 +20,7 @@ struct RiftglassApp: App {
         .windowResizability(.contentSize)
 
         Settings {
-            SettingsView(settings: model.settings)
+            SettingsView(model: model, settings: model.settings)
                 .environment(updater)
         }
     }
@@ -35,7 +35,8 @@ private struct MenuBarLabel: View {
     var body: some View {
         Image(systemName: model.mode == .dormant ? "diamond" : "diamond.fill")
             .task {
-                guard !didStart else { return }
+                guard !didStart, ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
+                else { return }
                 didStart = true
                 model.start()
                 if !model.settings.onboardingCompleted {

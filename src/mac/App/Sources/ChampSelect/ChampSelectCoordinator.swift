@@ -21,15 +21,17 @@ final class ChampSelectCoordinator {
     /// Detected queue; from the gameflow session, else from champ select's `queueId`.
     private(set) var queue: GameQueue?
     private(set) var championId: Int?
-    private(set) var role: Role?
+    var role: Role?
+    /// Manual lane selection overriding LCU / OP.GG default in champ select.
+    var manualRole: Role?
     /// Lane the client assigned when the current builds were requested (nil in blind pick).
-    @ObservationIgnored private var assignedRole: Role?
-    private(set) var builds: [BuildOption] = []
+    @ObservationIgnored var assignedRole: Role?
+    var builds: [BuildOption] = []
     /// ARAM: Mayhem only – the champion's augments per rarity, in OP.GG's tier order.
-    private(set) var augmentBoard: AugmentBoard?
+    var augmentBoard: AugmentBoard?
     /// Last loaded board for this game – survives `deactivate()` so the in-game overlay reuses it.
-    @ObservationIgnored private(set) var lastAugmentBoard: AugmentBoard?
-    private(set) var isLoadingBuilds = false
+    @ObservationIgnored var lastAugmentBoard: AugmentBoard?
+    var isLoadingBuilds = false
     private(set) var staticData: StaticData?
     /// Lane matchup, team comp and counter picks (`ChampSelectCoordinator+Briefing`).
     var briefing = ChampSelectBriefing()
@@ -42,7 +44,7 @@ final class ChampSelectCoordinator {
 
     @ObservationIgnored let icons = IconCache()
     @ObservationIgnored let dataDragon = DataDragon(locale: GameDataLocale.dataDragon)
-    @ObservationIgnored private let loader: BuildLoader
+    @ObservationIgnored let loader: BuildLoader
     /// Shared with the in-game overlay (one in-memory augment catalog).
     @ObservationIgnored let augmentLoader = AugmentBoardLoader()
     @ObservationIgnored let briefingSources = BriefingSources()
@@ -68,7 +70,7 @@ final class ChampSelectCoordinator {
     @ObservationIgnored private(set) var actions: ChampSelectActions?
     @ObservationIgnored private var panel: ChampSelectPanel?
     @ObservationIgnored private var dock: ClientDockController?
-    @ObservationIgnored private var staticDataTask: Task<Void, Never>?
+    @ObservationIgnored var staticDataTask: Task<Void, Never>?
     @ObservationIgnored let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "ChampSelect")
 
     init(settings: AppSettings, loader: BuildLoader = BuildLoader()) {
@@ -147,6 +149,7 @@ final class ChampSelectCoordinator {
         session = nil
         championId = nil
         role = nil
+        manualRole = nil
         assignedRole = nil
         builds = []
         augmentBoard = nil
@@ -186,6 +189,9 @@ final class ChampSelectCoordinator {
         if newChampion != championId {
             augmentBoard = nil
         }
+        if newRole != assignedRole {
+            manualRole = nil
+        }
         championId = newChampion
         assignedRole = newRole
         actionState = .idle
@@ -196,54 +202,5 @@ final class ChampSelectCoordinator {
             isLoadingBuilds = false
             role = nil
         }
-    }
-
-    private func loadBuilds(for championId: Int, session: ChampSelectSession?) async {
-        isLoadingBuilds = true
-        await staticDataTask?.value
-        guard championId == self.championId else { return }
-        guard let champion = staticData?.champion(championId) else {
-            logger.error("Unknown champion \(championId)")
-            isLoadingBuilds = false
-            return
-        }
-        let key = champion.id
-        let queue = effectiveQueue
-        loadAugments(championId: championId, queue: queue)
-        // Without an assigned position (blind pick, custom) OP.GG's lane shares decide the role.
-        let assigned = session?.localPosition
-        let needsRates = queue.mode.hasLanes && Role(lcuPosition: assigned) == nil
-        let role = await BuildLoader.resolveRole(
-            assigned: assigned,
-            championName: champion.name,
-            mode: queue.mode,
-            rates: needsRates ? loadRoleRates() : nil
-        )
-        let loaded = await loader.load(
-            champion: ChampionRef(id: championId, key: key),
-            role: role,
-            queue: queue,
-            patch: staticData?.version
-        )
-        // Champion, lane or queue (incl. Solo vs. Flex) changed meanwhile; the newer load owns the flag.
-        guard championId == self.championId, Role(lcuPosition: assigned) == assignedRole,
-              Self.buildKey(queue) == Self.buildKey(effectiveQueue)
-        else { return }
-        self.role = role
-        updateBriefing() // the matchup needs the resolved role
-        builds = loaded
-        isLoadingBuilds = false
-        // The remembered build follows champion, queue and lane (a swap keeps the first two).
-        if plannedBuild?.championKey != key || plannedBuild?.queue != loaded.first?.queue
-            || plannedBuild?.role != loaded.first?.role {
-            plannedBuild = loaded.first
-        }
-        prefetchIcons(for: loaded)
-        autoImportIfNeeded()
-    }
-
-    func applyAugmentBoard(_ board: AugmentBoard) {
-        augmentBoard = board
-        lastAugmentBoard = board
     }
 }

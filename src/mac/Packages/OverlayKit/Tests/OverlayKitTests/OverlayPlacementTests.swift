@@ -71,4 +71,17 @@ struct OverlayPlacementTests {
         #expect(!HotkeyMonitor.isPlainTab(.maskControl))
         #expect(!HotkeyMonitor.isPlainTab(.maskAlternate))
     }
+
+    @MainActor
+    @Test func configurableToggleKeyCodeTriggersOnToggle() {
+        let monitor = HotkeyMonitor()
+        #expect(monitor.toggleKeyCode == HotkeyMonitor.toggleKeyCode)
+        var toggles = 0
+        monitor.onToggle = { toggles += 1 }
+        monitor.toggleKeyCode = 5 // G
+        monitor.handle(.keyDown, keyCode: 0, isRepeat: false, flags: .maskAlternate)
+        #expect(toggles == 0)
+        monitor.handle(.keyDown, keyCode: 5, isRepeat: false, flags: .maskAlternate)
+        #expect(toggles == 1)
+    }
 }

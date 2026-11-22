@@ -24,6 +24,13 @@ public struct AugmentInfo: Equatable, Sendable {
     public let name: String
     public let rarity: AugmentRarity
     public let iconURL: URL?
+
+    public init(id: Int, name: String, rarity: AugmentRarity, iconURL: URL?) {
+        self.id = id
+        self.name = name
+        self.rarity = rarity
+        self.iconURL = iconURL
+    }
 }
 
 /// Augment metadata from CommunityDragon's `cherry-augments.json` (Arena and ARAM: Mayhem share it;

@@ -37,6 +37,16 @@ public struct PlayerRank: Equatable, Sendable {
         guard let wins, let losses, wins + losses > 0 else { return nil }
         return Double(wins) / Double(wins + losses)
     }
+
+    public var games: Int? {
+        guard let wins, let losses, wins + losses > 0 else { return nil }
+        return wins + losses
+    }
+}
+
+public enum RankQueue: String, Equatable, Sendable {
+    case solo = "SOLORANKED"
+    case flex = "FLEXRANKED"
 }
 
 /// Ranks via OP.GG's `lol_get_summoner_profile` – used for the loading screen, where the LCU is
@@ -49,6 +59,15 @@ public struct OPGGRankProvider: Sendable {
     }
 
     public func soloRank(gameName: String, tagLine: String, region: String) async throws -> PlayerRank {
+        try await rank(gameName: gameName, tagLine: tagLine, region: region, preferredQueue: .solo)
+    }
+
+    public func rank(
+        gameName: String,
+        tagLine: String,
+        region: String,
+        preferredQueue: RankQueue = .solo
+    ) async throws -> PlayerRank {
         let text = try await client.callTool("lol_get_summoner_profile", arguments: [
             "game_name": .string(gameName),
             "tag_line": .string(tagLine),
@@ -58,23 +77,35 @@ public struct OPGGRankProvider: Sendable {
                 "data.summoner.league_stats[].tier_info.{tier,division,lp}"
             ])
         ])
-        return try Self.soloRank(from: OPGGNotation.parse(text))
+        return try Self.rank(from: OPGGNotation.parse(text), preferredQueue: preferredQueue)
     }
 
     static func soloRank(from value: NotationValue) -> PlayerRank {
+        rank(from: value, preferredQueue: .solo)
+    }
+
+    static func rank(from value: NotationValue, preferredQueue: RankQueue = .solo) -> PlayerRank {
         let stats = value["data"]?["summoner"]?["league_stats"]?.list ?? []
-        guard let solo = stats.first(where: { $0["game_type"]?.string == "SOLORANKED" }),
-              let tier = solo["tier_info"]?["tier"]?.string, !tier.isEmpty, tier.uppercased() != "UNRANKED"
+        let preferred = extractRank(stats, queue: preferredQueue)
+        if preferred.isRanked || preferredQueue == .solo {
+            return preferred
+        }
+        return extractRank(stats, queue: .solo)
+    }
+
+    private static func extractRank(_ stats: [NotationValue], queue: RankQueue) -> PlayerRank {
+        guard let entry = stats.first(where: { $0["game_type"]?.string == queue.rawValue }),
+              let tier = entry["tier_info"]?["tier"]?.string, !tier.isEmpty, tier.uppercased() != "UNRANKED"
         else { return .unranked }
-        let info = solo["tier_info"]
+        let info = entry["tier_info"]
         let roman = ["I": 1, "II": 2, "III": 3, "IV": 4]
         let division = info?["division"]?.int ?? info?["division"]?.string.flatMap { roman[$0.uppercased()] }
         return PlayerRank(
             tier: tier,
             division: division,
             leaguePoints: info?["lp"]?.int,
-            wins: solo["win"]?.int,
-            losses: solo["lose"]?.int
+            wins: entry["win"]?.int,
+            losses: entry["lose"]?.int
         )
     }
 }

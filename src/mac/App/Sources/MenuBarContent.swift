@@ -15,33 +15,47 @@ struct MenuBarContent: View {
             if let error = model.setupError {
                 Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
             }
-            Toggle("ARAM: Mayhem – augment overlay (⌥A)", isOn: Bindable(model.settings).augmentOverlayEnabled)
-                .toggleStyle(.switch)
-                .controlSize(.mini)
-                .font(.callout)
+            Toggle(
+                "ARAM: Mayhem – augment overlay (\(model.settings.toggleShortcutLabel))",
+                isOn: Bindable(model.settings).augmentOverlayEnabled
+            )
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+            .font(.callout)
             if let game = model.inGame.lastGame {
                 lastGame(game)
+            }
+            if model.settings.recentGames.count > 1 {
+                recentHistory(model.settings.recentGames)
             }
             Divider()
             Text(Disclaimer.short)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            HStack {
+            HStack(spacing: 6) {
                 Button("Settings …") { WindowFront.openSettings(using: openSettings) }
                 Button("Setup") { WindowFront.open(OnboardingView.windowID, using: openWindow) }
+                Button("Updates") { updater.checkForUpdates() }
                 Spacer()
                 Button("Quit") { NSApplication.shared.terminate(nil) }
             }
             .controlSize(.small)
         }
         .padding(14)
-        .frame(width: 300)
+        .frame(width: 320)
     }
 
     private func lastGame(_ game: GameSummary) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Last game").font(.caption).foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                Text("Last game").font(.caption).foregroundStyle(.secondary)
+                if let won = game.won {
+                    Text(won ? "Win" : "Loss")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(won ? .green : .red)
+                }
+            }
             HStack(spacing: 12) {
                 Text(game.championName).font(.callout.weight(.semibold))
                 Text(game.kdaText).monospacedDigit()
@@ -51,8 +65,55 @@ struct MenuBarContent: View {
                 Text("\(game.minutes) min").foregroundStyle(.secondary)
             }
             .font(.callout)
+            if game.killParticipation != nil || game.damageShare != nil || game.visionScore != nil {
+                postGameMetrics(game)
+            }
             if game.buildTotal > 0 {
                 Text("Build: \(game.buildDone)/\(game.buildTotal) planned items").font(.caption)
+            }
+        }
+    }
+
+    private func postGameMetrics(_ game: GameSummary) -> some View {
+        HStack(spacing: 10) {
+            if let killParticipation = game.killParticipation {
+                Text("KP \(killParticipation.formatted(.percent.precision(.fractionLength(0))))")
+            }
+            if let damageShare = game.damageShare {
+                Text("DMG \(damageShare.formatted(.percent.precision(.fractionLength(0))))")
+            }
+            if let vision = game.visionScore {
+                Text("Vision \(vision)")
+            }
+        }
+        .font(.caption.monospacedDigit())
+        .foregroundStyle(.secondary)
+    }
+
+    private func recentHistory(_ games: [GameSummary]) -> some View {
+        let wins = games.filter { $0.won == true }.count
+        let losses = games.filter { $0.won == false }.count
+        return VStack(alignment: .leading, spacing: 3) {
+            HStack {
+                Text("Recent games").font(.caption).foregroundStyle(.secondary)
+                if wins + losses > 0 {
+                    Spacer()
+                    Text("\(wins)W – \(losses)L").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                }
+            }
+            ForEach(games.dropFirst().prefix(4)) { game in
+                HStack(spacing: 8) {
+                    Text(game.championName).lineLimit(1)
+                    Spacer()
+                    Text(game.kdaText).monospacedDigit().foregroundStyle(.secondary)
+                    Text("\(game.minutes)m").monospacedDigit().foregroundStyle(.secondary)
+                    if let won = game.won {
+                        Text(won ? "W" : "L")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(won ? .green : .red)
+                    }
+                }
+                .font(.caption)
             }
         }
     }

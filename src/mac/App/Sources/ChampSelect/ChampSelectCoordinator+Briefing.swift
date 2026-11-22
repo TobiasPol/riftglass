@@ -28,10 +28,9 @@ struct BriefingSources {
 }
 
 extension ChampSelectCoordinator {
-    /// Own role: what the client assigns right now (it changes with a lane swap), else the one
-    /// resolved with the builds (blind pick).
+    /// Own role: manual override first, else what the client assigns, else resolved with builds.
     var briefingRole: Role? {
-        Role(lcuPosition: session?.localPosition) ?? role
+        manualRole ?? Role(lcuPosition: session?.localPosition) ?? role
     }
 
     /// Recomputes the briefing when the visible champions, their revealed positions, the own role,
@@ -131,15 +130,24 @@ extension ChampSelectCoordinator {
             briefing.matchupKey = nil
             return
         }
-        let key = "\(mine.id)-\(theirs.id)-\(role.rawValue)"
+        let buildQueue = BuildQueue(queue: effectiveQueue) ?? .ranked
+        let key = "\(mine.id)-\(theirs.id)-\(role.rawValue)-\(buildQueue.rawValue)"
         guard key != briefing.matchupKey else { return }
         briefing.matchupKey = key
         briefing.matchup = nil
         Task { [briefingSources] in
             do {
-                let brief = try await briefingSources.matchups.matchup(my: mine, against: theirs, role: role)
+                let brief = try await briefingSources.matchups.matchup(
+                    my: mine,
+                    against: theirs,
+                    role: role,
+                    queue: buildQueue
+                )
                 guard key == briefing.matchupKey else { return }
                 briefing.matchup = brief
+                if let build = brief.build {
+                    prefetchIcons(for: [build])
+                }
             } catch {
                 logger.notice("OP.GG matchup unavailable: \(String(describing: error), privacy: .public)")
             }
