@@ -79,9 +79,14 @@ public struct OPGGClient: Sendable {
 
     /// The server may answer as Server-Sent Events; then the JSON is in the `data:` line.
     private static func jsonPayload(_ data: Data) -> Data {
-        guard let text = String(data: data, encoding: .utf8), !text.hasPrefix("{") else { return data }
-        let line = text.split(separator: "\n").last { $0.hasPrefix("data:") }
-        return line.map { Data($0.dropFirst(5).utf8) } ?? data
+        guard let text = String(data: data, encoding: .utf8) else { return data }
+        let trimmed = text.drop(while: \.isWhitespace)
+        guard !trimmed.hasPrefix("{") else { return data }
+        let dataPayloads = text.split(whereSeparator: \.isNewline)
+            .filter { $0.hasPrefix("data:") }
+            .map { $0.dropFirst(5).drop(while: \.isWhitespace) }
+        let line = dataPayloads.last { $0.hasPrefix("{") } ?? dataPayloads.last
+        return line.map { Data($0.utf8) } ?? data
     }
 }
 

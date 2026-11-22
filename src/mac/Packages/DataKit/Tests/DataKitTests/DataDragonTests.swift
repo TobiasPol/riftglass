@@ -42,6 +42,7 @@ struct DataDragonTests {
         #expect(data.itemsById[1056]?.name == "Dorans Ring")
         #expect(data.itemPrices[1056] == 400)
         #expect(data.champion(key: "MonkeyKing")?.name == "Wukong")
+        #expect(data.champion(key: "monkeyking")?.name == "Wukong")
         #expect(data.runesById[8112]?.key == "Electrocute")
         #expect(data.runeStylesById[8200]?.name == "Zauberei")
     }
@@ -75,5 +76,22 @@ struct DataDragonTests {
         #expect(dragon.itemIconURL(1056, version: "15.22.1").lastPathComponent == "1056.png")
         #expect(dragon.runeIconURL("perk-images/x.png").absoluteString
             == "https://ddragon.leagueoflegends.com/cdn/img/perk-images/x.png")
+    }
+
+    @Test func offlineLatestVersionSkipsIncompleteOrOtherLocaleDirectories() async throws {
+        let fetcher = FixtureFetcher()
+        _ = try await DataDragon(fetcher: fetcher, cacheDirectory: cache).staticData(version: "15.22.1")
+        // Incomplete newer version (only one file) and a different-locale directory must be ignored offline.
+        let newerIncomplete = cache.appending(path: "16.1.1/de_DE", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: newerIncomplete, withIntermediateDirectories: true)
+        try Data("{}".utf8).write(to: newerIncomplete.appending(path: "champion.json"))
+        let otherLocale = cache.appending(path: "16.2.1/en_US", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: otherLocale, withIntermediateDirectories: true)
+        for name in ["champion.json", "summoner.json", "item.json", "runesReforged.json"] {
+            try Data("{}".utf8).write(to: otherLocale.appending(path: name))
+        }
+        await fetcher.setOffline(true)
+        let offline = DataDragon(fetcher: fetcher, cacheDirectory: cache)
+        #expect(try await offline.latestVersion() == "15.22.1")
     }
 }

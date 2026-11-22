@@ -44,7 +44,8 @@ struct AugmentBoard: Equatable, Sendable {
     /// be empty. Augments without any rarity are no longer in the game and are dropped.
     static func make(championId: Int, stats: [AugmentStat], catalog: [Int: AugmentInfo]) -> AugmentBoard {
         var byRarity: [AugmentRarity: [Entry]] = [:]
-        for stat in stats.sorted(by: AugmentStat.tierListOrder) {
+        var seen = Set<Int>()
+        for stat in stats.sorted(by: AugmentStat.tierListOrder) where seen.insert(stat.id).inserted {
             let info = catalog[stat.id]
             guard let rarity = stat.rarity.flatMap({ AugmentRarity(rawValue: $0.rawValue) }) ?? info?.rarity
             else { continue }

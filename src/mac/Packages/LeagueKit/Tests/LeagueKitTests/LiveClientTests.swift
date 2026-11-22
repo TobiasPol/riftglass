@@ -32,13 +32,20 @@ struct LiveClientTests {
         #expect(snapshot.me == nil)
     }
 
-    @Test func riotIDFallsBackToCombinedField() throws {
+    @Test func riotIDFallsBackToCombinedFieldAndRejectsEmptyHalves() throws {
         let json = #"{"championName":"Lux","riotId":"Some Name#TAG1","team":"ORDER","level":1,"items":[],"#
             + #""scores":{"kills":0,"deaths":0,"assists":0,"creepScore":0}}"#
         let player = try JSONDecoder().decode(LivePlayer.self, from: Data(json.utf8))
         #expect(player.riotIDParts?.gameName == "Some Name")
         #expect(player.riotIDParts?.tagLine == "TAG1")
         #expect(player.championKey == "Lux")
+
+        for broken in ["#EUW", "Foo#"] {
+            let badJSON = #"{"championName":"Lux","riotId":"\#(broken)","team":"ORDER","level":1,"items":[],"#
+                + #""scores":{"kills":0,"deaths":0,"assists":0,"creepScore":0}}"#
+            let badPlayer = try JSONDecoder().decode(LivePlayer.self, from: Data(badJSON.utf8))
+            #expect(badPlayer.riotIDParts == nil)
+        }
     }
 }
 

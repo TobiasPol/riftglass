@@ -26,14 +26,15 @@ public struct SkillRules: Equatable, Sendable {
     /// Rules for a Data Dragon champion key; unknown champions use `.standard`.
     public static func forChampion(_ key: String) -> SkillRules {
         var rules = SkillRules.standard
-        switch key {
-        case "Jayce", "Elise", "Nidalee":
+        switch key.lowercased() {
+        case "jayce":
             rules.automatic = [.r]
-        case "Karma":
+            rules.maxRank = [.q: 6, .w: 6, .e: 6, .r: 4]
+        case "karma", "elise", "nidalee":
             rules.startingRanks = [.r: 1]
             rules.maxRank[.r] = 4
             rules.ultimateLevels = [1, 6, 11, 16]
-        case "Udyr":
+        case "udyr":
             // Rank-6 unlocks lie beyond OP.GG's 15-step order → no advice after it, rather than a guess.
             rules.maxRank = [.q: 6, .w: 6, .e: 6, .r: 6]
             rules.ultimateIsBasic = true
@@ -42,6 +43,11 @@ public struct SkillRules: Equatable, Sendable {
             break
         }
         return rules
+    }
+
+    var maxSpendablePoints: Int {
+        SkillSlot.allCases.filter { !automatic.contains($0) }
+            .reduce(0) { $0 + max(0, maxRank[$1, default: 0] - startingRanks[$1, default: 0]) }
     }
 
     /// Lowest champion level for `rank` (1-based) of `slot`.
@@ -85,15 +91,15 @@ public enum SkillOrderAdvisor {
     ) -> SkillAdvice? {
         let steps = order.compactMap { SkillSlot(rawValue: $0.uppercased()) }
             .filter { !rules.automatic.contains($0) }
-        let unspent = championLevel - rules.spentPoints(ranks)
+        let unspent = min(championLevel, rules.maxSpendablePoints) - rules.spentPoints(ranks)
         guard unspent > 0, !steps.isEmpty else { return nil }
         var planned = rules.startingRanks
-        for (index, slot) in steps.enumerated() {
+        for slot in steps {
             planned[slot, default: 0] += 1
             let current = ranks[slot, default: 0]
             guard current < planned[slot, default: 0] else { continue }
             if rules.learnable(slot, rank: current + 1, championLevel: championLevel) {
-                let then = Array(steps.dropFirst(index + 1).prefix(3))
+                let then = preview(steps: steps, ranks: ranks, next: slot, rules: rules)
                 return SkillAdvice(next: slot, then: then, unspentPoints: unspent)
             }
         }
@@ -103,6 +109,29 @@ public enum SkillOrderAdvisor {
             rules.learnable(slot, rank: ranks[slot, default: 0] + 1, championLevel: championLevel)
         }
         return fallback.map { SkillAdvice(next: $0, then: [], unspentPoints: unspent) }
+    }
+
+    private static func preview(
+        steps: [SkillSlot],
+        ranks: [SkillSlot: Int],
+        next: SkillSlot,
+        rules: SkillRules
+    ) -> [SkillSlot] {
+        var simulatedRanks = ranks
+        simulatedRanks[next, default: 0] += 1
+        var planned = rules.startingRanks
+        var upcoming: [SkillSlot] = []
+        for slot in steps {
+            planned[slot, default: 0] += 1
+            if simulatedRanks[slot, default: 0] < planned[slot, default: 0] {
+                simulatedRanks[slot, default: 0] += 1
+                upcoming.append(slot)
+                if upcoming.count == 3 {
+                    break
+                }
+            }
+        }
+        return upcoming
     }
 
     /// Ultimate first, then the basic abilities by how early the order maxes them.

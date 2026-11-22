@@ -1264,6 +1264,16 @@
         }
       }
     },
+    "Skills: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skills: %@"
+          }
+        }
+      }
+    },
     "Solo kills: %@": {
       "localizations": {
         "de": {

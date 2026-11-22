@@ -21,6 +21,8 @@ final class RankLookup {
     private let maxAttempts = 3
     private var failedAt: [String: Date] = [:]
     private var attempts: [String: Int] = [:]
+    private var generation = 0
+    private var tasks: [UUID: Task<Void, Never>] = [:]
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "Ranks")
 
     init(provider: OPGGRankProvider = OPGGRankProvider()) {
@@ -28,6 +30,9 @@ final class RankLookup {
     }
 
     func reset() {
+        generation += 1
+        tasks.values.forEach { $0.cancel() }
+        tasks = [:]
         requested = []
         failedAt = [:]
         attempts = [:]
@@ -54,18 +59,22 @@ final class RankLookup {
             attempts[request.key, default: 0] += 1
         }
         logger.info("Looking up \(requests.count) ranks in \(region, privacy: .public)")
-        Task {
+        let currentGeneration = generation
+        let taskID = UUID()
+        tasks[taskID] = Task {
+            defer { tasks[taskID] = nil }
             await withTaskGroup(of: (String, PlayerRank?).self) { group in
                 for (index, request) in requests.enumerated() {
+                    guard !Task.isCancelled, generation == currentGeneration else { break }
                     if index >= 4, let result = await group.next() {
-                        deliver(result, update: update)
+                        deliver(result, generation: currentGeneration, update: update)
                     }
                     group.addTask { [provider] in
                         await (request.key, Self.fetch(request, region: region, provider: provider))
                     }
                 }
                 for await result in group {
-                    deliver(result, update: update)
+                    deliver(result, generation: currentGeneration, update: update)
                 }
             }
         }
@@ -87,7 +96,12 @@ final class RankLookup {
         }
     }
 
-    private func deliver(_ result: (String, PlayerRank?), update: @MainActor (String, PlayerRank) -> Void) {
+    private func deliver(
+        _ result: (String, PlayerRank?),
+        generation: Int,
+        update: @MainActor (String, PlayerRank) -> Void
+    ) {
+        guard !Task.isCancelled, self.generation == generation else { return }
         guard let rank = result.1 else {
             let delay = Int(retryDelay), attempt = attempts[result.0, default: 0], limit = maxAttempts
             logger.notice("Rank lookup failed (attempt \(attempt)/\(limit)) – retry in \(delay) s")

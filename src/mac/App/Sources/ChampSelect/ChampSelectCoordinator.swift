@@ -27,6 +27,8 @@ final class ChampSelectCoordinator {
     private(set) var builds: [BuildOption] = []
     /// ARAM: Mayhem only – the champion's augments per rarity, in OP.GG's tier order.
     private(set) var augmentBoard: AugmentBoard?
+    /// Last loaded board for this game – survives `deactivate()` so the in-game overlay reuses it.
+    @ObservationIgnored private(set) var lastAugmentBoard: AugmentBoard?
     private(set) var isLoadingBuilds = false
     private(set) var staticData: StaticData?
     /// Lane matchup, team comp and counter picks (`ChampSelectCoordinator+Briefing`).
@@ -58,6 +60,7 @@ final class ChampSelectCoordinator {
     @ObservationIgnored let settings: AppSettings
     /// `gameId-championId` of the last automatic import, so it runs once per pick.
     @ObservationIgnored var autoImportedKey: String?
+    @ObservationIgnored var activeImportToken: UUID?
     /// Tail of the import queue. Imports read and replace shared state (rune pages, the whole
     /// item-set document), so they run strictly one after another.
     @ObservationIgnored var importChain: Task<Void, Never>?
@@ -97,6 +100,7 @@ final class ChampSelectCoordinator {
             augmentBoard = nil
             Task { await loadBuilds(for: championId, session: session) }
         }
+        updateBriefing()
     }
 
     /// What decides which builds apply: the mode plus the statistics queue (Solo vs. Flex). Other
@@ -118,6 +122,7 @@ final class ChampSelectCoordinator {
             do {
                 let version = try await dataDragon.latestVersion()
                 staticData = try await dataDragon.staticData(version: version)
+                updateBriefing()
             } catch {
                 logger.error("Data Dragon unavailable: \(error.localizedDescription, privacy: .public)")
             }
@@ -132,10 +137,11 @@ final class ChampSelectCoordinator {
             dock = ClientDockController(panel: panel)
         }
         plannedBuild = nil
+        lastAugmentBoard = nil
         dock?.start(clientPID: clientPID)
     }
 
-    /// Hides the panel. `plannedBuild` survives for the in-game build progress.
+    /// Hides the panel. `plannedBuild` and `lastAugmentBoard` survive for the game.
     func deactivate() {
         dock?.stop()
         session = nil
@@ -144,9 +150,13 @@ final class ChampSelectCoordinator {
         assignedRole = nil
         builds = []
         augmentBoard = nil
+        isLoadingBuilds = false
+        autoImportedKey = nil
+        activeImportToken = nil
         briefing = ChampSelectBriefing()
         draft = DraftAdvice()
         mastery = nil
+        masteryTask?.cancel()
         masteryTask = nil
         actionState = .idle
     }
@@ -156,11 +166,15 @@ final class ChampSelectCoordinator {
         defer { updateBriefing() }
         let newChampion = session?.localChampionId
         if let queueId = session?.queueId, queueId > 0, queue?.id != queueId {
+            let detected = GameQueue(queueId: queueId)
+            if settings.lastQueue?.id != queueId {
+                settings.lastQueue = detected
+            }
             // Fallback when the gameflow session was missed. A new champion loads with it anyway.
             if newChampion == championId {
-                setQueue(GameQueue(queueId: queueId))
+                setQueue(detected)
             } else {
-                queue = GameQueue(queueId: queueId)
+                queue = detected
             }
         }
         // A lane swap with a teammate keeps the champion but needs the other lane's build.
@@ -176,13 +190,18 @@ final class ChampSelectCoordinator {
         assignedRole = newRole
         actionState = .idle
         builds = []
-        Task { await loadBuilds(for: newChampion, session: session) }
+        if let newChampion {
+            Task { await loadBuilds(for: newChampion, session: session) }
+        } else {
+            isLoadingBuilds = false
+            role = nil
+        }
     }
 
-    private func loadBuilds(for championId: Int?, session: ChampSelectSession?) async {
-        guard let championId else { return }
+    private func loadBuilds(for championId: Int, session: ChampSelectSession?) async {
         isLoadingBuilds = true
         await staticDataTask?.value
+        guard championId == self.championId else { return }
         guard let champion = staticData?.champion(championId) else {
             logger.error("Unknown champion \(championId)")
             isLoadingBuilds = false
@@ -223,18 +242,8 @@ final class ChampSelectCoordinator {
         autoImportIfNeeded()
     }
 
-    /// Optional card, loaded independently so a slow OP.GG answer never delays builds or auto import.
-    private func loadAugments(championId: Int, queue: GameQueue) {
-        guard queue.mode == .aramMayhem else { return }
-        Task { [augmentLoader] in
-            do {
-                let board = try await augmentLoader.board(championId: championId)
-                guard championId == self.championId, queue.mode == mode else { return }
-                augmentBoard = board
-                icons.prefetch(board.iconURLs)
-            } catch {
-                logger.notice("OP.GG augments unavailable: \(String(describing: error), privacy: .public)")
-            }
-        }
+    func applyAugmentBoard(_ board: AugmentBoard) {
+        augmentBoard = board
+        lastAugmentBoard = board
     }
 }

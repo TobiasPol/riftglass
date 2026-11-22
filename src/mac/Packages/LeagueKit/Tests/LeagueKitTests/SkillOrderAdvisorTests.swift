@@ -94,4 +94,63 @@ struct SkillOrderAdvisorTests {
         let active: LiveActivePlayer = try Fixture.decode("liveclient/activeplayer.json")
         #expect(active.abilityRanks == ranks(1, 0, 0, 0))
     }
+
+    @Test func eliseAndNidaleeStartWithFreeUltAndUpgradeAtSixElevenSixteen() {
+        for key in ["Elise", "Nidalee"] {
+            let rules = SkillRules.forChampion(key)
+            let order = ["Q", "W", "E", "Q", "Q", "R", "Q", "W", "Q", "W", "R"]
+            let lvl1 = SkillOrderAdvisor.advice(order: order, championLevel: 1, ranks: ranks(0, 0, 0, 1), rules: rules)
+            #expect(lvl1?.next == .q && lvl1?.unspentPoints == 1)
+            let lvl6 = SkillOrderAdvisor.advice(order: order, championLevel: 6, ranks: ranks(3, 1, 1, 1), rules: rules)
+            #expect(lvl6?.next == .r)
+            let lvl11 = SkillOrderAdvisor.advice(
+                order: order,
+                championLevel: 11,
+                ranks: ranks(5, 3, 1, 2),
+                rules: rules
+            )
+            #expect(lvl11?.next == .r)
+            let lvl16 = SkillOrderAdvisor.advice(
+                order: order,
+                championLevel: 16,
+                ranks: ranks(5, 5, 3, 3),
+                rules: rules
+            )
+            #expect(lvl16?.next == .r)
+            #expect(SkillOrderAdvisor.advice(
+                order: order,
+                championLevel: 18,
+                ranks: ranks(5, 5, 5, 4),
+                rules: rules
+            ) == nil)
+        }
+    }
+
+    @Test func jayceAllowsRankSixBasicAbilities() {
+        let jayce = SkillRules.forChampion("Jayce")
+        let order = ["Q", "E", "W", "Q", "Q", "Q", "E", "Q", "Q", "E", "E", "E", "W", "W", "W"]
+        let lvl11 = SkillOrderAdvisor.advice(order: order, championLevel: 11, ranks: ranks(5, 1, 4, 3), rules: jayce)
+        #expect(lvl11?.next == .q)
+        let lvl18 = SkillOrderAdvisor.advice(order: order, championLevel: 18, ranks: ranks(6, 5, 6, 4), rules: jayce)
+        #expect(lvl18?.next == .w && lvl18?.unspentPoints == 1)
+        #expect(SkillOrderAdvisor.advice(
+            order: order,
+            championLevel: 18,
+            ranks: ranks(6, 6, 6, 4),
+            rules: jayce
+        ) == nil)
+    }
+
+    @Test func previewOmitsAlreadyLearnedStepsAfterDeviation() {
+        let order = ["W", "Q", "E", "Q", "E", "R", "Q"]
+        let advice = SkillOrderAdvisor.advice(order: order, championLevel: 5, ranks: ranks(1, 1, 2, 0))
+        #expect(advice?.next == .q)
+        #expect(advice?.then == [.r, .q])
+    }
+
+    @Test func urfLevelsAboveEighteenCapAtMaxSpendablePoints() {
+        let lvl25OneLeft = SkillOrderAdvisor.advice(order: ahri, championLevel: 25, ranks: ranks(5, 5, 4, 3))
+        #expect(lvl25OneLeft?.next == .e && lvl25OneLeft?.unspentPoints == 1)
+        #expect(SkillOrderAdvisor.advice(order: ahri, championLevel: 25, ranks: ranks(5, 5, 5, 3)) == nil)
+    }
 }

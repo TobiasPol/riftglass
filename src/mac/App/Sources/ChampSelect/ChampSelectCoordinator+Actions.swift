@@ -1,3 +1,4 @@
+import Foundation
 import LeagueKit
 import StatsKit
 
@@ -36,15 +37,19 @@ extension ChampSelectCoordinator {
     /// stopping at the first one.
     func runSteps(_ label: String, build: BuildOption, runes: Bool, spells: Bool, items: Bool) {
         let mode = mode
+        let hasRunes = runes && mode.usesRunePages
+        let hasSpells = spells && build.validSpells != nil
+        let hasItems = items && mode.itemSetMapId != nil && !build.itemBlocks.isEmpty
+        guard hasRunes || hasSpells || hasItems else { return }
         perform(label, build: build) { actions, mapping in
             var steps: [(String, () async throws -> Void)] = []
-            if runes, mode.usesRunePages {
+            if hasRunes {
                 steps.append((String(localized: "Runes"), { try await actions.importRunes(mapping.runePage) }))
             }
-            if spells, let selection = mapping.spells {
+            if hasSpells, let selection = mapping.spells {
                 steps.append((String(localized: "Spells"), { try await actions.setSpells(selection) }))
             }
-            if items, mode.itemSetMapId != nil, !build.itemBlocks.isEmpty {
+            if hasItems {
                 steps.append((String(localized: "Item set"), { try await actions.mergeItemSet(mapping.itemSet) }))
             }
             var failures: [String] = []
@@ -75,14 +80,21 @@ extension ChampSelectCoordinator {
         )
         actionState = .running(String(localized: "Importing \(label) …"))
         plannedBuild = build
+        let token = UUID()
+        activeImportToken = token
+        let targetChampionId = championId
         let previous = importChain
         importChain = Task {
             await previous?.value // never overlap: a reroll during an import waits for it
             do {
                 try await work(actions, mapping)
-                actionState = .done(String(localized: "\(label) imported."))
+                if activeImportToken == token, self.championId == targetChampionId {
+                    actionState = .done(String(localized: "\(label) imported."))
+                }
             } catch {
-                actionState = .failed(ActionErrorText.describe(error))
+                if activeImportToken == token, self.championId == targetChampionId {
+                    actionState = .failed(ActionErrorText.describe(error))
+                }
                 logger.error("\(label, privacy: .public) failed: \(String(describing: error), privacy: .public)")
             }
             autoImportIfNeeded() // the pick may have changed while this import ran

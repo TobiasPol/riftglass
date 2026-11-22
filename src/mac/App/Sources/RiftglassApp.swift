@@ -30,10 +30,13 @@ struct RiftglassApp: App {
 private struct MenuBarLabel: View {
     let model: AppModel
     @Environment(\.openWindow) private var openWindow
+    @State private var didStart = false
 
     var body: some View {
         Image(systemName: model.mode == .dormant ? "diamond" : "diamond.fill")
             .task {
+                guard !didStart else { return }
+                didStart = true
                 model.start()
                 if !model.settings.onboardingCompleted {
                     WindowFront.open(OnboardingView.windowID, using: openWindow)

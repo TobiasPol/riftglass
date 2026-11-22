@@ -41,7 +41,7 @@ public struct Lockfile: Sendable, Equatable {
     public init?(contents: String) {
         let parts = contents.trimmingCharacters(in: .whitespacesAndNewlines)
             .split(separator: ":", omittingEmptySubsequences: false)
-        guard parts.count == 5, let pid = pid_t(parts[1]), let port = Int(parts[2]),
+        guard parts.count == 5, let pid = pid_t(parts[1]), pid > 0, let port = Int(parts[2]),
               (1 ... 65535).contains(port), !parts[3].isEmpty
         else { return nil }
         processName = String(parts[0])
@@ -64,7 +64,7 @@ public struct CredentialResolver: Sendable {
     public init(
         readArguments: @escaping ArgumentReader = ProcessArguments.read,
         readFile: @escaping FileReader = { try? String(contentsOf: $0, encoding: .utf8) },
-        isAlive: @escaping LivenessCheck = { kill($0, 0) == 0 }
+        isAlive: @escaping LivenessCheck = { $0 > 0 && kill($0, 0) == 0 }
     ) {
         self.readArguments = readArguments
         self.readFile = readFile

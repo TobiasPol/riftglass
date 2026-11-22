@@ -61,6 +61,14 @@ struct OPGGNotationTests {
         #expect(value["champion"]?.string == "AHRI")
         #expect(value["data"]?["runes"]?["primary_page_id"]?.int == 8100)
     }
+
+    @Test func handlesSurrogatePairsEscapesCRLFAndDuplicateSchemaFields() throws {
+        let crlf = "class Pair: x,x\r\n\r\nPair(\"\\r\\b\\f\\uD83D\\uDE00\", 1e30)"
+        let value = try OPGGNotation.parse(crlf)
+        #expect(value["x"]?.int == nil) // out-of-range Double does not trap
+        let strTest = try OPGGNotation.parse("class S: t\r\nS(\"\\r\\uD83D\\uDE00\")")
+        #expect(strTest["t"]?.string == "\r😀")
+    }
 }
 
 struct OPGGBuildProviderTests {
@@ -108,6 +116,11 @@ struct OPGGClientTests {
         #expect(throws: OPGGError.toolError("nope")) { try OPGGClient.text(fromResponse: toolError) }
         let sse = Data("event: message\ndata: {\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"ok\"}]}}\n".utf8)
         #expect(try OPGGClient.text(fromResponse: sse) == "ok")
+        let sseWithDone = Data(
+            "event: message\ndata: {\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"ok\"}]}}\ndata: [DONE]\n"
+                .utf8
+        )
+        #expect(try OPGGClient.text(fromResponse: sseWithDone) == "ok")
     }
 }
 
@@ -134,6 +147,16 @@ struct RankTests {
         #expect(rank.winRate == 0.6)
         let apex = PlayerRank(tier: "MASTER", division: 1, leaguePoints: 120, wins: nil, losses: nil)
         #expect(apex.label == "Master · 120 LP")
+        let emptyTier = try OPGGNotation.parse("""
+        class P: data
+        class D: summoner
+        class S: league_stats
+        class L: game_type,tier_info,win,lose
+        class T: tier,division,lp
+
+        P(D(S([L("SOLORANKED",T("",1,0),0,0)])))
+        """)
+        #expect(OPGGRankProvider.soloRank(from: emptyTier) == .unranked)
     }
 }
 

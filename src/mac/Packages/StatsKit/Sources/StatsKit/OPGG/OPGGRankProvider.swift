@@ -64,7 +64,7 @@ public struct OPGGRankProvider: Sendable {
     static func soloRank(from value: NotationValue) -> PlayerRank {
         let stats = value["data"]?["summoner"]?["league_stats"]?.list ?? []
         guard let solo = stats.first(where: { $0["game_type"]?.string == "SOLORANKED" }),
-              let tier = solo["tier_info"]?["tier"]?.string
+              let tier = solo["tier_info"]?["tier"]?.string, !tier.isEmpty, tier.uppercased() != "UNRANKED"
         else { return .unranked }
         let info = solo["tier_info"]
         let roman = ["I": 1, "II": 2, "III": 3, "IV": 4]

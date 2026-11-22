@@ -26,6 +26,7 @@ final class InGameCoordinator {
     @ObservationIgnored private var hotkey: HotkeyMonitor?
     @ObservationIgnored private var tabPanel: OverlayPanel?
     @ObservationIgnored private var bannerPanel: OverlayPanel?
+    @ObservationIgnored private var bannerDismissTask: Task<Void, Never>?
     @ObservationIgnored private var bannerShown = false
     @ObservationIgnored private var rememberedQueue: GameQueue?
     /// What the skill-point overlay currently shows (nil = hidden).
@@ -94,6 +95,9 @@ final class InGameCoordinator {
         Task { await client?.stop() }
         hotkey?.stop()
         hotkey = nil
+        rankLookup.reset()
+        bannerDismissTask?.cancel()
+        bannerDismissTask = nil
         tabPanel?.dismiss()
         bannerPanel?.dismiss()
         resetSkills()
@@ -131,7 +135,9 @@ final class InGameCoordinator {
             }
         }
         // Game time stays 0 on the loading screen (98 s live) – the banner would expire unseen.
-        if !bannerShown, settings.ranksEnabled, snapshot.players.count > 1, snapshot.stats.gameTime > 0 {
+        if !bannerShown, settings.ranksEnabled, settings.region != nil,
+           snapshot.players.count > 1, snapshot.players.contains(where: { $0.isBot != true }),
+           snapshot.stats.gameTime > 0 {
             bannerShown = true
             showBanner()
         }
@@ -193,28 +199,44 @@ final class InGameCoordinator {
 
     /// Shows the ranks of all players for a few seconds at the start of the game.
     private func showBanner() {
-        if bannerPanel == nil {
-            let stacked = queue?.mode == .aramMayhem
-            bannerPanel = OverlayPanel(rootView: RanksBannerView(coordinator: self, stacked: stacked))
+        guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == LeagueBundleID.game else { return }
+        let view = RanksBannerView(coordinator: self, stacked: queue?.mode == .aramMayhem)
+        if let bannerPanel {
+            bannerPanel.update(rootView: view)
+        } else {
+            bannerPanel = OverlayPanel(rootView: view)
         }
         bannerPanel?.present(on: gameScreen(), anchor: bannerAnchor)
-        Task { [weak self] in
+        bannerDismissTask?.cancel()
+        bannerDismissTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(20))
+            guard !Task.isCancelled else { return }
             self?.bannerPanel?.dismiss()
         }
     }
 
+    func dismissGameOverlaysOnDeactivate() {
+        hideSkills()
+        refreshAugmentOverlay()
+        setTabHeld(false)
+        bannerDismissTask?.cancel()
+        bannerDismissTask = nil
+        bannerPanel?.dismiss()
+    }
+
     /// Screen of the game window (largest window of the game process), else the primary screen.
     func gameScreen() -> NSScreen? {
-        guard let game = NSRunningApplication.runningApplications(withBundleIdentifier: LeagueBundleID.game).first
-        else { return NSScreen.screens.first }
-        let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
-        let bounds = info.first { ($0[kCGWindowOwnerPID as String] as? Int) == Int(game.processIdentifier) }
-            .flatMap {
-                ($0[kCGWindowBounds as String] as? NSDictionary).flatMap { CGRect(dictionaryRepresentation: $0) }
-            }
-        guard let bounds, let primary = NSScreen.screens.first else { return NSScreen.screens.first }
-        let rect = DockGeometry.appKitRect(fromCG: bounds, primaryScreenHeight: primary.frame.height)
-        return NSScreen.screens.first { $0.frame.intersects(rect) } ?? primary
+        let screens = NSScreen.screens
+        guard let game = NSRunningApplication.runningApplications(withBundleIdentifier: LeagueBundleID.game).first,
+              let primary = screens.first
+        else { return screens.first }
+        let raw = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
+        let windows = raw.compactMap(WindowInfo.init(dictionary:))
+        guard let window = DockGeometry.largestWindow(in: windows, pid: game.processIdentifier) else {
+            return primary
+        }
+        let rect = DockGeometry.appKitRect(fromCG: window.bounds, primaryScreenHeight: primary.frame.height)
+        let index = DockGeometry.bestScreenIndex(for: rect, in: screens.map(\.frame)) ?? 0
+        return screens[index]
     }
 }

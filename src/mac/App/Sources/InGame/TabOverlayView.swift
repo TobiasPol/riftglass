@@ -22,7 +22,7 @@ struct TabOverlayView: View {
                         }
                     }
                 }
-                if let me = snapshot.me {
+                if let me = snapshot.me, hasMetrics(me: me, snapshot: snapshot) {
                     Divider().overlay(Palette.hairline)
                     MyGameRow(me: me, snapshot: snapshot, coordinator: coordinator)
                 }
@@ -42,6 +42,15 @@ struct TabOverlayView: View {
         .foregroundStyle(Palette.text)
         .environment(\.colorScheme, .dark)
     }
+
+    private func hasMetrics(me: LivePlayer, snapshot: LiveGameSnapshot) -> Bool {
+        let hasCS = InGameAnalysis.csPerMinute(me, gameTime: snapshot.stats.gameTime) != nil
+        let hasPlan = coordinator.itemPlan(for: me) != nil
+        let hasGold = coordinator.settings.goldEstimateEnabled
+            && coordinator.champSelect.staticData?.itemPrices != nil
+            && snapshot.laneOpponent(of: me) != nil
+        return hasCS || hasPlan || hasGold
+    }
 }
 
 private struct TeamColumn: View {
@@ -52,7 +61,7 @@ private struct TeamColumn: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.secondaryText)
-            ForEach(players, id: \.displayID) { player in
+            ForEach(Array(players.enumerated()), id: \.offset) { _, player in
                 PlayerRow(player: player, rank: coordinator.ranks[player.displayID], coordinator: coordinator)
             }
         }
@@ -65,13 +74,23 @@ private struct PlayerRow: View {
     let rank: PlayerRank?
     let coordinator: InGameCoordinator
 
+    private var subtitle: String {
+        if let rank {
+            return rank.label
+        }
+        if player.isBot == true || !coordinator.settings.ranksEnabled || coordinator.settings.region == nil {
+            return player.championName
+        }
+        return "…"
+    }
+
     var body: some View {
         HStack(spacing: 8) {
             ChampionIcon(key: player.championKey, champSelect: coordinator.champSelect, size: 26)
             VStack(alignment: .leading, spacing: 1) {
                 Text(player.riotIDParts?.gameName ?? player.championName)
                     .font(.system(size: 12, weight: .medium)).lineLimit(1)
-                Text(rank?.label ?? (coordinator.settings.ranksEnabled ? "…" : player.championName))
+                Text(subtitle)
                     .font(.system(size: 10)).foregroundStyle(Palette.secondaryText).lineLimit(1)
             }
             Spacer(minLength: 4)
@@ -113,7 +132,7 @@ private struct MyGameRow: View {
                let diff = InGameAnalysis.laneGoldDifference(for: me, in: snapshot, prices: prices) {
                 metric(
                     "Item gold vs. lane",
-                    value: (diff >= 0 ? "+" : "") + diff.formatted(),
+                    value: (diff > 0 ? "+" : "") + diff.formatted(),
                     detail: String(localized: "Estimate from visible items"),
                     good: diff >= 0
                 )

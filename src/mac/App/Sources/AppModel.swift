@@ -18,6 +18,7 @@ final class AppModel {
     @ObservationIgnored private let watcher = ClientWatcher()
     @ObservationIgnored private var connection: LCUConnection?
     @ObservationIgnored private var watchTask: Task<Void, Never>?
+    @ObservationIgnored private var regionTask: Task<Void, Never>?
     @ObservationIgnored private var evaluator: LocalTrustEvaluator?
     @ObservationIgnored private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "AppModel")
 
@@ -63,6 +64,8 @@ final class AppModel {
     }
 
     private func disconnect() {
+        regionTask?.cancel()
+        regionTask = nil
         guard let connection else { return }
         connection.stop()
         self.connection = nil
@@ -95,9 +98,18 @@ final class AppModel {
 
     /// The LCU is closed in game, so the region for rank lookups is stored while it runs.
     private func rememberRegion(_ client: LCUClient) {
-        Task { [weak self] in
-            if let region = try? await client.region() {
-                self?.settings.region = region
+        regionTask?.cancel()
+        regionTask = Task { [weak self] in
+            for attempt in 0 ..< 3 {
+                guard !Task.isCancelled, let self, isLCUConnected else { return }
+                if let region = try? await client.region() {
+                    guard !Task.isCancelled, isLCUConnected else { return }
+                    settings.region = region
+                    return
+                }
+                if attempt < 2 {
+                    try? await Task.sleep(for: .seconds(2))
+                }
             }
         }
     }

@@ -24,7 +24,7 @@ public indirect enum NotationValue: Equatable, Sendable {
     }
 
     public var int: Int? {
-        double.map { Int($0) }
+        double.flatMap { $0.isFinite && $0 >= Double(Int.min) && $0 < Double(Int.max) ? Int($0) : nil }
     }
 
     public var string: String? {
@@ -64,12 +64,12 @@ public enum OPGGNotation {
     public static func parse(_ text: String) throws -> NotationValue {
         var schema: [String: [String]] = [:]
         var body: [Substring] = []
-        for line in text.split(separator: "\n", omittingEmptySubsequences: false) {
+        for line in text.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline) {
             if line.hasPrefix("class "), let colon = line.firstIndex(of: ":") {
                 let name = line[line.index(line.startIndex, offsetBy: 6) ..< colon]
-                    .trimmingCharacters(in: .whitespaces)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
                 schema[name] = line[line.index(after: colon)...].split(separator: ",")
-                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             } else {
                 body.append(line)
             }
@@ -130,7 +130,10 @@ private struct NotationParser {
         guard values.count == fieldNames.count else {
             throw NotationError.fieldCountMismatch(name, expected: fieldNames.count, got: values.count)
         }
-        return .object(type: name, fields: Dictionary(uniqueKeysWithValues: zip(fieldNames, values)))
+        return .object(
+            type: name,
+            fields: Dictionary(zip(fieldNames, values), uniquingKeysWith: { _, latest in latest })
+        )
     }
 
     private mutating func parseSequence(open: Character, close: Character) throws -> [NotationValue] {
@@ -172,16 +175,36 @@ private struct NotationParser {
         index += 1
         switch char {
         case "n": return "\n"
+        case "r": return "\r"
         case "t": return "\t"
-        case "u":
-            guard index + 4 <= chars.count,
-                  let code = UInt32(String(chars[index ..< index + 4]), radix: 16),
-                  let scalar = Unicode.Scalar(code)
-            else { throw NotationError.unexpectedCharacter(char, offset: index) }
-            index += 4
-            return Character(scalar)
+        case "b": return "\u{08}"
+        case "f": return "\u{0C}"
+        case "u": return try parseUnicodeEscape()
         default: return char
         }
+    }
+
+    private mutating func parseUnicodeEscape() throws -> Character {
+        let high = try readHex4()
+        if (0xD800 ... 0xDBFF).contains(high), peek() == "\\", index + 1 < chars.count, chars[index + 1] == "u" {
+            index += 2
+            let low = try readHex4()
+            let code = 0x10000 + ((high - 0xD800) << 10) + (low - 0xDC00)
+            guard (0xDC00 ... 0xDFFF).contains(low), let scalar = Unicode.Scalar(code) else {
+                throw NotationError.unexpectedCharacter("u", offset: index)
+            }
+            return Character(scalar)
+        }
+        guard let scalar = Unicode.Scalar(high) else { throw NotationError.unexpectedCharacter("u", offset: index) }
+        return Character(scalar)
+    }
+
+    private mutating func readHex4() throws -> UInt32 {
+        guard index + 4 <= chars.count, let code = UInt32(String(chars[index ..< index + 4]), radix: 16) else {
+            throw NotationError.unexpectedCharacter("u", offset: index)
+        }
+        index += 4
+        return code
     }
 
     private mutating func parseNumber() throws -> NotationValue {

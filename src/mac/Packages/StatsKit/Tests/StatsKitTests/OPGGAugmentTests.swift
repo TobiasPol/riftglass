@@ -75,6 +75,11 @@ struct OPGGAugmentTests {
         let html = Data(#"<script>self.__next_f.push([1,"1:{\"items\":[{\"id\":\"lol\"}]}\n"])</script>"#.utf8)
         #expect(throws: OPGGError.unexpectedPage) { try OPGGAugmentPage.augments(fromHTML: html) }
         #expect(throws: OPGGError.unexpectedPage) { try OPGGAugmentPage.augments(fromHTML: Data("<html>".utf8)) }
+        let nameless = Data(
+            #"<script>self.__next_f.push([1,"1:[{\"id\":1,\"tier\":0,\"popular\":1.0,\"name\":null}]\n"])</script>"#
+                .utf8
+        )
+        #expect(throws: OPGGError.unexpectedPage) { try OPGGAugmentPage.augments(fromHTML: nameless) }
     }
 
     @Test func bracketsInsideStringsDoNotEndTheArray() throws {

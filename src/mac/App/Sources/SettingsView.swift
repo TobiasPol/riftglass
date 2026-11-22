@@ -82,9 +82,11 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .frame(width: 520, height: 760)
+        .onAppear { launchAtLogin = SMAppService.mainApp.status == .enabled }
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {
+        guard enabled != (SMAppService.mainApp.status == .enabled) else { return }
         do {
             if enabled {
                 try SMAppService.mainApp.register()

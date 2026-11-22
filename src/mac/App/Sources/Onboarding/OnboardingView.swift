@@ -1,5 +1,4 @@
 import AppKit
-import Combine
 import OverlayKit
 import SwiftUI
 
@@ -50,7 +49,6 @@ struct OnboardingView: View {
 /// Input Monitoring status with request / open-settings / relaunch actions.
 struct InputMonitoringStep: View {
     @State private var granted = HotkeyMonitor.hasPermission
-    private let refresh = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         GroupBox("In-game hotkeys (Tab, ⌥A)") {
@@ -76,7 +74,12 @@ struct InputMonitoringStep: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .onReceive(refresh) { _ in granted = HotkeyMonitor.hasPermission }
+        .task(id: granted) {
+            while !granted, !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                granted = HotkeyMonitor.hasPermission
+            }
+        }
     }
 
     static func openPrivacySettings() {

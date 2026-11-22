@@ -29,6 +29,7 @@ public enum ProcessArguments {
     public static func parse(procargs2 bytes: [UInt8]) throws -> [String] {
         guard bytes.count >= MemoryLayout<Int32>.size else { throw ProcessArgumentsError.malformed }
         let argc = bytes.withUnsafeBytes { Int($0.loadUnaligned(as: Int32.self)) }
+        guard argc >= 0 else { throw ProcessArgumentsError.malformed }
         var index = MemoryLayout<Int32>.size
         // Skip executable path and its padding.
         while index < bytes.count, bytes[index] != 0 {
@@ -39,7 +40,7 @@ public enum ProcessArguments {
         }
 
         var arguments: [String] = []
-        arguments.reserveCapacity(argc)
+        arguments.reserveCapacity(min(argc, bytes.count))
         while arguments.count < argc, index < bytes.count {
             let start = index
             while index < bytes.count, bytes[index] != 0 {

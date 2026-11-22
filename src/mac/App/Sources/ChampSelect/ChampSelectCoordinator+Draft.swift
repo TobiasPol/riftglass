@@ -173,8 +173,11 @@ extension ChampSelectCoordinator {
             }
         }
         masteryTask = task
-        mastery = await task.value
-        return mastery
+        let value = await task.value
+        guard masteryTask == task else { return value }
+        masteryTask = nil
+        mastery = value
+        return value
     }
 
     static func directory(_ data: StaticData) -> ChampionDirectory {

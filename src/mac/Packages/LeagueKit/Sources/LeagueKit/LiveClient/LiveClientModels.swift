@@ -88,7 +88,10 @@ public struct LivePlayer: Decodable, Equatable, Sendable {
             return (name, tag)
         }
         guard let riotId, let hash = riotId.lastIndex(of: "#") else { return nil }
-        return (String(riotId[..<hash]), String(riotId[riotId.index(after: hash)...]))
+        let gameName = String(riotId[..<hash])
+        let tagLine = String(riotId[riotId.index(after: hash)...])
+        guard !gameName.isEmpty, !tagLine.isEmpty else { return nil }
+        return (gameName, tagLine)
     }
 
     /// Identity used to match the active player and to key caches.

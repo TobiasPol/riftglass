@@ -90,6 +90,7 @@ public final class OverlayPanel: NSPanel {
 
     public func present(on screen: NSScreen?, anchor: Anchor) {
         guard let screen = screen ?? NSScreen.screens.first else { return }
+        hostingView.layoutSubtreeIfNeeded()
         let size = hostingView.fittingSize
         let origin = Self.origin(for: anchor, size: size, in: screen.frame)
         setFrame(NSRect(origin: origin, size: size), display: true)

@@ -62,13 +62,22 @@ struct GameModeTests {
         #expect(WAMPMessage.parse(Data(other.utf8), keeping: LCUEventStream.defaultURIs) == nil)
     }
 
-    @Test func inGameKeepsRememberedQueueOnlyOnSameMap() {
+    @Test func inGameKeepsRememberedQueueOnlyOnSameMapAndCompatibleMode() {
         let flex = GameQueue(id: 440, mode: .summonersRift, mapId: 11, isRanked: true, name: "Ranked Flex")
         #expect(GameQueue.resolvedInGame(remembered: flex, liveGameMode: "CLASSIC", mapNumber: 11) == flex)
         let aram = GameQueue.resolvedInGame(remembered: flex, liveGameMode: "ARAM", mapNumber: 12)
         #expect(aram.mode == .aram && aram.id == nil)
         #expect(GameQueue.resolvedInGame(remembered: nil, liveGameMode: "CHERRY", mapNumber: 30).mode == .arena)
         #expect(flex.isFlex && flex.displayName == "Ranked Flex")
+
+        let regularAram = GameQueue(id: 450, mode: .aram, mapId: 12, name: "ARAM")
+        #expect(GameQueue.resolvedInGame(remembered: regularAram, liveGameMode: "KIWI", mapNumber: 12)
+            .mode == .aramMayhem)
+        let mayhem = GameQueue(id: 2400, mode: .aramMayhem, mapId: 12, name: "ARAM: Mayhem")
+        #expect(GameQueue.resolvedInGame(remembered: mayhem, liveGameMode: "ARAM", mapNumber: 12).mode == .aram)
+        #expect(GameQueue.resolvedInGame(remembered: flex, liveGameMode: "URF", mapNumber: 11).mode == .urf)
+        let classic = GameQueue(id: 9001, mode: .leagueClassic, mapId: 11, name: "League Classic")
+        #expect(GameQueue.resolvedInGame(remembered: classic, liveGameMode: "CLASSIC", mapNumber: 11) == classic)
     }
 
     @Test func itemSetUidIsPerMap() {

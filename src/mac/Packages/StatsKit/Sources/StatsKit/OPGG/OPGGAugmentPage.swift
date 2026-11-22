@@ -11,7 +11,9 @@ enum OPGGAugmentPage {
     static func augments(fromHTML html: Data) throws -> [AugmentStat] {
         let payload = flightPayload(fromHTML: html)
         guard let entries = augmentEntries(in: payload) else { throw OPGGError.unexpectedPage }
-        return entries.compactMap(\.stat).sorted(by: AugmentStat.tierListOrder)
+        let stats = entries.compactMap(\.stat).sorted(by: AugmentStat.tierListOrder)
+        guard !stats.isEmpty else { throw OPGGError.unexpectedPage }
+        return stats
     }
 
     /// All flight chunks of the page, decoded and joined – one row can span several chunks.

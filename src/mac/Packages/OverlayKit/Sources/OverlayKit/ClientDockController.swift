@@ -10,14 +10,21 @@ public final class ClientDockController {
     private let panel: NSPanel
     private let panelSize: CGSize
     private var clientPID: pid_t?
-    private var timer: Timer?
-    private var activationObserver: NSObjectProtocol?
+    private nonisolated(unsafe) var timer: Timer?
+    private nonisolated(unsafe) var activationObserver: NSObjectProtocol?
     private var lastFrame: CGRect?
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "ClientDock")
 
     public init(panel: NSPanel, panelSize: CGSize = CGSize(width: 340, height: 560)) {
         self.panel = panel
         self.panelSize = panelSize
+    }
+
+    deinit {
+        timer?.invalidate()
+        if let activationObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(activationObserver)
+        }
     }
 
     public var isActive: Bool {
@@ -75,11 +82,13 @@ public final class ClientDockController {
         let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
         let raw = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]] ?? []
         let windows = raw.compactMap(WindowInfo.init(dictionary:))
+        let screens = NSScreen.screens
         guard let client = DockGeometry.clientWindow(in: windows, pid: clientPID),
-              let primary = NSScreen.screens.first
+              let primary = screens.first
         else { return nil }
         let clientRect = DockGeometry.appKitRect(fromCG: client.bounds, primaryScreenHeight: primary.frame.height)
-        let screen = NSScreen.screens.first { $0.frame.intersects(clientRect) } ?? primary
+        let screenIndex = DockGeometry.bestScreenIndex(for: clientRect, in: screens.map(\.frame)) ?? 0
+        let screen = screens[screenIndex]
         return DockGeometry.panelFrame(client: clientRect, panelSize: panelSize, screen: screen.visibleFrame)
     }
 

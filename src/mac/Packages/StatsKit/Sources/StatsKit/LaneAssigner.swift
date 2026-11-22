@@ -31,6 +31,17 @@ public struct RoleRates: Equatable, Sendable {
     /// Letters and digits only, lowercased: "Kog'Maw", "Nunu & Willump" and "Dr. Mundo" match the
     /// spelling of every source.
     public static func normalized(_ name: String) -> String {
+        let stripped = alphanumeric(name)
+        switch stripped {
+        case "nunu", "nunuundwillump": return "nunuwillump"
+        case "monkeyking": return "wukong"
+        case "renata": return "renataglasc"
+        default: return stripped
+        }
+    }
+
+    /// Letters and digits only, lowercased, without alias expansion (e.g. for tokenization).
+    public static func alphanumeric(_ name: String) -> String {
         String(name.lowercased().unicodeScalars.filter(CharacterSet.alphanumerics.contains).map(Character.init))
     }
 }

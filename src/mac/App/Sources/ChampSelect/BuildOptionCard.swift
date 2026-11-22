@@ -30,7 +30,7 @@ struct BuildOptionCard: View {
                     runeIcon(perkId, size: index == 0 ? 28 : 20)
                 }
                 Spacer(minLength: 8)
-                ForEach(build.summonerSpells, id: \.self) { spellIcon($0) }
+                ForEach(Array(build.summonerSpells.enumerated()), id: \.offset) { _, spellId in spellIcon(spellId) }
             }
             ForEach(build.itemBlocks, id: \.title) { block in
                 HStack(spacing: 4) {
@@ -38,11 +38,11 @@ struct BuildOptionCard: View {
                         .font(.system(size: 10))
                         .foregroundStyle(Palette.secondaryText)
                         .frame(width: 52, alignment: .leading)
-                    ForEach(block.itemIds, id: \.self) { itemIcon($0) }
+                    ForEach(Array(block.itemIds.enumerated()), id: \.offset) { _, itemId in itemIcon(itemId) }
                 }
             }
             if !build.skillOrder.isEmpty {
-                Text("Skills: " + build.skillOrder.prefix(9).joined(separator: " › "))
+                Text("Skills: \(build.skillOrder.prefix(9).joined(separator: " › "))")
                     .font(.system(size: 10).monospaced())
                     .foregroundStyle(Palette.secondaryText)
             }
@@ -53,16 +53,20 @@ struct BuildOptionCard: View {
     }
 
     private var buttons: some View {
-        HStack(spacing: 6) {
+        let canImportRunes = coordinator.mode.usesRunePages
+        let canSetSpells = build.validSpells != nil
+        let canImportItems = !build.itemBlocks.isEmpty && coordinator.mode.itemSetMapId != nil
+        return HStack(spacing: 6) {
             Button("Import all") { coordinator.importAll(build) }
                 .buttonStyle(.borderedProminent)
                 .tint(Palette.accent)
+                .disabled(!canImportRunes && !canSetSpells && !canImportItems)
             Button("Runes") { coordinator.importRunes(build) }
-                .disabled(!coordinator.mode.usesRunePages)
+                .disabled(!canImportRunes)
             Button("Spells") { coordinator.setSpells(build) }
-                .disabled(build.summonerSpells.count < 2)
+                .disabled(!canSetSpells)
             Button("Items") { coordinator.importItemSet(build) }
-                .disabled(build.itemBlocks.isEmpty || coordinator.mode.itemSetMapId == nil)
+                .disabled(!canImportItems)
         }
         .controlSize(.small)
         .disabled(isRunning)
@@ -128,11 +132,11 @@ struct IconView: View {
     let url: URL
     let icons: IconCache
     let size: CGFloat
-    @State private var image: NSImage?
+    @State private var loaded: (url: URL, image: NSImage)?
 
     var body: some View {
         Group {
-            if let image = image ?? icons.cachedImage(for: url) {
+            if let image = icons.cachedImage(for: url) ?? (loaded?.url == url ? loaded?.image : nil) {
                 Image(nsImage: image).resizable().interpolation(.high)
             } else {
                 Self.missing(size: size)
@@ -140,7 +144,11 @@ struct IconView: View {
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-        .task(id: url) { image = await icons.image(for: url) }
+        .task(id: url) {
+            if let image = await icons.image(for: url) {
+                loaded = (url, image)
+            }
+        }
     }
 
     static func missing(size: CGFloat) -> some View {

@@ -41,7 +41,7 @@ final class LCUConnection {
     }
 
     private func run() async {
-        guard let credentials = await resolveCredentials() else { return }
+        guard let credentials = await resolveCredentials(), !Task.isCancelled else { return }
         logger.info("LCU found on port \(credentials.port)")
         let client = LCUClient(credentials: credentials, evaluator: evaluator)
         handler(.connected(client))
@@ -70,13 +70,15 @@ final class LCUConnection {
     }
 
     private func refreshState(_ client: LCUClient) async {
-        guard let phase = try? await client.get("/lol-gameflow/v1/gameflow-phase", as: GameflowPhase.self) else {
-            return
-        }
+        guard let phase = try? await client.get("/lol-gameflow/v1/gameflow-phase", as: GameflowPhase.self),
+              !Task.isCancelled
+        else { return }
         await refreshQueue(client)
+        guard !Task.isCancelled else { return }
         handler(.phase(phase))
         if phase == .champSelect,
-           let session = try? await client.get("/lol-champ-select/v1/session", as: ChampSelectSession.self) {
+           let session = try? await client.get("/lol-champ-select/v1/session", as: ChampSelectSession.self),
+           !Task.isCancelled {
             handler(.champSelect(session))
         }
     }
@@ -84,7 +86,7 @@ final class LCUConnection {
     /// Initial queue after (re)subscribing; later changes arrive as gameflow-session events. Outside a
     /// lobby the client answers 404 ("No gameflow session exists"), which just means "no queue".
     private func refreshQueue(_ client: LCUClient) async {
-        if let queue = try? await client.currentQueue() {
+        if let queue = try? await client.currentQueue(), !Task.isCancelled {
             handler(.queue(queue))
         }
     }

@@ -45,6 +45,7 @@ extension InGameCoordinator {
             return hideAugments()
         }
         loadAugmentBoardIfNeeded(championKey: me.championKey)
+        guard snapshot.stats.gameTime > 0 else { return }
         // The tracker sees every snapshot, also while the overlay is off or another app is in front.
         let prompt = augmentTracker.update(
             level: active.level,
@@ -68,7 +69,7 @@ extension InGameCoordinator {
     /// ⌥A: hides a visible overlay until the next choice, shows a hidden one (also without a pending
     /// choice) until ⌥A again.
     func toggleAugmentOverlay() {
-        guard queue?.mode == .aramMayhem else { return }
+        guard settings.augmentOverlayEnabled, queue?.mode == .aramMayhem else { return }
         augmentOverride = augmentPanel?.isVisible == true ? .hidden : .pinned
         let state = augmentOverride.rawValue
         Self.augmentLog.notice("⌥A → \(state, privacy: .public)")
@@ -133,7 +134,7 @@ extension InGameCoordinator {
         guard augmentBoard == nil, augmentTask == nil, augmentLoadFailures < Self.maxAugmentLoadFailures,
               let championId = champSelect.staticData?.champion(key: championKey).flatMap({ Int($0.key) })
         else { return }
-        if let board = champSelect.augmentBoard, board.championId == championId {
+        if let board = champSelect.lastAugmentBoard, board.championId == championId {
             Self.augmentLog.notice("Board from champ select: \(board.columns.map(\.entries.count), privacy: .public)")
             augmentBoard = board
             return

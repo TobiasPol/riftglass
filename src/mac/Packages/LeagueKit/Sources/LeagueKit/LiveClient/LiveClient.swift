@@ -11,6 +11,7 @@ public actor LiveClient {
     private let session: URLSession
     private let interval: Duration
     private var runner: Task<Void, Never>?
+    private var streamID: UUID?
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "LiveClient")
 
     public init(evaluator: LocalTrustEvaluator, interval: Duration = .seconds(1)) {
@@ -28,19 +29,27 @@ public actor LiveClient {
             bufferingPolicy: .bufferingNewest(1)
         )
         runner?.cancel()
+        let id = UUID()
+        streamID = id
         runner = Task { [weak self] in
             await self?.poll(continuation)
             continuation.finish()
         }
         continuation.onTermination = { [weak self] _ in
-            Task { await self?.stop() }
+            Task { await self?.stopIfCurrent(id) }
         }
         return stream
     }
 
     public func stop() {
+        streamID = nil
         runner?.cancel()
         runner = nil
+    }
+
+    private func stopIfCurrent(_ id: UUID) {
+        guard streamID == id else { return }
+        stop()
     }
 
     deinit {
@@ -50,7 +59,9 @@ public actor LiveClient {
     private func poll(_ continuation: AsyncStream<LiveGameSnapshot>.Continuation) async {
         var last: LiveGameSnapshot?
         while !Task.isCancelled {
-            if let snapshot = await fetchSnapshot(), snapshot != last {
+            let snapshot = await fetchSnapshot()
+            guard !Task.isCancelled else { break }
+            if let snapshot, snapshot != last {
                 last = snapshot
                 continuation.yield(snapshot)
             }
