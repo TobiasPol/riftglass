@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.8.0
+- **Champ select: lane switcher, stat shards and matchup builds.** Switch between all five lanes in the docked
+  panel to compare role-specific OP.GG builds and matchup briefings. Build cards now show the three stat
+  shards beneath the runes with tooltips, and surface a matchup-specific build from OP.GG's lane guide
+  alongside the general build whenever its runes, items, spells or skill order differ.
+- **In game: recipe-aware item gold, objective timers and Flex ranks.** The Tab overlay subtracts owned
+  component and sub-component costs and your current gold to show `(Ready)` or the remaining gold needed for
+  the next planned item. Active respawn countdowns for Dragon, Elder Dragon (including after the 4th team
+  elemental drake / Dragon Soul), Baron and Inhibitors appear in the Tab overlay (toggleable in Settings).
+  Ranked Flex games now look up Flex ranks first (falling back to Solo rank when unranked in Flex) and show
+  each player's win rate and game count.
+- **Post-game recap and session history.** After a match, the menu bar popover enriches the summary from the
+  client's end-of-game scoreboard with Win/Loss, kill participation, damage share and vision score, keeps a
+  W–L tally and history of your last 10 games across restarts, and adds an `Updates` button.
+- **Settings, overlay preview and diagnostics.** Adjust the skill-point hint height (10 %–40 %) and test both
+  overlays out of game with a 5-second live preview, choose the augment overlay shortcut (`⌥A`, `⌥G`, `⌥Z`,
+  `⌥X`, `⌥M`), override the region manually if needed, and inspect or clear on-disk caches under Diagnostics &
+  Cache.
+- **Reliability and bug fixes.** Fixed skill-order advice for form-swapping champions (Elise, Nidalee, Jayce),
+  URF levels above 18 and deviated skill paths; hardened LCU WebSocket reconnection, Live Client polling,
+  case-insensitive Data Dragon keys, corrupt disk-cache recovery, multi-monitor overlay placement and
+  plain-Tab hotkey detection.
+
 ## 0.7.0
 - **Pick and ban options in champ select.** While your ban is open, five ban options: strong champions the
   enemy is likely to pick (OP.GG win, pick and ban rate), champions in your lane weighted higher, and the
