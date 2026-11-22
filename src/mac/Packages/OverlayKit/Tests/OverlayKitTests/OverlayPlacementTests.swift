@@ -63,4 +63,12 @@ struct OverlayPlacementTests {
         #expect(OverlayPanel.origin(for: .top(28), size: size, in: screen) == CGPoint(x: 400, y: 872))
         #expect(OverlayPanel.origin(for: .bottomFraction(0.2), size: size, in: screen) == CGPoint(x: 400, y: 200))
     }
+
+    @Test func plainTabRejectsCommandControlAndOption() {
+        #expect(HotkeyMonitor.isPlainTab([]))
+        #expect(HotkeyMonitor.isPlainTab(.maskShift))
+        #expect(!HotkeyMonitor.isPlainTab(.maskCommand))
+        #expect(!HotkeyMonitor.isPlainTab(.maskControl))
+        #expect(!HotkeyMonitor.isPlainTab(.maskAlternate))
+    }
 }

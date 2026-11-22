@@ -17,14 +17,23 @@ struct BuildMapping {
             subStyleId: build.runes.subStyleId,
             selectedPerkIds: build.runes.perkIds
         )
-        spells = build.summonerSpells.count >= 2
-            ? SpellSelection(spell1Id: build.summonerSpells[0], spell2Id: build.summonerSpells[1]) : nil
+        spells = build.validSpells.map { SpellSelection(spell1Id: $0.0, spell2Id: $0.1) }
         itemSet = ItemSetDraft(
             championId: championId,
             title: "Riftglass: \(championName) – \(build.title)",
             blocks: build.itemBlocks.map { .init(title: BuildText.blockTitle($0.title), itemIds: $0.itemIds) },
             mapId: itemSetMapId
         )
+    }
+}
+
+extension BuildOption {
+    var validSpells: (Int, Int)? {
+        guard summonerSpells.count >= 2,
+              summonerSpells[0] > 0, summonerSpells[1] > 0,
+              summonerSpells[0] != summonerSpells[1]
+        else { return nil }
+        return (summonerSpells[0], summonerSpells[1])
     }
 }
 

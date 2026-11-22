@@ -143,6 +143,7 @@ public struct OPGGAugmentProvider: Sendable {
     /// An `OPGGError` means op.gg answered (HTTP status, changed page): no further request for a
     /// cache lifetime, across app restarts. Anything else is a transport error without an answer.
     private func remember(_ error: any Error, championId: Int) async {
+        guard !Self.isCancellation(error) else { return }
         if let answered = error as? OPGGError {
             let code = if case let .http(status) = answered {
                 "http:\(status)"
@@ -174,6 +175,17 @@ public struct OPGGAugmentProvider: Sendable {
 
     private static func decode(_ text: String) -> [AugmentStat]? {
         try? JSONDecoder().decode([AugmentStat].self, from: Data(text.utf8))
+    }
+
+    private static func isCancellation(_ error: any Error) -> Bool {
+        if error is CancellationError {
+            return true
+        }
+        if let urlError = error as? URLError, urlError.code == .cancelled {
+            return true
+        }
+        let nsError = error as NSError
+        return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
     }
 }
 

@@ -59,6 +59,10 @@ struct LaneAssignerTests {
     @Test func normalizesNames() {
         #expect(RoleRates.normalized("Kog'Maw") == "kogmaw")
         #expect(RoleRates.normalized("Nunu & Willump") == "nunuwillump")
+        #expect(RoleRates.normalized("Nunu und Willump") == "nunuwillump")
+        #expect(RoleRates.normalized("Nunu") == "nunuwillump")
+        #expect(RoleRates.normalized("MonkeyKing") == "wukong")
+        #expect(RoleRates.normalized("Renata") == "renataglasc")
         #expect(RoleRates.normalized("Dr. Mundo") == "drmundo")
     }
 }
@@ -99,11 +103,11 @@ struct BriefingProviderTests {
 
     @Test func smallMatchupSampleHasNoWinRate() throws {
         let json = #"{"my_champion":"Ahri","opponent_champion":"Zed","#
-            + #""data":{"counters":[{"champion_id":238,"play":12,"win":9}]}}"#
+            + #""data":{"lane_advantage_champion":"AHRI","counters":[{"champion_id":238,"play":12,"win":9}]}}"#
         let brief = try OPGGMatchupProvider.brief(from: Data(json.utf8), opponentId: 238)
         #expect(brief.winRate == nil)
         #expect(brief.games == 12)
-        #expect(brief.laneAdvantage == nil && brief.tip == nil)
+        #expect(brief.laneAdvantage == .me && brief.tip == nil)
     }
 
     @Test func parsesRecordedCounters() async throws {

@@ -25,6 +25,7 @@ public actor LCUEventStream {
     private let session: URLSession
     private var task: URLSessionWebSocketTask?
     private var runner: Task<Void, Never>?
+    private var streamID: UUID?
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "LCUEventStream")
 
     public init(credentials: LCUCredentials, evaluator: LocalTrustEvaluator, uris: Set<String> = defaultURIs) {
@@ -34,23 +35,30 @@ public actor LCUEventStream {
         session = URLSession(configuration: .ephemeral, delegate: delegate, delegateQueue: nil)
     }
 
+    deinit {
+        session.invalidateAndCancel()
+    }
+
     public func messages() -> AsyncStream<LCUStreamMessage> {
         let (stream, continuation) = AsyncStream.makeStream(
             of: LCUStreamMessage.self,
             bufferingPolicy: .bufferingNewest(32)
         )
         runner?.cancel()
+        let id = UUID()
+        streamID = id
         runner = Task { [weak self] in
             await self?.run(continuation)
             continuation.finish()
         }
         continuation.onTermination = { [weak self] _ in
-            Task { await self?.stop() }
+            Task { await self?.stopIfCurrent(id) }
         }
         return stream
     }
 
     public func stop() {
+        streamID = nil
         runner?.cancel()
         runner = nil
         task?.cancel(with: .goingAway, reason: nil)
@@ -58,10 +66,16 @@ public actor LCUEventStream {
         session.invalidateAndCancel()
     }
 
+    private func stopIfCurrent(_ id: UUID) {
+        guard streamID == id else { return }
+        stop()
+    }
+
     private func run(_ continuation: AsyncStream<LCUStreamMessage>.Continuation) async {
         var backoff = Backoff()
         while !Task.isCancelled {
             let receivedAny = await connectAndReceive(continuation)
+            guard !Task.isCancelled else { break }
             if receivedAny {
                 backoff.reset()
             }
@@ -100,8 +114,13 @@ public actor LCUEventStream {
         }
         switch WAMPMessage.parse(data, keeping: uris) {
         case .welcome:
-            try? await task.send(.string(WAMPMessage.subscribe()))
-            continuation.yield(.subscribed)
+            do {
+                try await task.send(.string(WAMPMessage.subscribe()))
+                continuation.yield(.subscribed)
+            } catch {
+                logger.notice("LCU WAMP subscribe failed: \(error.localizedDescription, privacy: .public)")
+                task.cancel(with: .goingAway, reason: nil)
+            }
         case let .event(event):
             continuation.yield(.event(event))
         case nil:
@@ -127,8 +146,9 @@ struct Backoff {
     let cap: Double = 10
 
     mutating func next() -> Double {
-        defer { attempt += 1 }
-        return min(cap, base * pow(2, Double(attempt)))
+        let current = attempt
+        attempt = min(attempt + 1, 20)
+        return min(cap, base * pow(2, Double(current)))
     }
 
     mutating func reset() {

@@ -1,3 +1,4 @@
+import Foundation
 import LeagueKit
 import StatsKit
 
@@ -49,5 +50,20 @@ extension ChampSelectCoordinator {
         let importItems = items && !build.itemBlocks.isEmpty
         guard importItems || runes else { return nil }
         return AutoImportPlan(key: key, build: build, runes: runes, items: importItems)
+    }
+
+    /// Optional card, loaded independently so a slow OP.GG answer never delays builds or auto import.
+    func loadAugments(championId: Int, queue: GameQueue) {
+        guard queue.mode == .aramMayhem else { return }
+        Task { [augmentLoader] in
+            do {
+                let board = try await augmentLoader.board(championId: championId)
+                guard championId == self.championId, queue.mode == mode else { return }
+                applyAugmentBoard(board)
+                icons.prefetch(board.iconURLs)
+            } catch {
+                logger.notice("OP.GG augments unavailable: \(String(describing: error), privacy: .public)")
+            }
+        }
     }
 }

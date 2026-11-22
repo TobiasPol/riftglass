@@ -50,4 +50,36 @@ struct DockGeometryTests {
         let small = CGRect(x: 100, y: 100, width: 1024, height: 400)
         #expect(DockGeometry.panelFrame(client: small, panelSize: panel, screen: screen).height == 400)
     }
+
+    @Test func panelFrameClampsWhenClientOverhangsScreenEdges() {
+        let offTopAndRight = CGRect(x: 2000, y: 1200, width: 1400, height: 900)
+        let topClamped = DockGeometry.panelFrame(client: offTopAndRight, panelSize: panel, screen: screen)
+        #expect(screen.contains(topClamped))
+        #expect(topClamped.maxY == screen.maxY)
+
+        let offBottom = CGRect(x: 100, y: -300, width: 1600, height: 700)
+        let bottomClamped = DockGeometry.panelFrame(client: offBottom, panelSize: panel, screen: screen)
+        #expect(screen.contains(bottomClamped))
+        #expect(bottomClamped.minY == screen.minY)
+    }
+
+    @Test func bestScreenIndexPicksLargestOverlap() {
+        let screens = [
+            CGRect(x: 0, y: 0, width: 1920, height: 1080),
+            CGRect(x: 1920, y: 0, width: 2560, height: 1440)
+        ]
+        // 1 pt sliver on primary screen, bulk on secondary screen.
+        let mostlySecond = CGRect(x: 1919, y: 100, width: 1600, height: 900)
+        #expect(DockGeometry.bestScreenIndex(for: mostlySecond, in: screens) == 1)
+        #expect(DockGeometry.bestScreenIndex(for: CGRect(x: -5000, y: 0, width: 100, height: 100), in: screens) == 0)
+        #expect(DockGeometry.bestScreenIndex(for: mostlySecond, in: []) == nil)
+    }
+
+    @Test func largestWindowFindsShieldingLayerWindow() {
+        let windows = [
+            WindowInfo(ownerPID: 5, layer: 0, bounds: CGRect(x: 0, y: 0, width: 100, height: 100)),
+            WindowInfo(ownerPID: 5, layer: 2_147_483_628, bounds: CGRect(x: 0, y: 0, width: 3440, height: 1440))
+        ]
+        #expect(DockGeometry.largestWindow(in: windows, pid: 5)?.bounds.width == 3440)
+    }
 }

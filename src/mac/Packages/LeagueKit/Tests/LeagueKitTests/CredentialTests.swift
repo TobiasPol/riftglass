@@ -26,11 +26,15 @@ struct ProcessArgumentsTests {
             == "/Applications/League of Legends.app/Contents/LoL")
     }
 
-    @Test func rejectsTruncatedBuffer() {
+    @Test func rejectsTruncatedOrInvalidArgcBuffer() {
         var bytes = procargs(["a", "b"])
         bytes.removeLast(30)
         #expect(throws: ProcessArgumentsError.malformed) { try ProcessArguments.parse(procargs2: bytes) }
         #expect(throws: ProcessArgumentsError.malformed) { try ProcessArguments.parse(procargs2: [1]) }
+        let negativeArgc = withUnsafeBytes(of: Int32(-5).littleEndian) { Array($0) } + [0, 0]
+        #expect(throws: ProcessArgumentsError.malformed) { try ProcessArguments.parse(procargs2: negativeArgc) }
+        let hugeArgc = withUnsafeBytes(of: Int32.max.littleEndian) { Array($0) } + [0, 0]
+        #expect(throws: ProcessArgumentsError.malformed) { try ProcessArguments.parse(procargs2: hugeArgc) }
     }
 
     @Test func valueRequiresExactPrefix() {
@@ -83,6 +87,8 @@ struct LockfileTests {
         #expect(Lockfile(contents: "") == nil)
         #expect(Lockfile(contents: "LeagueClient:1:2:pw") == nil)
         #expect(Lockfile(contents: "LeagueClient:x:49215:pw:https") == nil)
+        #expect(Lockfile(contents: "LeagueClient:0:49215:pw:https") == nil)
+        #expect(Lockfile(contents: "LeagueClient:-1:49215:pw:https") == nil)
         #expect(Lockfile(contents: "LeagueClient:1:49215::https") == nil)
     }
 }

@@ -10,6 +10,7 @@ public actor DataDragon {
     private let cacheDirectory: URL
     private let locale: String
     private var loaded: [String: StaticData] = [:]
+    private var inFlight: [String: Task<StaticData, any Error>] = [:]
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "DataDragon")
 
     public init(
@@ -45,17 +46,25 @@ public actor DataDragon {
         if let data = loaded[version] {
             return data
         }
-        async let champions: DataContainer<Champion> = file("champion.json", version: version)
-        async let spells: DataContainer<SummonerSpell> = file("summoner.json", version: version)
-        async let items: DataContainer<Item> = file("item.json", version: version)
-        async let styles: [RuneStyle] = file("runesReforged.json", version: version)
-        let result = try await StaticDataBuilder.build(
-            version: version,
-            champions: champions.data.values,
-            spells: spells.data.values,
-            items: items.data,
-            styles: styles
-        )
+        if let running = inFlight[version] {
+            return try await running.value
+        }
+        let task = Task {
+            async let champions: DataContainer<Champion> = file("champion.json", version: version)
+            async let spells: DataContainer<SummonerSpell> = file("summoner.json", version: version)
+            async let items: DataContainer<Item> = file("item.json", version: version)
+            async let styles: [RuneStyle] = file("runesReforged.json", version: version)
+            return try await StaticDataBuilder.build(
+                version: version,
+                champions: champions.data.values,
+                spells: spells.data.values,
+                items: items.data,
+                styles: styles
+            )
+        }
+        inFlight[version] = task
+        defer { inFlight[version] = nil }
+        let result = try await task.value
         loaded[version] = result
         return result
     }
@@ -97,9 +106,14 @@ public actor DataDragon {
     }
 
     private func cachedVersions() -> [String] {
+        let required = ["champion.json", "summoner.json", "item.json", "runesReforged.json"]
         let names = (try? FileManager.default.contentsOfDirectory(atPath: cacheDirectory.path)) ?? []
-        return names.filter { $0.first?.isNumber == true }
-            .sorted { $0.compare($1, options: .numeric) == .orderedDescending }
+        return names.filter { version in
+            guard version.first?.isNumber == true else { return false }
+            let dir = cacheDirectory.appending(path: "\(version)/\(locale)")
+            return required.allSatisfy { FileManager.default.fileExists(atPath: dir.appending(path: $0).path) }
+        }
+        .sorted { $0.compare($1, options: .numeric) == .orderedDescending }
     }
 }
 

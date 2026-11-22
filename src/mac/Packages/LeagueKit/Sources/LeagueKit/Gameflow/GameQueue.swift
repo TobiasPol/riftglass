@@ -57,6 +57,11 @@ public struct GameQueue: Codable, Equatable, Sendable {
         if let mapNumber, let mapId = remembered.mapId, mapId != mapNumber {
             return live
         }
+        if let explicit = liveGameMode.flatMap({ GameMode.byGameModeString[$0.uppercased()] }),
+           explicit != remembered.mode,
+           !(remembered.mode == .leagueClassic && explicit == .summonersRift) {
+            return live
+        }
         return remembered
     }
 }

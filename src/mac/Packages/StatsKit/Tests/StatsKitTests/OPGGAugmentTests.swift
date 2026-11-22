@@ -75,6 +75,11 @@ struct OPGGAugmentTests {
         let html = Data(#"<script>self.__next_f.push([1,"1:{\"items\":[{\"id\":\"lol\"}]}\n"])</script>"#.utf8)
         #expect(throws: OPGGError.unexpectedPage) { try OPGGAugmentPage.augments(fromHTML: html) }
         #expect(throws: OPGGError.unexpectedPage) { try OPGGAugmentPage.augments(fromHTML: Data("<html>".utf8)) }
+        let nameless = Data(
+            #"<script>self.__next_f.push([1,"1:[{\"id\":1,\"tier\":0,\"popular\":1.0,\"name\":null}]\n"])</script>"#
+                .utf8
+        )
+        #expect(throws: OPGGError.unexpectedPage) { try OPGGAugmentPage.augments(fromHTML: nameless) }
     }
 
     @Test func bracketsInsideStringsDoNotEndTheArray() throws {
@@ -167,6 +172,23 @@ struct OPGGAugmentTests {
         let lists = try await [first, second, third]
         #expect(lists.allSatisfy { $0.count == 26 })
         #expect(await getter.requests.count == 1)
+    }
+
+    @Test func cancelledRequestsDoNotConsumeRetryBudget() async throws {
+        let clock = TestClock()
+        let getter = try FakeGetter(response: Fixture.data(Self.page))
+        let cache = ResponseCache(name: "t", directory: cacheDirectory(), now: { clock.date })
+        let provider = OPGGAugmentProvider(getter: getter, cache: cache, now: { clock.date })
+
+        await getter.fail(with: CancellationError())
+        await #expect(throws: CancellationError.self) { try await provider.augments(championId: 86) }
+
+        await getter.fail(with: URLError(.cancelled))
+        await #expect(throws: URLError.self) { try await provider.augments(championId: 86) }
+
+        try await getter.respond(with: Fixture.data(Self.page))
+        #expect(try await provider.augments(championId: 86).count == 26)
+        #expect(await getter.requests.count == 3)
     }
 }
 

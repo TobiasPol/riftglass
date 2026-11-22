@@ -32,16 +32,22 @@ public final class IconCache {
         if let image = cachedImage(for: url) {
             return image
         }
-        let task = inFlight[url] ?? Task { [fetcher, directory, file = diskURL(for: url)] in
+        let file = diskURL(for: url)
+        let task = inFlight[url] ?? Task { [fetcher, directory] in
             await Self.loadData(url, file: file, directory: directory, fetcher: fetcher)
         }
         inFlight[url] = task
         let data = await task.value
-        inFlight[url] = nil
+        if inFlight[url] == task {
+            inFlight[url] = nil
+        }
         if let image = cachedImage(for: url) {
             return image
         }
         guard let data, let image = NSImage(data: data) else {
+            if data != nil {
+                try? FileManager.default.removeItem(at: file)
+            }
             logger.debug("Icon unavailable: \(url.lastPathComponent, privacy: .public)")
             return nil
         }

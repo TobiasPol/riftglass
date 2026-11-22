@@ -29,12 +29,14 @@ extension InGameCoordinator {
             let isGame = app?.bundleIdentifier == LeagueBundleID.game
             MainActor.assumeIsolated {
                 guard let self else { return }
-                if isGame, let snapshot = self.snapshot {
-                    self.updateSkillOverlay(snapshot)
+                if isGame {
+                    if let snapshot = self.snapshot {
+                        self.updateSkillOverlay(snapshot)
+                    }
+                    self.refreshAugmentOverlay()
                 } else {
-                    self.hideSkills()
+                    self.dismissGameOverlaysOnDeactivate()
                 }
-                self.refreshAugmentOverlay()
             }
         }
     }
@@ -77,7 +79,8 @@ extension InGameCoordinator {
         }
         // Builds persisted before v0.2 have no queue and are not trusted; they trigger a fetch.
         let buildQueue = queue.flatMap(BuildQueue.init(queue:))
-        if let planned = champSelect.plannedBuild, planned.championKey == me.championKey,
+        if let planned = champSelect.plannedBuild,
+           planned.championKey?.caseInsensitiveCompare(me.championKey) == .orderedSame,
            planned.queue != nil, planned.queue == buildQueue, !planned.skillOrder.isEmpty {
             skillOrder = planned.skillOrder
             return planned.skillOrder
@@ -110,16 +113,22 @@ extension InGameCoordinator {
             guard !Task.isCancelled, let self else { return }
             if let order {
                 skillOrder = order
+                if let snapshot {
+                    updateSkillOverlay(snapshot)
+                }
             } else {
                 skillOrderTask = nil
             }
         }
     }
 
-    /// Item plan of the build from champ select – nil when that build is for another champion (the
-    /// persisted build of an earlier game, when the app was started mid-game).
+    /// Item plan of the build from champ select – nil when that build is for another champion or mode.
     func itemPlan(for player: LivePlayer) -> ItemPlan? {
-        guard let build = champSelect.plannedBuild, build.championKey == player.championKey else { return nil }
+        let buildQueue = queue.flatMap(BuildQueue.init(queue:))
+        guard let build = champSelect.plannedBuild,
+              build.championKey?.caseInsensitiveCompare(player.championKey) == .orderedSame,
+              build.queue != nil, build.queue == buildQueue
+        else { return nil }
         let plan = ItemPlan(required: build.requiredItemIds, alternatives: build.alternativeItemIds)
         return plan.isEmpty ? nil : plan
     }

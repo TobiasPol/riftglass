@@ -44,6 +44,7 @@ public actor AugmentCatalog {
     /// CommunityDragon locale folder (`de_de`, `default` = en_US).
     private let locale: String
     private var loaded: (augments: [Int: AugmentInfo], validUntil: Date)?
+    private var inFlight: Task<[Int: AugmentInfo], any Error>?
     private let now: @Sendable () -> Date
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "AugmentCatalog")
 
@@ -65,10 +66,17 @@ public actor AugmentCatalog {
         if let loaded, now() < loaded.validUntil {
             return loaded.augments
         }
-        let (data, freshUntil) = try await fileData()
-        let result = try Self.parse(data)
-        loaded = (result, freshUntil)
-        return result
+        if let running = inFlight {
+            return try await running.value
+        }
+        let task = Task {
+            let (result, freshUntil) = try await fileData()
+            loaded = (result, freshUntil)
+            return result
+        }
+        inFlight = task
+        defer { inFlight = nil }
+        return try await task.value
     }
 
     static func parse(_ data: Data) throws -> [Int: AugmentInfo] {
@@ -92,28 +100,29 @@ public actor AugmentCatalog {
         return baseURL.appending(path: "default/" + path.dropFirst(prefix.count).lowercased())
     }
 
-    /// The file's data and until when it counts as fresh.
-    private func fileData() async throws -> (Data, Date) {
+    /// Parsed augments and until when they count as fresh.
+    private func fileData() async throws -> ([Int: AugmentInfo], Date) {
         let attributes = try? FileManager.default.attributesOfItem(atPath: cacheFile.path)
         let modified = attributes?[.modificationDate] as? Date
         let cached = try? Data(contentsOf: cacheFile)
-        if let cached, let modified, now().timeIntervalSince(modified) < Self.timeToLive {
-            return (cached, modified.addingTimeInterval(Self.timeToLive))
+        let parsedCache = cached.flatMap { try? Self.parse($0) }
+        if let parsedCache, let modified, now().timeIntervalSince(modified) < Self.timeToLive {
+            return (parsedCache, modified.addingTimeInterval(Self.timeToLive))
         }
         do {
             let data = try await fetcher.data(from: Self.baseURL.appending(path: "\(locale)/v1/cherry-augments.json"))
-            _ = try Self.parse(data) // never cache an unusable answer
+            let parsed = try Self.parse(data) // never cache an unusable answer
             try? FileManager.default.createDirectory(
                 at: cacheFile.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
             try? data.write(to: cacheFile, options: .atomic)
             try? FileManager.default.setAttributes([.modificationDate: now()], ofItemAtPath: cacheFile.path)
-            return (data, now().addingTimeInterval(Self.timeToLive))
+            return (parsed, now().addingTimeInterval(Self.timeToLive))
         } catch {
-            guard let cached else { throw error }
+            guard let parsedCache else { throw error }
             logger.notice("CommunityDragon unavailable, using cached augments")
-            return (cached, now().addingTimeInterval(Self.retryInterval))
+            return (parsedCache, now().addingTimeInterval(Self.retryInterval))
         }
     }
 }

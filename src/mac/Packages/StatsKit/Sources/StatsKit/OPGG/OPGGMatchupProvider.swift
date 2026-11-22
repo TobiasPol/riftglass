@@ -68,11 +68,12 @@ public struct OPGGMatchupProvider: Sendable {
         let games = headToHead?.play ?? 0
         let wins = headToHead?.win
         func side(_ name: String?) -> MatchupBrief.Side? {
-            guard let name else { return nil }
-            if name == guide.myChampion {
+            guard let name, !name.isEmpty else { return nil }
+            let normalized = RoleRates.normalized(name)
+            if let mine = guide.myChampion, normalized == RoleRates.normalized(mine) {
                 return .me
             }
-            if name == guide.opponentChampion {
+            if let opponent = guide.opponentChampion, normalized == RoleRates.normalized(opponent) {
                 return .opponent
             }
             return nil

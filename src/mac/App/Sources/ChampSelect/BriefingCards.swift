@@ -8,17 +8,20 @@ struct BriefingSection: View {
 
     var body: some View {
         let briefing = coordinator.briefing
-        if coordinator.settings.draftOptionsEnabled {
-            DraftSection(coordinator: coordinator)
-        }
-        if coordinator.settings.briefingEnabled {
-            if let opponent = briefing.opponent {
-                MatchupCard(coordinator: coordinator, opponent: opponent, matchup: briefing.matchup)
+        Group {
+            if coordinator.settings.draftOptionsEnabled {
+                DraftSection(coordinator: coordinator)
             }
-            if !briefing.enemy.isEmpty {
-                TeamCompCard(briefing: briefing)
+            if coordinator.settings.briefingEnabled {
+                if let opponent = briefing.opponent {
+                    MatchupCard(coordinator: coordinator, opponent: opponent, matchup: briefing.matchup)
+                }
+                if !briefing.enemy.isEmpty {
+                    TeamCompCard(briefing: briefing)
+                }
             }
         }
+        .onChange(of: coordinator.settings.briefingEnabled) { _, _ in coordinator.updateBriefing() }
     }
 }
 

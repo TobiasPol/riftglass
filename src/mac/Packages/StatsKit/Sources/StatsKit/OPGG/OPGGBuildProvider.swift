@@ -103,9 +103,9 @@ public struct OPGGBuildProvider: BuildProvider {
 
     private static func title(summary: NotationValue?, queue: BuildQueue) -> String {
         let base = switch queue {
-        case .ranked: "OP.GG-Build"
-        case .flex: "OP.GG-Build (Flex)"
-        case .aram: "OP.GG ARAM-Build"
+        case .ranked: "OP.GG Build"
+        case .flex: "OP.GG Build (Flex)"
+        case .aram: "OP.GG ARAM Build"
         }
         guard let tier = summary?["tier"]?.int else { return base }
         return "\(base) · Tier \(tier)"

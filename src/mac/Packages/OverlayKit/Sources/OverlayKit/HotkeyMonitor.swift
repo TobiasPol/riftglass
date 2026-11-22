@@ -20,12 +20,22 @@ public final class HotkeyMonitor {
     /// Events are only reported while this returns true (e.g. the game is frontmost).
     public var isActive: () -> Bool = { true }
 
-    private var tap: CFMachPort?
-    private var source: CFRunLoopSource?
+    private nonisolated(unsafe) var tap: CFMachPort?
+    private nonisolated(unsafe) var source: CFRunLoopSource?
     private var isDown = false
     private let logger = Logger(subsystem: "de.polleydigital.riftglass", category: "Hotkey")
 
     public init() {}
+
+    deinit {
+        if let tap {
+            CGEvent.tapEnable(tap: tap, enable: false)
+            CFMachPortInvalidate(tap)
+        }
+        if let source {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+        }
+    }
 
     public static var hasPermission: Bool {
         CGPreflightListenEventAccess()
@@ -86,16 +96,22 @@ public final class HotkeyMonitor {
             if let tap {
                 CGEvent.tapEnable(tap: tap, enable: true)
             }
+            setDown(false)
         case .keyDown, .keyUp:
             guard !isRepeat else { return }
             if keyCode == Self.tabKeyCode {
-                setDown(type == .keyDown && isActive())
+                setDown(type == .keyDown && Self.isPlainTab(flags) && isActive())
             } else if keyCode == Self.toggleKeyCode, type == .keyDown, Self.isToggleChord(flags), isActive() {
                 onToggle?()
             }
         default:
             break
         }
+    }
+
+    /// No Command, Control or Option held (Shift+Tab still counts).
+    nonisolated static func isPlainTab(_ flags: CGEventFlags) -> Bool {
+        flags.isDisjoint(with: [.maskCommand, .maskControl, .maskAlternate])
     }
 
     /// Option held, Command and Control not (⌥⇧A also counts).
@@ -118,9 +134,10 @@ private func hotkeyCallback(
 ) -> Unmanaged<CGEvent>? {
     if let refcon {
         let monitor = Unmanaged<HotkeyMonitor>.fromOpaque(refcon).takeUnretainedValue()
+        let isKey = type == .keyDown || type == .keyUp
         // Read plain values here; the CGEvent itself must not cross into the actor.
-        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-        let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+        let keyCode = isKey ? event.getIntegerValueField(.keyboardEventKeycode) : 0
+        let isRepeat = isKey ? event.getIntegerValueField(.keyboardEventAutorepeat) != 0 : false
         let flags = event.flags
         // The tap's run loop source is on the main run loop.
         MainActor.assumeIsolated { monitor.handle(type, keyCode: keyCode, isRepeat: isRepeat, flags: flags) }

@@ -64,7 +64,7 @@ public struct OPGGSynergyProvider: Sendable {
     /// `NUNU_WILLUMP` (verified against the live tool, docs/SPIKE.md).
     static func argument(forName name: String) -> String {
         name.split(whereSeparator: \.isWhitespace)
-            .map { RoleRates.normalized(String($0)).uppercased() }
+            .map { RoleRates.alphanumeric(String($0)).uppercased() }
             .filter { !$0.isEmpty }
             .joined(separator: "_")
     }

@@ -36,14 +36,23 @@ struct RanksBannerView: View {
     private func team(_ side: String) -> some View {
         let players = coordinator.snapshot?.players.filter { $0.team == side } ?? []
         return VStack(alignment: .leading, spacing: 5) {
-            ForEach(players, id: \.displayID) { player in
+            ForEach(Array(players.enumerated()), id: \.offset) { _, player in
                 HStack(spacing: 6) {
                     ChampionIcon(key: player.championKey, champSelect: coordinator.champSelect, size: 20)
-                    Text(coordinator.ranks[player.displayID]?.label ?? "…")
+                    Text(rankLabel(for: player))
                         .font(.system(size: 11, weight: .medium).monospacedDigit())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                         .frame(width: 130, alignment: .leading)
                 }
             }
         }
+    }
+
+    private func rankLabel(for player: LivePlayer) -> String {
+        if player.isBot == true {
+            return String(localized: "Bot")
+        }
+        return coordinator.ranks[player.displayID]?.label ?? "…"
     }
 }

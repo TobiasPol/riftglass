@@ -104,8 +104,8 @@ public struct StaticData: Equatable, Sendable {
         itemsById.compactMapValues { $0.gold?.total }
     }
 
-    /// Data Dragon key (e.g. "MonkeyKing") → champion.
+    /// Data Dragon key (e.g. "MonkeyKing") → champion (case-insensitive for e.g. `FiddleSticks`).
     public func champion(key: String) -> Champion? {
-        championsById.values.first { $0.id == key }
+        championsById.values.first { $0.id.caseInsensitiveCompare(key) == .orderedSame }
     }
 }

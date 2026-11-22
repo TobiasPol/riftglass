@@ -6,13 +6,19 @@ import Testing
 private actor CatalogFetcher: HTTPFetching {
     private(set) var requests = 0
     var offline = false
+    var delay: Duration = .zero
 
     func setOffline(_ value: Bool) {
         offline = value
     }
 
+    func setDelay(_ value: Duration) {
+        delay = value
+    }
+
     func data(from url: URL) async throws -> Data {
         requests += 1
+        try await Task.sleep(for: delay)
         if offline {
             throw URLError(.notConnectedToInternet)
         }
@@ -61,6 +67,32 @@ struct AugmentCatalogTests {
         clock.date = clock.date.addingTimeInterval(AugmentCatalog.timeToLive + 1)
         _ = try await catalog.augments()
         #expect(await fetcher.requests == 2) // expired in memory and on disk → fetched again
+    }
+
+    @Test func corruptDiskCacheTriggersFreshDownloadAndHeals() async throws {
+        try FileManager.default.createDirectory(at: cache, withIntermediateDirectories: true)
+        let file = cache.appending(path: "cherry-augments-de_de.json")
+        try Data("not json".utf8).write(to: file)
+        let fetcher = CatalogFetcher()
+        let catalog = AugmentCatalog(fetcher: fetcher, cacheDirectory: cache)
+        let augments = try await catalog.augments()
+        #expect(augments[1389]?.name == "Hand des Barons")
+        #expect(await fetcher.requests == 1)
+        // Corrupt file was overwritten with valid JSON.
+        let healed = try AugmentCatalog.parse(Data(contentsOf: file))
+        #expect(healed.count == 8)
+    }
+
+    @Test func concurrentCallersShareOneDownload() async throws {
+        let fetcher = CatalogFetcher()
+        await fetcher.setDelay(.milliseconds(80))
+        let catalog = AugmentCatalog(fetcher: fetcher, cacheDirectory: cache)
+        async let first = catalog.augments()
+        async let second = catalog.augments()
+        async let third = catalog.augments()
+        let results = try await [first, second, third]
+        #expect(results.allSatisfy { $0.count == 8 })
+        #expect(await fetcher.requests == 1)
     }
 }
 

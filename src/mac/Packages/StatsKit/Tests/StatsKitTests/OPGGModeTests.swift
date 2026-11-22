@@ -25,7 +25,7 @@ struct OPGGModeTests {
         let (provider, poster) = try provider("opgg/ahri-aram.json")
         // In ARAM the player's role is irrelevant; OP.GG requires *a* position and ignores it.
         let build = try #require(try await provider.builds(for: ahri, role: .utility, queue: .aram, patch: nil).first)
-        #expect(build.title == "OP.GG ARAM-Build · Tier 2")
+        #expect(build.title == "OP.GG ARAM Build · Tier 2")
         #expect(build.queue == .aram)
         #expect(build.championKey == "Ahri")
         #expect(build.runes.perkIds == [8128, 8126, 8140, 8106, 8009, 8014, 5008, 5008, 5001])
